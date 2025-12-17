@@ -4,9 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        body, html { margin: 0; padding: 0; background: #ffffff; height: 500vh; overscroll-behavior-y: none; }
+        body, html { 
+            margin: 0; 
+            padding: 0; 
+            background: #ffffff; 
+            height: 1000vh; /* Extra height to ensure smooth scrolling */
+            overscroll-behavior-y: none; 
+        }
         
-        #top-block { height: 300px; background: #ffffff; width: 100%; } 
+        /* DOUBLED: 600px invisible spacer */
+        #top-block { 
+            height: 600px; 
+            background: #ffffff; 
+            width: 100%; 
+        } 
 
         #main-content { 
             position: relative;
@@ -16,16 +27,16 @@
             color: #000;
         }
 
+        /* DOUBLED: Positioned 400px below the fold */
         #breakout-link {
             color: #0000EE;
             text-decoration: underline;
             font-size: 19px;
             word-break: break-all;
             display: inline-block;
-            margin-top: 200px; 
+            margin-top: 400px; 
             z-index: 10000;
             position: relative;
-            /* Disable native gray tap highlight on mobile */
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -43,7 +54,7 @@
     <div id="top-block"></div>
 
     <div id="main-content">
-        <p style="margin-bottom: 10px; font-weight: 500;">Hold link to open in browser:</p>
+        <p style="margin-top: 350px; font-weight: 500;">Hold link to open in browser:</p>
         
         <a id="breakout-link" href="https://www.google.com">https://www.google.com</a>
     </div>
@@ -51,46 +62,48 @@
     <script>
         function createTouchEvent(type, y) {
             return new TouchEvent(type, {
-                bubbles: true, cancelable: true,
-                touches: [new Touch({ identifier: Date.now(), target: document.body, clientY: y, screenY: y, pageY: y })]
+                bubbles: true, 
+                cancelable: true,
+                touches: [new Touch({ 
+                    identifier: Date.now(), 
+                    target: document.body, 
+                    clientY: y, 
+                    screenY: y, 
+                    pageY: y 
+                })]
             });
         }
 
-        async function runFinalHijack() {
-            const startY = 800, endY = 100, steps = 15, stepDelay = 15;
+        async function runDeepHijack() {
+            // We now scroll to 600px to match the new top-block
+            const startY = 900, endY = 100, steps = 20, stepDelay = 12;
+            
             document.body.dispatchEvent(createTouchEvent('touchstart', startY));
+            
             for (let i = 0; i <= steps; i++) {
                 const currentY = startY - ((startY - endY) * (i / steps));
                 document.body.dispatchEvent(createTouchEvent('touchmove', currentY));
-                window.scrollBy(0, (startY - endY) / steps);
+                
+                // Sync window scroll to the 600px target
+                window.scrollTo(0, (600 * (i / steps)));
+                
                 await new Promise(r => setTimeout(r, stepDelay));
             }
+            
             document.body.dispatchEvent(createTouchEvent('touchend', endY));
             engageLock();
         }
 
         function engageLock() {
             document.getElementById('shield').style.display = 'block';
-            
             const link = document.getElementById('breakout-link');
 
-            // 1. KILL THE CLICK: Prevents accidental taps from doing anything
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-            }, { capture: true });
+            // Click & Tap Protection (Hold Only)
+            link.addEventListener('click', (e) => e.preventDefault(), { capture: true });
+            link.addEventListener('touchend', (e) => e.preventDefault(), { passive: false });
 
-            // 2. PREVENT TAP-RELEASE: Stops the browser from following the link on let-go
-            link.addEventListener('touchend', (e) => {
-                // We only prevent if it's a quick tap. 
-                // Long-press usually triggers the system menu before touchend fires.
-                e.preventDefault();
-            }, { passive: false });
-
-            // 3. THE GLOBAL SCROLL LOCK
             const prevent = (e) => { 
-                // Allow touchstart on the link so the long-press menu can trigger
                 if (e.target.id === 'breakout-link' && e.type === 'touchstart') return;
-                
                 e.preventDefault(); 
                 e.stopPropagation(); 
             };
@@ -100,7 +113,7 @@
             });
         }
 
-        window.onload = () => { setTimeout(runFinalHijack, 150); };
+        window.onload = () => { setTimeout(runDeepHijack, 150); };
     </script>
 </body>
 </html>
