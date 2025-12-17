@@ -12,6 +12,7 @@
             overscroll-behavior-y: none; 
         }
         
+        /* The invisible top section */
         #top-block { 
             height: 600px; 
             background: #ffffff; 
@@ -20,8 +21,8 @@
 
         #main-content { 
             position: relative;
-            /* This moves the whole block of text/link together */
-            margin-top: 300px; 
+            /* Pushes the content to the bottom 1/4 of the viewport after the 600px scroll */
+            margin-top: 550px; 
             text-align: center; 
             font-family: -apple-system, system-ui, sans-serif;
             color: #000;
@@ -29,7 +30,7 @@
 
         #instruction-text {
             font-weight: 500;
-            margin-bottom: 8px; /* Tight gap between text and link */
+            margin-bottom: 8px;
             font-size: 17px;
         }
 
@@ -41,6 +42,7 @@
             display: inline-block;
             z-index: 10000;
             position: relative;
+            /* Prevents the annoying gray box on tap */
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -79,6 +81,7 @@
         }
 
         async function runFinalHijack() {
+            // Smooth but fast scroll to the 600px mark
             const startY = 900, endY = 100, steps = 20, stepDelay = 12;
             document.body.dispatchEvent(createTouchEvent('touchstart', startY));
             for (let i = 0; i <= steps; i++) {
@@ -94,14 +97,18 @@
         function engageLock() {
             document.getElementById('shield').style.display = 'block';
             const link = document.getElementById('breakout-link');
+            
+            // Disable simple clicks/taps to force the long-press
             link.addEventListener('click', (e) => e.preventDefault(), { capture: true });
             link.addEventListener('touchend', (e) => e.preventDefault(), { passive: false });
 
             const prevent = (e) => { 
+                // Allow the long-press menu to trigger on the link
                 if (e.target.id === 'breakout-link' && e.type === 'touchstart') return;
                 e.preventDefault(); 
                 e.stopPropagation(); 
             };
+            
             ['touchstart', 'touchmove', 'wheel'].forEach(ev => {
                 window.addEventListener(ev, prevent, { passive: false, capture: true });
             });
