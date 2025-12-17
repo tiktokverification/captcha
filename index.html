@@ -3,30 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Momentum Scroll Test</title>
+    <title>Native Anchor Force</title>
     <style>
+        /* This is the secret sauce: it forces the 'Jump' to be an 'Animation' */
+        html {
+            scroll-behavior: smooth !important;
+        }
+
         body, html {
             margin: 0;
             padding: 0;
             background: #1a1a1a;
             color: #00ff00;
             font-family: monospace;
-            /* CRITICAL: Must be set to smooth for the native 'animation' feel */
-            scroll-behavior: smooth !important;
+            height: 300vh;
         }
 
         #top-block {
-            height: 200px;
+            height: 250px; /* Red zone */
             background: red;
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
         }
 
         #main-content {
-            height: 300vh;
+            height: 100vh;
             padding: 20px;
         }
 
@@ -39,19 +42,26 @@
             height: 100%;
             z-index: 9999;
         }
+
+        /* The Target Anchor */
+        #anchor-target {
+            position: absolute;
+            top: 250px; 
+            width: 1px;
+            height: 1px;
+        }
     </style>
 </head>
 <body>
 
     <div id="shield"></div>
+    <div id="top-block">EXIT ZONE (RED)</div>
 
-    <div id="top-block">
-        EXIT BUTTON ZONE (RED)
-    </div>
+    <div id="anchor-target"></div>
 
     <div id="main-content">
         <h1 id="status">Ready...</h1>
-        <p>Scrolling will begin in 1 second and last for 1 second.</p>
+        <p>Triggering Native Fragment Jump in 1s...</p>
     </div>
 
     <script>
@@ -61,39 +71,22 @@
             ['touchstart', 'touchmove', 'scroll', 'wheel'].forEach(ev => {
                 window.addEventListener(ev, prevent, { passive: false, capture: true });
             });
-            document.getElementById('status').innerText = "SCROLL FINISHED & LOCKED";
-        }
-
-        function performNativeScroll() {
-            document.getElementById('status').innerText = "Scrolling Now...";
-            
-            const target = 250; // Increased to 250 to be safe
-            const duration = 1000; // 1 second
-            const start = window.pageYOffset;
-            const startTime = performance.now();
-
-            // We use a combination of CSS smooth-scroll and a JS loop
-            // to ensure the browser registers "continuous motion"
-            function animation(currentTime) {
-                const timeElapsed = currentTime - startTime;
-                
-                // Native scroll command
-                window.scrollTo(0, (target * (timeElapsed / duration)));
-
-                if (timeElapsed < duration) {
-                    requestAnimationFrame(animation);
-                } else {
-                    window.scrollTo(0, target);
-                    setTimeout(lockScreen, 100);
-                }
-            }
-
-            requestAnimationFrame(animation);
+            document.getElementById('status').innerText = "SCROLL VERIFIED & LOCKED";
         }
 
         window.onload = () => {
-            // Wait 1 second so you are ready to watch
-            setTimeout(performNativeScroll, 1000);
+            setTimeout(() => {
+                document.getElementById('status').innerText = "Jumping to Anchor...";
+                
+                // NATIVE TRIGGER:
+                // Changing the hash to an ID on the page forces the browser 
+                // to execute a "Scroll to Fragment" routine. 
+                // Because of 'scroll-behavior: smooth', it will take ~1 second.
+                window.location.hash = "anchor-target";
+
+                // We wait for the 1-second animation to finish, then lock.
+                setTimeout(lockScreen, 1200);
+            }, 1000);
         };
     </script>
 </body>
