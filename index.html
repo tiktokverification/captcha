@@ -3,113 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Final Visual Displacement Lock</title>
+    <title>Navigation Jump Protocol</title>
     <style>
         body {
-            /* Standard height for positioning */
-            height: 100vh; 
+            height: 300vh;
             margin: 0;
             padding: 0;
             background-color: #1a1a1a;
             color: #00ff00;
             font-family: monospace;
             text-align: center;
-            padding-top: 50vh; 
-            transition: transform 0.3s ease; /* Transition for the visible shift */
         }
 
-        /* Initial state: Allow scrolling (for the observation window) */
-        html, body {
-            overflow: auto; 
-            position: relative;
+        /* The Marker to prove we moved */
+        #scroll-marker {
+            height: 50px;
+            width: 100%;
+            background: red;
+            color: white;
+            line-height: 50px;
         }
 
-        /* The Class for the Visual Shift */
-        .shifted {
-            /* This property physically moves the entire body content up */
-            transform: translateY(-200px); 
+        /* The Target Element we want to jump to */
+        #target-anchor {
+            position: absolute;
+            top: 250px; /* How far down we want to "scroll" */
+            width: 100%;
+            height: 1px;
         }
 
-        /* The Class for the Hard Lock */
         .lockdown {
-            overflow: hidden !important; 
-            position: fixed !important; 
+            overflow: hidden !important;
+            position: fixed !important;
             width: 100% !important;
             height: 100% !important;
-        }
-
-        /* The Marker Style */
-        #scroll-marker {
-            position: absolute; 
-            top: 0;
-            left: 0;
-            width: 100%;
-            background-color: #ff0000; 
-            color: #ffffff;
-            padding: 5px;
-            font-size: 14px;
-            text-align: center;
-            z-index: 1000; 
-            border-bottom: 2px solid #ffffff;
         }
     </style>
 </head>
 <body>
 
-    <div id="scroll-marker">
-        *** TOP OF PAGE MARKER (MUST SHIFT OUT OF VIEW) ***
-    </div>
+    <div id="scroll-marker">TOP OF PAGE - MUST DISAPPEAR</div>
+    
+    <div id="status" style="margin-top: 100px;">Waiting for Jump...</div>
 
-    <div id="status">
-        Phase 1: Observation Window Open. Standby...
-    </div>
+    <div id="target-anchor"></div>
 
     <script>
-        const SHIFT_PIXELS = 200; 
-        const DELAY_MS = 1000; 
+        function executeProtocol() {
+            document.getElementById('status').innerText = "Initiating Hash Jump...";
 
-        function initiateFinalLock() {
-            document.getElementById('status').innerText = 'Executing Visual Displacement Protocol...';
+            // PHASE 1: THE JUMP
+            // Changing the hash forces the browser to align the top of the viewport 
+            // with the element that has the matching ID.
+            window.location.hash = "target-anchor";
 
-            // --- TACTICAL SEQUENCE: VISUAL SHIFT, THEN LOCK ---
+            // PHASE 2: THE LOCK
+            // We wait 100ms to ensure the jump is rendered before we freeze the screen
+            setTimeout(() => {
+                document.documentElement.classList.add('lockdown');
+                document.body.classList.add('lockdown');
 
-            // Step 1: Execute the Content Shift (The Working Maneuver)
-            document.body.style.transform = `translateY(-${SHIFT_PIXELS}px)`;
-            document.getElementById('status').innerText = 'Content Shift Executed. Deploying Hard Lock...';
-
-            // Step 2: Apply the CSS Lockdown Class (Static Defense)
-            // Fixes the displaced viewport
-            document.documentElement.classList.add('lockdown');
-            document.body.classList.add('lockdown');
-
-            // Step 3: Event Interception Protocol (The Iron Grip)
-            // Block all input that could reverse the shift or scroll the page (even though scrolling is mostly disabled)
-            const preventScroll = (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-            };
-            
-            const lockEvents = ['scroll', 'touchmove', 'wheel', 'DOMMouseScroll'];
-            
-            lockEvents.forEach(event => {
-                window.addEventListener(event, preventScroll, { 
-                    passive: false, 
-                    capture: true   
+                // Kill all manual scroll attempts
+                const preventScroll = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                };
+                ['touchmove', 'wheel', 'scroll'].forEach(ev => {
+                    window.addEventListener(ev, preventScroll, { passive: false, capture: true });
                 });
-            });
 
-            document.getElementById('status').innerText = `CONCEALMENT ACTIVE. Visual Displacement: -${SHIFT_PIXELS}px. All Exits Neutralized.`;
+                document.getElementById('status').innerText = "JUMP COMPLETE. LOCKDOWN ENGAGED.";
+            }, 100);
         }
 
-        window.onload = function() {
-            document.getElementById('status').innerText = 'Phase 1: Observation Window Open. You have 1 second to scroll...';
-            
-            // Set the timer for the execution
-            setTimeout(() => {
-                initiateFinalLock();
-            }, DELAY_MS);
-        };
+        // Delay for testing visibility
+        setTimeout(executeProtocol, 2000);
     </script>
-
 </body>
 </html>
