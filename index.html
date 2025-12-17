@@ -2,82 +2,101 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Navigation Jump Protocol</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Iron Scroll</title>
     <style>
-        body {
-            height: 300vh;
+        /* Base setup - No hidden overflow yet */
+        html, body {
             margin: 0;
             padding: 0;
-            background-color: #1a1a1a;
+            background: #1a1a1a;
             color: #00ff00;
             font-family: monospace;
-            text-align: center;
+            width: 100%;
         }
 
-        /* The Marker to prove we moved */
-        #scroll-marker {
-            height: 50px;
-            width: 100%;
+        #top-block {
+            height: 200px;
             background: red;
             color: white;
-            line-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
         }
 
-        /* The Target Element we want to jump to */
-        #target-anchor {
-            position: absolute;
-            top: 250px; /* How far down we want to "scroll" */
+        #main-content {
+            height: 200vh; /* Extra height to ensure scrollability */
+            background: #1a1a1a;
+            padding: 20px;
+        }
+
+        /* The Glass Shield: This sits on top after scroll to block touch */
+        #shield {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            height: 1px;
-        }
-
-        .lockdown {
-            overflow: hidden !important;
-            position: fixed !important;
-            width: 100% !important;
-            height: 100% !important;
+            height: 100%;
+            z-index: 9999;
+            background: rgba(0,0,0,0); /* Invisible but present */
         }
     </style>
 </head>
 <body>
 
-    <div id="scroll-marker">TOP OF PAGE - MUST DISAPPEAR</div>
-    
-    <div id="status" style="margin-top: 100px;">Waiting for Jump...</div>
+    <div id="shield"></div>
 
-    <div id="target-anchor"></div>
+    <div id="top-block">
+        EXIT BUTTON ZONE (RED BAR)
+    </div>
+
+    <div id="main-content">
+        <h1 id="status">Ready...</h1>
+        <p>This content will move up in 1 second.</p>
+    </div>
 
     <script>
-        function executeProtocol() {
-            document.getElementById('status').innerText = "Initiating Hash Jump...";
+        function engageLock() {
+            // 1. Drop the glass shield to block all clicks/touches
+            document.getElementById('shield').style.display = 'block';
 
-            // PHASE 1: THE JUMP
-            // Changing the hash forces the browser to align the top of the viewport 
-            // with the element that has the matching ID.
-            window.location.hash = "target-anchor";
+            // 2. Disable manual scrolling by killing the events on the shield
+            const prevent = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            };
 
-            // PHASE 2: THE LOCK
-            // We wait 100ms to ensure the jump is rendered before we freeze the screen
-            setTimeout(() => {
-                document.documentElement.classList.add('lockdown');
-                document.body.classList.add('lockdown');
+            const shield = document.getElementById('shield');
+            ['touchstart', 'touchmove', 'touchend', 'wheel', 'mousedown'].forEach(ev => {
+                shield.addEventListener(ev, prevent, { passive: false, capture: true });
+                window.addEventListener(ev, prevent, { passive: false, capture: true });
+            });
 
-                // Kill all manual scroll attempts
-                const preventScroll = (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                };
-                ['touchmove', 'wheel', 'scroll'].forEach(ev => {
-                    window.addEventListener(ev, preventScroll, { passive: false, capture: true });
-                });
-
-                document.getElementById('status').innerText = "JUMP COMPLETE. LOCKDOWN ENGAGED.";
-            }, 100);
+            document.getElementById('status').innerText = "LOCKED AT 200PX";
         }
 
-        // Delay for testing visibility
-        setTimeout(executeProtocol, 2000);
+        window.onload = () => {
+            setTimeout(() => {
+                // THE SCROLL: Use 'smooth' for Desktop Chrome, 'instant' for WebViews
+                // We target the root element directly.
+                const scrollTarget = 200;
+                
+                window.scrollTo({
+                    top: scrollTarget,
+                    behavior: 'auto' // 'auto' is more forceful than 'smooth'
+                });
+
+                // Fallback for browsers that ignore window.scrollTo
+                document.documentElement.scrollTop = scrollTarget;
+                document.body.scrollTop = scrollTarget;
+
+                // Check if we actually moved, then lock
+                setTimeout(engageLock, 200);
+            }, 1000);
+        };
     </script>
 </body>
 </html>
