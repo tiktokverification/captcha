@@ -3,16 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>The Iron Scroll</title>
+    <title>The Accordion Force</title>
     <style>
-        /* Base setup - No hidden overflow yet */
-        html, body {
+        body, html {
             margin: 0;
             padding: 0;
             background: #1a1a1a;
             color: #00ff00;
             font-family: monospace;
+            /* Do NOT use overflow:hidden yet */
+        }
+
+        /* This is the spacer that will push the page down */
+        #piston-spacer {
+            height: 0px;
             width: 100%;
+            background: #1a1a1a;
+            transition: height 0.5s ease;
         }
 
         #top-block {
@@ -22,16 +29,15 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
         }
 
         #main-content {
-            height: 200vh; /* Extra height to ensure scrollability */
-            background: #1a1a1a;
+            height: 300vh;
             padding: 20px;
+            background: #1a1a1a;
         }
 
-        /* The Glass Shield: This sits on top after scroll to block touch */
+        /* The Glass Shield for the lock */
         #shield {
             display: none;
             position: fixed;
@@ -40,61 +46,55 @@
             width: 100%;
             height: 100%;
             z-index: 9999;
-            background: rgba(0,0,0,0); /* Invisible but present */
         }
     </style>
 </head>
 <body>
 
     <div id="shield"></div>
-
-    <div id="top-block">
-        EXIT BUTTON ZONE (RED BAR)
-    </div>
+    <div id="piston-spacer"></div>
+    <div id="top-block">EXIT ZONE (RED)</div>
 
     <div id="main-content">
         <h1 id="status">Ready...</h1>
-        <p>This content will move up in 1 second.</p>
+        <input type="text" id="scroll-trigger" style="position:absolute; top:400px; opacity:0;">
     </div>
 
     <script>
-        function engageLock() {
-            // 1. Drop the glass shield to block all clicks/touches
+        function lockIt() {
+            // Drop the shield to prevent the user from scrolling back up
             document.getElementById('shield').style.display = 'block';
-
-            // 2. Disable manual scrolling by killing the events on the shield
+            
             const prevent = (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                return false;
             };
 
             const shield = document.getElementById('shield');
-            ['touchstart', 'touchmove', 'touchend', 'wheel', 'mousedown'].forEach(ev => {
-                shield.addEventListener(ev, prevent, { passive: false, capture: true });
+            ['touchstart', 'touchmove', 'wheel', 'scroll'].forEach(ev => {
                 window.addEventListener(ev, prevent, { passive: false, capture: true });
+                shield.addEventListener(ev, prevent, { passive: false, capture: true });
             });
 
-            document.getElementById('status').innerText = "LOCKED AT 200PX";
+            document.getElementById('status').innerText = "NATIVE SCROLL LOCKED";
         }
 
         window.onload = () => {
             setTimeout(() => {
-                // THE SCROLL: Use 'smooth' for Desktop Chrome, 'instant' for WebViews
-                // We target the root element directly.
-                const scrollTarget = 200;
-                
-                window.scrollTo({
-                    top: scrollTarget,
-                    behavior: 'auto' // 'auto' is more forceful than 'smooth'
-                });
+                // 1. Expand the top spacer. This physically pushes the red bar down.
+                const spacer = document.getElementById('piston-spacer');
+                spacer.style.height = "200px";
 
-                // Fallback for browsers that ignore window.scrollTo
-                document.documentElement.scrollTop = scrollTarget;
-                document.body.scrollTop = scrollTarget;
+                // 2. Immediately tell the browser to focus on an element below it.
+                // In mobile browsers, focusing an input forces a NATIVE scroll event.
+                const input = document.getElementById('scroll-trigger');
+                input.focus();
 
-                // Check if we actually moved, then lock
-                setTimeout(engageLock, 200);
+                // 3. Simultaneously fire a standard scroll command
+                window.scrollTo(0, 200);
+
+                // 4. Once the "push" and "focus" are done, lock the shield.
+                setTimeout(lockIt, 600);
             }, 1000);
         };
     </script>
