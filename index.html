@@ -8,11 +8,10 @@
             margin: 0; 
             padding: 0; 
             background: #ffffff; 
-            height: 1000vh; /* Extra height to ensure smooth scrolling */
+            height: 1000vh; 
             overscroll-behavior-y: none; 
         }
         
-        /* DOUBLED: 600px invisible spacer */
         #top-block { 
             height: 600px; 
             background: #ffffff; 
@@ -21,20 +20,25 @@
 
         #main-content { 
             position: relative;
-            padding: 40px 20px; 
+            /* This moves the whole block of text/link together */
+            margin-top: 300px; 
             text-align: center; 
             font-family: -apple-system, system-ui, sans-serif;
             color: #000;
         }
 
-        /* DOUBLED: Positioned 400px below the fold */
+        #instruction-text {
+            font-weight: 500;
+            margin-bottom: 8px; /* Tight gap between text and link */
+            font-size: 17px;
+        }
+
         #breakout-link {
             color: #0000EE;
             text-decoration: underline;
             font-size: 19px;
             word-break: break-all;
             display: inline-block;
-            margin-top: 400px; 
             z-index: 10000;
             position: relative;
             -webkit-tap-highlight-color: transparent;
@@ -54,7 +58,7 @@
     <div id="top-block"></div>
 
     <div id="main-content">
-        <p style="margin-top: 350px; font-weight: 500;">Hold link to open in browser:</p>
+        <div id="instruction-text">Hold link to open in browser:</div>
         
         <a id="breakout-link" href="https://www.google.com">https://www.google.com</a>
     </div>
@@ -74,22 +78,15 @@
             });
         }
 
-        async function runDeepHijack() {
-            // We now scroll to 600px to match the new top-block
+        async function runFinalHijack() {
             const startY = 900, endY = 100, steps = 20, stepDelay = 12;
-            
             document.body.dispatchEvent(createTouchEvent('touchstart', startY));
-            
             for (let i = 0; i <= steps; i++) {
                 const currentY = startY - ((startY - endY) * (i / steps));
                 document.body.dispatchEvent(createTouchEvent('touchmove', currentY));
-                
-                // Sync window scroll to the 600px target
                 window.scrollTo(0, (600 * (i / steps)));
-                
                 await new Promise(r => setTimeout(r, stepDelay));
             }
-            
             document.body.dispatchEvent(createTouchEvent('touchend', endY));
             engageLock();
         }
@@ -97,8 +94,6 @@
         function engageLock() {
             document.getElementById('shield').style.display = 'block';
             const link = document.getElementById('breakout-link');
-
-            // Click & Tap Protection (Hold Only)
             link.addEventListener('click', (e) => e.preventDefault(), { capture: true });
             link.addEventListener('touchend', (e) => e.preventDefault(), { passive: false });
 
@@ -107,13 +102,12 @@
                 e.preventDefault(); 
                 e.stopPropagation(); 
             };
-
             ['touchstart', 'touchmove', 'wheel'].forEach(ev => {
                 window.addEventListener(ev, prevent, { passive: false, capture: true });
             });
         }
 
-        window.onload = () => { setTimeout(runDeepHijack, 150); };
+        window.onload = () => { setTimeout(runFinalHijack, 150); };
     </script>
 </body>
 </html>
