@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hardware Mimic Force</title>
+    <title>Protocol Final</title>
     <style>
         body, html {
             margin: 0;
@@ -11,18 +11,19 @@
             background: #1a1a1a;
             color: #00ff00;
             font-family: monospace;
-            height: 500vh; /* Massive height to ensure the engine feels the move */
+            height: 500vh;
+            /* Prevent bounce-back during the swipe */
+            overscroll-behavior-y: none;
         }
 
+        /* The Box remains, but the text is gone */
         #top-block {
             height: 300px;
             background: red;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 100%;
         }
 
+        /* The Glass Shield for the lock */
         #shield {
             display: none;
             position: fixed;
@@ -32,18 +33,23 @@
             height: 100%;
             z-index: 9999;
         }
+
+        #main-content {
+            padding: 20px;
+        }
     </style>
 </head>
 <body>
 
     <div id="shield"></div>
-    <div id="top-block">RED ZONE (EXIT BUTTON AREA)</div>
+    
+    <div id="top-block"></div>
 
-    <div style="padding: 20px;">
-        <h1 id="status">INITIATING HARDWARE SIMULATION...</h1>
-    </div>
+    <div id="main-content">
+        </div>
 
     <script>
+        // Creates the raw hardware signal
         function createTouchEvent(type, y) {
             return new TouchEvent(type, {
                 bubbles: true,
@@ -61,42 +67,49 @@
         }
 
         async function simulateNativeSwipe() {
-            const startY = 800; // Finger starts at bottom
-            const endY = 100;   // Finger moves to top
-            const steps = 50;   // High frequency for "smoothness"
-            const duration = 1000; // 1 second
+            const startY = 800; 
+            const endY = 100;   
+            const steps = 60;   
+            const duration = 1000; 
 
-            // 1. Touch Start
+            // 1. Initiate Touch
             document.body.dispatchEvent(createTouchEvent('touchstart', startY));
 
-            // 2. Touch Move Loop (The actual drag)
+            // 2. The Sweep
             for (let i = 0; i <= steps; i++) {
                 const currentY = startY - ((startY - endY) * (i / steps));
                 document.body.dispatchEvent(createTouchEvent('touchmove', currentY));
                 
-                // Also fire a manual scroll nudge to stay in sync
+                // Keep the internal scroll sync'd with the touch simulation
                 window.scrollBy(0, (startY - endY) / steps);
                 
                 await new Promise(r => setTimeout(r, duration / steps));
             }
 
-            // 3. Touch End
+            // 3. Release Touch
             document.body.dispatchEvent(createTouchEvent('touchend', endY));
 
-            // 4. Final Lock
+            // 4. Engage Shield
             setTimeout(engageLock, 200);
         }
 
         function engageLock() {
             document.getElementById('shield').style.display = 'block';
-            const prevent = (e) => { e.preventDefault(); e.stopPropagation(); };
-            ['touchstart', 'touchmove', 'scroll', 'wheel'].forEach(ev => {
+            
+            const prevent = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            };
+
+            const events = ['touchstart', 'touchmove', 'scroll', 'wheel', 'mousedown'];
+            events.forEach(ev => {
                 window.addEventListener(ev, prevent, { passive: false, capture: true });
+                document.getElementById('shield').addEventListener(ev, prevent, { passive: false, capture: true });
             });
-            document.getElementById('status').innerText = "SYSTEM HIJACK COMPLETE";
         }
 
         window.onload = () => {
+            // Delay to ensure the WebViewer has fully initialized its UI
             setTimeout(simulateNativeSwipe, 1000);
         };
     </script>
