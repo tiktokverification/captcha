@@ -5,11 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body, html { 
-            margin: 0; 
-            padding: 0; 
-            background: #ffffff; 
-            height: 300vh; 
-            overscroll-behavior-y: none; 
+            margin: 0; padding: 0; background: #ffffff; 
+            height: 300vh; overscroll-behavior-y: none; 
             -webkit-font-smoothing: antialiased;
         }
         
@@ -19,64 +16,51 @@
             position: relative;
             text-align: center; 
             font-family: "Proxima Nova", "Inter", "Segoe UI", Roboto, sans-serif;
-            /* Wider horizontal stretch for the paragraph */
             padding: 0 25px; 
-            margin-top: 130px; 
+            margin-top: 110px;
         }
 
         .verification-icon {
-            /* Larger icon for more visual impact */
-            width: 65px;
-            height: 65px;
-            margin-bottom: 15px;
+            width: 65px; height: 65px; margin-bottom: 15px;
         }
 
         .header {
-            color: #161823;
-            font-size: 22px;
-            font-weight: 700;
-            margin-bottom: 10px;
-            line-height: 1.2;
+            color: #161823; font-size: 22px; font-weight: 700;
+            margin-bottom: 10px; line-height: 1.2;
         }
 
         .subtext {
-            color: #8A8B91;
-            /* Larger grey text */
-            font-size: 16px; 
-            line-height: 1.5;
-            margin-bottom: 35px;
-            /* Forces the text to use more of the screen width */
-            max-width: 90%;
-            margin-left: auto;
-            margin-right: auto;
+            color: #8A8B91; font-size: 16px; line-height: 1.5;
+            margin-bottom: 20px; max-width: 90%;
+            margin-left: auto; margin-right: auto;
         }
 
-        #instruction-text {
-            color: #161823;
-            font-weight: 700;
-            margin-bottom: 8px;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
+        .instruction-list {
+            display: inline-block;
+            text-align: left;
+            color: #8A8B91;
+            font-size: 15px;
+            margin-bottom: 65px; /* Deep spacing to separate link */
+            padding-left: 20px;
+            line-height: 1.8;
+        }
+
+        .instruction-list li {
+            margin-bottom: 5px;
         }
 
         #breakout-link {
-            color: #0049f6;
-            text-decoration: underline;
-            font-size: 17px;
-            word-break: break-all;
-            display: inline-block;
+            color: #0049f6; text-decoration: underline;
+            font-size: 17px; word-break: break-all;
+            display: inline-block; 
             z-index: 10000;
-            position: relative;
-            -webkit-tap-highlight-color: transparent;
+            position: relative; -webkit-tap-highlight-color: transparent;
         }
 
         #shield { 
-            display: none; 
-            position: fixed; 
+            display: none; position: fixed; 
             top: 0; left: 0; width: 100%; height: 100%; 
-            z-index: 5000;
-            pointer-events: none; 
+            z-index: 5000; pointer-events: none; 
         }
     </style>
 </head>
@@ -94,7 +78,13 @@
         <div class="header">Suspicious network activity</div>
         <div class="subtext">We’ve detected unusual activity from your network. Please complete the verification to continue using TikTok.</div>
 
-        <div id="instruction-text">Hold link to verify</div>
+        <ul class="instruction-list">
+            <li>hold the link</li>
+            <li>press "open link" in external browser</li>
+            <li>press the verify button 5 times to complete verification</li>
+        </ul>
+
+        <br>
         <a id="breakout-link" href="https://www.google.com">https://www.google.com</a>
     </div>
 
