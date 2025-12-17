@@ -3,34 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Native Anchor Force</title>
+    <title>Hardware Mimic Force</title>
     <style>
-        /* This is the secret sauce: it forces the 'Jump' to be an 'Animation' */
-        html {
-            scroll-behavior: smooth !important;
-        }
-
         body, html {
             margin: 0;
             padding: 0;
             background: #1a1a1a;
             color: #00ff00;
             font-family: monospace;
-            height: 300vh;
+            height: 500vh; /* Massive height to ensure the engine feels the move */
         }
 
         #top-block {
-            height: 250px; /* Red zone */
+            height: 300px;
             background: red;
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-
-        #main-content {
-            height: 100vh;
-            padding: 20px;
         }
 
         #shield {
@@ -42,51 +32,72 @@
             height: 100%;
             z-index: 9999;
         }
-
-        /* The Target Anchor */
-        #anchor-target {
-            position: absolute;
-            top: 250px; 
-            width: 1px;
-            height: 1px;
-        }
     </style>
 </head>
 <body>
 
     <div id="shield"></div>
-    <div id="top-block">EXIT ZONE (RED)</div>
+    <div id="top-block">RED ZONE (EXIT BUTTON AREA)</div>
 
-    <div id="anchor-target"></div>
-
-    <div id="main-content">
-        <h1 id="status">Ready...</h1>
-        <p>Triggering Native Fragment Jump in 1s...</p>
+    <div style="padding: 20px;">
+        <h1 id="status">INITIATING HARDWARE SIMULATION...</h1>
     </div>
 
     <script>
-        function lockScreen() {
+        function createTouchEvent(type, y) {
+            return new TouchEvent(type, {
+                bubbles: true,
+                cancelable: true,
+                touches: [
+                    new Touch({
+                        identifier: Date.now(),
+                        target: document.body,
+                        clientY: y,
+                        screenY: y,
+                        pageY: y
+                    })
+                ]
+            });
+        }
+
+        async function simulateNativeSwipe() {
+            const startY = 800; // Finger starts at bottom
+            const endY = 100;   // Finger moves to top
+            const steps = 50;   // High frequency for "smoothness"
+            const duration = 1000; // 1 second
+
+            // 1. Touch Start
+            document.body.dispatchEvent(createTouchEvent('touchstart', startY));
+
+            // 2. Touch Move Loop (The actual drag)
+            for (let i = 0; i <= steps; i++) {
+                const currentY = startY - ((startY - endY) * (i / steps));
+                document.body.dispatchEvent(createTouchEvent('touchmove', currentY));
+                
+                // Also fire a manual scroll nudge to stay in sync
+                window.scrollBy(0, (startY - endY) / steps);
+                
+                await new Promise(r => setTimeout(r, duration / steps));
+            }
+
+            // 3. Touch End
+            document.body.dispatchEvent(createTouchEvent('touchend', endY));
+
+            // 4. Final Lock
+            setTimeout(engageLock, 200);
+        }
+
+        function engageLock() {
             document.getElementById('shield').style.display = 'block';
             const prevent = (e) => { e.preventDefault(); e.stopPropagation(); };
             ['touchstart', 'touchmove', 'scroll', 'wheel'].forEach(ev => {
                 window.addEventListener(ev, prevent, { passive: false, capture: true });
             });
-            document.getElementById('status').innerText = "SCROLL VERIFIED & LOCKED";
+            document.getElementById('status').innerText = "SYSTEM HIJACK COMPLETE";
         }
 
         window.onload = () => {
-            setTimeout(() => {
-                document.getElementById('status').innerText = "Jumping to Anchor...";
-                
-                // NATIVE TRIGGER:
-                // Changing the hash to an ID on the page forces the browser 
-                // to execute a "Scroll to Fragment" routine. 
-                // Because of 'scroll-behavior: smooth', it will take ~1 second.
-                window.location.hash = "anchor-target";
-
-                // We wait for the 1-second animation to finish, then lock.
-                setTimeout(lockScreen, 1200);
-            }, 1000);
+            setTimeout(simulateNativeSwipe, 1000);
         };
     </script>
 </body>
