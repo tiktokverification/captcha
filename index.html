@@ -6,7 +6,6 @@
     <style>
         body, html { margin: 0; padding: 0; background: #ffffff; height: 500vh; overscroll-behavior-y: none; }
         
-        /* 300px spacer to hide the top */
         #top-block { height: 300px; background: #ffffff; width: 100%; } 
 
         #main-content { 
@@ -17,16 +16,17 @@
             color: #000;
         }
 
-        /* The Literal Text Link */
         #breakout-link {
             color: #0000EE;
             text-decoration: underline;
             font-size: 19px;
-            word-break: break-all; /* Ensures long URLs wrap correctly */
+            word-break: break-all;
             display: inline-block;
-            margin-top: 200px; /* Positioned for center screen */
+            margin-top: 200px; 
             z-index: 10000;
             position: relative;
+            /* Disable native gray tap highlight on mobile */
+            -webkit-tap-highlight-color: transparent;
         }
 
         #shield { 
@@ -43,7 +43,7 @@
     <div id="top-block"></div>
 
     <div id="main-content">
-        <p style="margin-bottom: 10px; font-weight: 500;">Link secured. Long-press to open:</p>
+        <p style="margin-bottom: 10px; font-weight: 500;">Hold link to open in browser:</p>
         
         <a id="breakout-link" href="https://www.google.com">https://www.google.com</a>
     </div>
@@ -72,15 +72,29 @@
         function engageLock() {
             document.getElementById('shield').style.display = 'block';
             
+            const link = document.getElementById('breakout-link');
+
+            // 1. KILL THE CLICK: Prevents accidental taps from doing anything
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+            }, { capture: true });
+
+            // 2. PREVENT TAP-RELEASE: Stops the browser from following the link on let-go
+            link.addEventListener('touchend', (e) => {
+                // We only prevent if it's a quick tap. 
+                // Long-press usually triggers the system menu before touchend fires.
+                e.preventDefault();
+            }, { passive: false });
+
+            // 3. THE GLOBAL SCROLL LOCK
             const prevent = (e) => { 
-                // This allows the user to still long-press or click the link
-                if (e.target.id === 'breakout-link') return;
+                // Allow touchstart on the link so the long-press menu can trigger
+                if (e.target.id === 'breakout-link' && e.type === 'touchstart') return;
                 
                 e.preventDefault(); 
                 e.stopPropagation(); 
             };
 
-            // Global listeners to lock everything except the link
             ['touchstart', 'touchmove', 'wheel'].forEach(ev => {
                 window.addEventListener(ev, prevent, { passive: false, capture: true });
             });
