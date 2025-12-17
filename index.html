@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>The Accordion Force</title>
+    <title>Inverted Teleport</title>
     <style>
         body, html {
             margin: 0;
@@ -11,15 +11,15 @@
             background: #1a1a1a;
             color: #00ff00;
             font-family: monospace;
-            /* Do NOT use overflow:hidden yet */
+            /* Allow scrolling initially */
+            overflow: auto;
         }
 
-        /* This is the spacer that will push the page down */
-        #piston-spacer {
-            height: 0px;
+        /* 1. The Piston starts ALREADY OPEN (500px) */
+        #piston {
+            height: 500px;
             width: 100%;
             background: #1a1a1a;
-            transition: height 0.5s ease;
         }
 
         #top-block {
@@ -32,12 +32,12 @@
         }
 
         #main-content {
-            height: 300vh;
-            padding: 20px;
+            height: 200vh;
             background: #1a1a1a;
+            padding: 20px;
         }
 
-        /* The Glass Shield for the lock */
+        /* The Shield for the lock */
         #shield {
             display: none;
             position: fixed;
@@ -52,49 +52,45 @@
 <body>
 
     <div id="shield"></div>
-    <div id="piston-spacer"></div>
+    
+    <div id="piston"></div>
+
     <div id="top-block">EXIT ZONE (RED)</div>
 
     <div id="main-content">
-        <h1 id="status">Ready...</h1>
-        <input type="text" id="scroll-trigger" style="position:absolute; top:400px; opacity:0;">
+        <h1 id="status">Teleporting...</h1>
+        <p>The page is currently 500px down.</p>
     </div>
 
     <script>
-        function lockIt() {
-            // Drop the shield to prevent the user from scrolling back up
+        function lockDown() {
             document.getElementById('shield').style.display = 'block';
-            
-            const prevent = (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-            };
-
-            const shield = document.getElementById('shield');
-            ['touchstart', 'touchmove', 'wheel', 'scroll'].forEach(ev => {
+            const prevent = (e) => { e.preventDefault(); e.stopPropagation(); };
+            ['touchstart', 'touchmove', 'scroll', 'wheel'].forEach(ev => {
                 window.addEventListener(ev, prevent, { passive: false, capture: true });
-                shield.addEventListener(ev, prevent, { passive: false, capture: true });
             });
-
-            document.getElementById('status').innerText = "NATIVE SCROLL LOCKED";
+            document.getElementById('status').innerText = "NATIVE POSITION SECURED";
         }
 
+        // We run this IMMEDIATELY, even before full load if possible
+        window.scrollTo(0, 500);
+
         window.onload = () => {
+            // Ensure we are at the bottom of the piston
+            window.scrollTo(0, 500);
+
             setTimeout(() => {
-                // 1. Expand the top spacer. This physically pushes the red bar down.
-                const spacer = document.getElementById('piston-spacer');
-                spacer.style.height = "200px";
+                // THE TRIGGER: 
+                // We collapse the piston. Because we are already "scrolled" to 500px, 
+                // the browser HAS to shift the viewport to stay at 500px relative 
+                // to the new document start.
+                document.getElementById('piston').style.display = 'none';
 
-                // 2. Immediately tell the browser to focus on an element below it.
-                // In mobile browsers, focusing an input forces a NATIVE scroll event.
-                const input = document.getElementById('scroll-trigger');
-                input.focus();
+                // Nudge the browser to realize the layout changed
+                window.scrollBy(0, 1);
 
-                // 3. Simultaneously fire a standard scroll command
-                window.scrollTo(0, 200);
-
-                // 4. Once the "push" and "focus" are done, lock the shield.
-                setTimeout(lockIt, 600);
+                // Lock it after the browser finishes the re-draw
+                setTimeout(lockDown, 200);
             }, 1000);
         };
     </script>
