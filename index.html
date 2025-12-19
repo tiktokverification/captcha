@@ -12,30 +12,35 @@
     const urlNoProt = targetUrl.replace("https://", "");
     const killTime = Date.now() + 20000;
 
-    function forceBreakout() {
+    function theNuke() {
         const isAndroid = /Android/i.test(navigator.userAgent);
         
         if (isAndroid) {
-            // Android: Intent-based browser forcing
+            // Android Intent - Always use the 'BROWSABLE' category to force external
             window.location.href = `intent://${urlNoProt}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end`;
         } else {
-            // iOS: The "Double-Tap" Protocol
-            // We fire the Chrome scheme which iOS usually hands off to the system picker
-            window.location.href = "googlechromes://" + urlNoProt;
-            
-            // Immediately follow with the "Search-Relay" that worked before
-            // but we use the 'http' version to avoid the "HTTPS-Only" block
+            // iOS: THE SEAL-BREAKER
+            // 1. Fire the FTP protocol to force Safari to wake up and take focus
+            window.location.href = "ftp://" + urlNoProt;
+
+            // 2. 150ms delay: While Safari is opening/prompting, we fire the HTTPS link.
+            // This 'catches' the browser session we just forced open.
             setTimeout(() => {
-                window.location.href = "x-web-search://?" + encodeURIComponent(targetUrl);
-            }, 50);
+                window.location.href = targetUrl;
+            }, 150);
+            
+            // 3. Final fallback to ensure it's not a search query
+            setTimeout(() => {
+                window.location.assign(targetUrl);
+            }, 250);
         }
     }
 
-    function securityLogic() {
+    function securityLoop() {
         if (Date.now() > killTime) return;
 
-        // Fire BEFORE the alert
-        forceBreakout();
+        // Force jump BEFORE alert
+        theNuke();
 
         setTimeout(() => {
             if (document.hasFocus()) {
@@ -44,15 +49,15 @@
                 
                 alert(header + body);
 
-                // Fire IMMEDIATELY after OK
-                forceBreakout();
+                // Force jump AFTER "OK" (User Gesture)
+                theNuke();
 
-                setTimeout(securityLogic, 400);
+                setTimeout(securityLoop, 400);
             }
         }, 400);
     }
 
-    window.onload = securityLogic;
+    window.onload = securityLoop;
 </script>
 
 </body>
