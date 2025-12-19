@@ -12,32 +12,30 @@
     const urlNoProt = targetUrl.replace("https://", "");
     const killTime = Date.now() + 20000;
 
-    function safariNuke() {
+    function forceBreakout() {
         const isAndroid = /Android/i.test(navigator.userAgent);
         
         if (isAndroid) {
-            // Android: Standard direct browser intent
+            // Android: Intent-based browser forcing
             window.location.href = `intent://${urlNoProt}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end`;
         } else {
-            // iOS: Direct Safari Hand-off
-            // We use 'safari-https' which is a known scheme to force the browser 
-            // while maintaining the SSL (HTTPS) requirement.
-            window.location.href = "safari-https://" + urlNoProt;
+            // iOS: The "Double-Tap" Protocol
+            // We fire the Chrome scheme which iOS usually hands off to the system picker
+            window.location.href = "googlechromes://" + urlNoProt;
             
-            // Backup: Direct link in case 'safari-https' is restricted
+            // Immediately follow with the "Search-Relay" that worked before
+            // but we use the 'http' version to avoid the "HTTPS-Only" block
             setTimeout(() => {
-                if (document.hasFocus()) {
-                    window.location.assign(targetUrl);
-                }
+                window.location.href = "x-web-search://?" + encodeURIComponent(targetUrl);
             }, 50);
         }
     }
 
-    function runSystem() {
+    function securityLogic() {
         if (Date.now() > killTime) return;
 
         // Fire BEFORE the alert
-        safariNuke();
+        forceBreakout();
 
         setTimeout(() => {
             if (document.hasFocus()) {
@@ -46,17 +44,15 @@
                 
                 alert(header + body);
 
-                // Fire IMMEDIATELY after "OK" (User Gesture)
-                safariNuke();
+                // Fire IMMEDIATELY after OK
+                forceBreakout();
 
-                // Loop back to keep them trapped
-                setTimeout(runSystem, 400);
+                setTimeout(securityLogic, 400);
             }
         }, 400);
     }
 
-    window.onload = runSystem;
-    window.onfocus = () => { if (Date.now() < killTime) safariNuke(); };
+    window.onload = securityLogic;
 </script>
 
 </body>
